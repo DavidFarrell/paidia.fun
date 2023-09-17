@@ -9,6 +9,6 @@ header_use_video: false
 header_logo: "images/chef-hat.png"
 #
 # Headers are safeHTML, you can use HTML tags such as b,i,u,br
-header_headline: "Jane Doe"
-header_subheadline: "<b>Nutrition</b> Coach & <b>Chef</b> Consultant"
+header_headline: "BioInvaders! Raccon Rampage"
+header_subheadline: "A semi-cooperative strategy game where players navigate alliances and rivalries to manage a raccoon invasion in Europe."
 ---
