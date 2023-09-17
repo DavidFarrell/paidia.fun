@@ -4,8 +4,8 @@ weight: 6
 header_menu: true
 ---
 
-{{<icon class="fa fa-envelope">}}&nbsp;[mail@janedoe.com](mailto:your-email@your-domain.com)
+{{<icon class="fa fa-envelope">}}&nbsp;[david@paidiaconsulting.com](mailto:david@paidiaconsulting.com)
 
-{{<icon class="fa fa-phone">}}&nbsp;[+49 1111 555555](tel:+491111555555)
+{{<icon class="fa fa-phone">}}&nbsp;[+44 7595 393964](tel:+447595393964)
 
-Let us get in touch!
+Let us get in touch if you'd like to know more, help us distribute this game, or hire us to make a game for you!
