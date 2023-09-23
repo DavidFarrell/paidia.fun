@@ -21,7 +21,7 @@ That is the important part, right? You want to know what I can do for you. This 
 
 * We are showing the game in the Prototype Gallery
 * [Hall 4, Stand 4F106 - Table 4](images/hallplan.png)
-* Let's talk about marketing, sales, and distribution.
+* Let's talk about marketing, sales, and distribution
 
 {{<icon class="fa fa-envelope">}}&nbsp;[games@paidia.fun](mailto:games@paidia.fun)
 {{<icon class="fa fa-phone">}}&nbsp;[+44 7595 393964](tel:+447595393964)
