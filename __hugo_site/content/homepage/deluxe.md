@@ -32,7 +32,7 @@ That is the important part, right? You want to know what I can do for you. This 
 
 ## The prototype
 
-We've some printed prototypes and we're ready to go into production with the right partner. 
+We have some printed prototypes and we're ready to go into production with the right partner. 
 
 ![an image of the back of the Raccoon Rampage box showing the full contents](images/4x/website_backofBox.png)
 
