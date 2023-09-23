@@ -1,7 +1,7 @@
 ---
 title: "Deluxe Boxed Edition"
-header_menu_title: "Deluxe Boxed Edition"
-navigation_menu_title: "Deluxe Boxed Edition"
+header_menu_title: "⚠️Attention Publishers⚠️"
+navigation_menu_title: "⚠️Attention Publishers⚠️"
 weight: 2
 header_menu: true
 ---
@@ -17,16 +17,25 @@ That is the important part, right? You want to know what I can do for you. This 
 
 ---
 
-### Who is the publisher?
+## We are at Spiel to find a publisher
 
-We are at Spiel figuring this out!
+* We are showing the game in the Prototype Gallery
+* [Hall 4, Stand 4F106 - Table 4](images/hallplan.png)
+* Let's talk about marketing, sales, and distribution.
 
-![Look at how good this looks](images/box.png)
+{{<icon class="fa fa-envelope">}}&nbsp;[games@paidia.fun](mailto:games@paidia.fun)
+{{<icon class="fa fa-phone">}}&nbsp;[+44 7595 393964](tel:+447595393964)
 
-### The prototype
 
-We made this ACE game and brought it to Spiel in a prototype form
 
-![Look at how good this looks](images/back_of_box.png)
+![image of the Raccoon Rampage box](images/box.jpg)
 
-Want to learn more about getting your hands on this game check [dedicated page](services) for more details.
+## The prototype
+
+We've some printed prototypes and we're ready to go into production with the right partner. 
+
+![an image of the back of the Raccoon Rampage box showing the full contents](images/4x/website_backofBox.png)
+
+<!-- 
+Want to learn more about getting your hands on this game check [dedicated page](services) for more details. 
+-->

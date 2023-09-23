@@ -5,7 +5,11 @@ body {
 }
 /* ===== Cover =======*/
 
-
+/* 
+p {
+  font-family: 'Littlejoodles-Regular', sans-serif;
+}
+*/
 
 #blog-logo {
   display: block;
@@ -13,6 +17,29 @@ body {
   width: auto;
   margin: 0 auto;
   line-height: 0;
+}
+
+
+/* creating css to support a hugo shortcode for the logo & test */
+
+.flex-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;  /* Add some margin below each image-text block, if needed */
+  }
+
+  .post-content .left-aligned-image {
+    margin: 0;
+    margin-right: 10px;
+    margin-left: 0;  /* This will override the margin-left: auto; style */
+}
+
+  
+
+
+blockquote {
+  font-family: 'Littlejoodles-Regular', sans-serif;
+  font-size: 1.5em;
 }
 
 #site-head.withCenteredImage{
@@ -47,6 +74,7 @@ body {
     width: auto;
     z-index: -100;
   }
+
 
   .title-and-description-guard {
     margin: auto;
