@@ -1,5 +1,5 @@
 ---
-title: "Deluxe Boxed Edition"
+title: "Boxed Edition"
 header_menu_title: "⚠️Attention Publishers⚠️"
 navigation_menu_title: "⚠️Attention Publishers⚠️"
 weight: 2
