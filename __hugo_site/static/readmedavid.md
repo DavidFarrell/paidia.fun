@@ -13,5 +13,6 @@ you can SAFELY delte *everything* in that root folder except
 CNAME
 __hugo_site
 readme.md
+.gitmodules
 
 and you can then copy / paste all the stuff from public into that root folder
