@@ -45,6 +45,10 @@ body {
   /* can't be used together with video */
   background: var(--section-light-bg-color) no-repeat center center; }
 
+#site-head-content {
+  transform: translateY(-100px);
+  /* Adjust this value */ }
+
 #site-head, #site-head.withCenteredImage {
   position: relative;
   display: table;
@@ -74,6 +78,7 @@ body {
     border-radius: 25px;
     width: fit-content; }
   #site-head .blog-title, #site-head.withCenteredImage .blog-title {
+    font-family: 'Monthoers', sans-serif;
     margin: 10px 0 10px 0;
     font-size: 5rem;
     letter-spacing: -1px;
@@ -83,7 +88,7 @@ body {
     font-size: 2.5rem;
     line-height: 1.5em;
     font-weight: 400;
-    font-family: "Roboto Slab", serif;
+    font-family: "Handwriting-Regular", "Roboto Slab", serif;
     letter-spacing: 0;
     text-shadow: var(--cover-title-text-shadow); }
   #site-head a.btn, #site-head.withCenteredImage a.btn {
@@ -152,6 +157,7 @@ a.fn-item {
 
 /* ========= Content ==========*/
 .post-title {
+  font-family: 'Monthoers', sans-serif;
   margin: 0; }
   .post-title a {
     text-decoration: none; }
