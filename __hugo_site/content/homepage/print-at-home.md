@@ -19,4 +19,8 @@ weight: 4
 header_menu: true
 ---
 
-You can download a bunch of pdfs [here](https://r.mtdv.me/giveaways/raccoonU).
+If you would like to print and play the game at home you can!
+
+You'll need to find some cubes and dice and some stickets to customise the dice.
+
+You can download a pdfs of all of the game materials [here](https://drive.google.com/drive/folders/1-e6cflQpfSyT44m1Fbci9uKY3zCGWKIz?usp=sharing).

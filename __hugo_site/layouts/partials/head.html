@@ -24,6 +24,9 @@
 {{ $stylesheetFonts := resources.Get "css/fonts.css" }}
 {{ $stylesheetGeneric := resources.Get "css/generic.css" }}
 
+
+
+
 {{ $stylesheetScreen := ( resources.Get "css/_index.scss" | resources.ToCSS ) }}
 
 {{ $stylesheet := slice $stylesheetNormalize $stylesheetFA $stylesheetFonts $stylesheetGeneric $stylesheetScreen | resources.Concat "css/style.css" | resources.Minify | resources.Fingerprint }}
@@ -32,6 +35,9 @@
 {{ template "_internal/opengraph.html" . }}
 {{ template "_internal/twitter_cards.html" . }}
 {{ template "_internal/schema.html" . }}
+
+
+<script src="https://kit.fontawesome.com/4e92a1b5fc.js" crossorigin="anonymous"></script>
 
 <style>
   @font-face {
@@ -46,9 +52,16 @@
     font-weight: normal;
     font-style: normal;
   }
+  @font-face {
+    font-family: 'Littlejoodles-Regular';
+    src: url('/fonts/Littlejoodles-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+  }
 </style>
 
 <!-- A partial to be overwritten by the user.
      Simply place a custom_head.html into
      your local /layouts/partials-directory -->
 {{- partial "custom_head.html" . -}}
+
