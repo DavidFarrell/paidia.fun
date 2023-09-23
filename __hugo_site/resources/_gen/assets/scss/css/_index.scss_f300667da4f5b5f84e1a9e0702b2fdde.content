@@ -46,7 +46,7 @@ body {
   background: var(--section-light-bg-color) no-repeat center center; }
 
 #site-head-content {
-  transform: translateY(-100px);
+  transform: translateY(-75px);
   /* Adjust this value */ }
 
 #site-head, #site-head.withCenteredImage {
