@@ -1,6 +1,6 @@
 ---
 title: "Players"
 header_menu: true
-external: https://paidia.fun/__public_site/public/
+external: https://paidia.fun/players/index.html
 weight: 3
 ---

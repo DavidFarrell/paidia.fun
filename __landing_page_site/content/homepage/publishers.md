@@ -1,7 +1,7 @@
 ---
 title: "Publishers"
 header_menu: true
-external: /__publisher_site/public/
+external: /publisher/index.html
 weight: 2
 ---
 
