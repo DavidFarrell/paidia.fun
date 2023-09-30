@@ -1,14 +1,12 @@
-Ok so the __landing_page_site is the thing you edit
-you spin up hugo -server -w and it runs it locally
-hugo server --poll 700ms 
+There are three separate Hugo websites here.
+hugo server to run locally
+hugo to build
 
-you run hugo and it builds it
+when you build it creates a public folder
 
-You used font-awesome for those wee icons at the bottom and with an accound based on paidia.fun (i.e. games at that domain)
-
-
-when it builds it it shoves it all in public
-you can SAFELY delte *everything* in that root folder except
+Inside __landing_page_site is the main landing page with the two buttons.
+Build that
+then delete most of the stuff from root except these 
 
 CNAME
 __landing_page_site
@@ -17,9 +15,18 @@ __public_site
 readme.md
 .gitmodules
 
-and you can then copy / paste all the stuff from public into that root folder - FOR LANDING PAGE
+then cut the contents of __landing_page_site/public and paste them in root
 
-for publisher copy the public folder contents from __publisher_site  to publishers/ 
-for players copy public folder contents from __public_site to players/
 
-NOTE YOU EDIT THIS IN __LANDING_PAGE/STATIC/READMEDAVID.MD
+You do something similar for the other two sites.
+
+
+Inside __publisher_site is the publisher page
+You want to cut the contents out of that and paste them in "publishers" under root
+
+Inside __public_site is the public facing website.
+You want to cut the contents out of that and paste them in "players" under root
+
+You used font-awesome for those wee icons at the bottom and with an account based on paidia.fun (i.e. games at that domain)
+
+Note - to edit *this* file you do so in __landing_page_site/static/readmedavid.md
