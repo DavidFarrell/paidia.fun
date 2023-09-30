@@ -1,4 +1,4 @@
-Ok so the __hugo_site is the thing you edit
+Ok so the __landing_page_site is the thing you edit
 you spin up hugo -server -w and it runs it locally
 hugo server --poll 700ms 
 
@@ -17,6 +17,9 @@ __public_site
 readme.md
 .gitmodules
 
-and you can then copy / paste all the stuff from public into that root folder
+and you can then copy / paste all the stuff from public into that root folder - FOR LANDING PAGE
+
+for publisher copy the public folder contents from __publisher_site  to publishers/ 
+for players copy public folder contents from __public_site to players/
 
 NOTE YOU EDIT THIS IN __LANDING_PAGE/STATIC/READMEDAVID.MD
