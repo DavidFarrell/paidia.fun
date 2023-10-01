@@ -11,6 +11,8 @@ theme = "hugo-scroll"
 # The browser tab name
 title = "BioInvaders: Raccoon Rampage"
 
+publishdir = "../players"
+
 # In order to add version information in the page's footer set to true.
 # enableGitInfo = true
 
