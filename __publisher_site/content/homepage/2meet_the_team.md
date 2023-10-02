@@ -4,8 +4,6 @@ weight: 4
 header_menu: true
 ---
 
-## We are at Spiel to find a publisher
-
 * We are showing the game in the Prototype Gallery
 * [Hall 4, Stand 4F106 - Table 4](images/hallplan.png)
 * Let's talk about marketing, sales, and distribution
