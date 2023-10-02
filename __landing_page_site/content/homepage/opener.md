@@ -1,11 +1,9 @@
 ---
-title: "The Game"
+title: "What is Raccon Rampage?"
 weight: 1
 ---
 
-Did you ever think you’d be dealing with a raccoon crisis in Europe? Dive in to discover how the North American Raccoon is wreaking havoc far from home.
-
-Perfect for 3-4 players in classrooms or on family game nights, this game is ideal for fostering negotiation skills while learning about how to tackle real-world ecological challenges.
+Raddoon Rampage is a quick paced game of negotiation and strategy for 3 to 4 players.  Perfect for family game nights or for classroom environments, in this semi-cooperative game players have to work as a team to save Europe from invading Racoons while figuring out how to one-up their opponents.
 
 >My friends and I had a great night playing Raccoon Rampage. It is fun, challenging and on top of it all, it looks amazing!
 
