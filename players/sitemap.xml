@@ -3,19 +3,19 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
-    <loc>https://paidia.fun/</loc>
+    <loc>https://paidia.fun/players/</loc>
   </url>
   
   <url>
-    <loc>https://paidia.fun/categories/</loc>
+    <loc>https://paidia.fun/players/categories/</loc>
   </url>
   
   <url>
-    <loc>https://paidia.fun/services/</loc>
+    <loc>https://paidia.fun/players/services/</loc>
   </url>
   
   <url>
-    <loc>https://paidia.fun/tags/</loc>
+    <loc>https://paidia.fun/players/tags/</loc>
   </url>
   
 </urlset>
