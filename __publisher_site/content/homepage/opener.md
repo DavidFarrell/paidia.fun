@@ -1,12 +1,7 @@
 ---
-title: "The Game"
+title: "What is Raccoon Rampage?"
 weight: 1
 ---
 
-Did you ever think you’d be dealing with a raccoon crisis in Europe? Dive in to discover how the North American Raccoon is wreaking havoc far from home.
+Raccoon Rampage is a fast paced, family friendly negotiation game featuring gorgeous, humerous raccoon themed cards that puts players in the superposition of having to play as a team as well as compete against each other in an attempt to stop raccoons invading europe.
 
-Perfect for 3-4 players in classrooms or on family game nights, this game is ideal for fostering negotiation skills while learning about how to tackle real-world ecological challenges.
-
->My friends and I had a great night playing Raccoon Rampage. It is fun, challenging and on top of it all, it looks amazing!
-
-\---Anouk Tuijnman

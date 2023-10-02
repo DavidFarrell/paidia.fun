@@ -1,20 +1,7 @@
 ---
-title: "Boxed Edition"
-header_menu_title: "⚠️Attention Publishers⚠️"
-navigation_menu_title: "⚠️Attention Publishers⚠️"
-weight: 2
+title: "Meet us at Spiel"
+weight: 4
 header_menu: true
----
-
-<!--
-Feature notice: This section displays options to customize title:
-- has a normal section title (`title` = "Raccoon Rampge: Deluxe Edition"),
-- custom welcome screen title (`header_menu_title` = "CustomWelcomeTitle"),
-- custom navigation menu title (`navigation_menu_title` = "CustomNav menu").
-
-That is the important part, right? You want to know what I can do for you. This is why I put this right up there into the header menu of the website.
--->
-
 ---
 
 ## We are at Spiel to find a publisher
@@ -29,8 +16,6 @@ That is the important part, right? You want to know what I can do for you. This 
 
 
 ![image of the Raccoon Rampage box](images/box.jpg)
-
-## The prototype
 
 We have some printed prototypes and we're ready to go into production with the right partner. 
 
