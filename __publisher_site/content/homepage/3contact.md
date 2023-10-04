@@ -1,11 +1,11 @@
 ---
 title: "Contact"
-weight: 5
+weight: 6
 header_menu: true
 ---
-Dr Jonathan Jeschke (science) and Dr David Farrell (games) are the two project leads.  We are both at Spiel with some key members of our team and would love to meet you!  
+Dr. Jonathan Jeschke (science) and Dr. David Farrell (games) are the two project leads. We are both at Spiel with some key members of our team and would love to meet you!  
 
-Jonathan is an expert in invasion biology and other ecological science and David is an expert in (educational) game design who had 18 years experience working on a range of academic and commercial games.  
+Jonathan is an expert in invasion biology and other ecological science. David is an expert in (educational) game design who has 18 years experience working on a range of academic and commercial games.  
 
 
 {{<icon class="fa fa-envelope">}}&nbsp;[games@paidia.fun](mailto:games@paidia.fun)

@@ -8,12 +8,9 @@ header_menu: true
 
 The easiest way to learn the game is to watch this video (coming tomorrow!)
 
-You can download the rules [here](https://drive.google.com/file/d/1UyJcgG0IJSopPgfmYNDaRMrx9D0HcvmE/view?usp=sharing).
+You can download the rulebook [here](https://drive.google.com/file/d/14Nng7MsOQp2H0pkIXKGODv16xZxWK8lO/view?usp=sharing).
 
-So far, we've mostly been teaching people how to play in person so the rules are quite new and haven't been tested much.
-
-If you have any feedback or questions about the rules we'd love to have that feedback.  
-
+If you have any feedback or questions about the rules we'd love to hear that feedback.  
 
 {{<icon class="fa fa-envelope">}}&nbsp;[games@paidia.fun](mailto:games@paidia.fun)
 
