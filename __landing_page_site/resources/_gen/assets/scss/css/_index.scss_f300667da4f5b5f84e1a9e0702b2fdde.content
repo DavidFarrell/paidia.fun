@@ -188,6 +188,12 @@ a.fn-item {
   .post-title a {
     text-decoration: none; }
 
+.header-link:hover {
+  color: inherit;
+  /* Keeps the font color unchanged on hover */
+  text-decoration: none;
+  /* Removes underline on hover */ }
+
 .post-holder {
   width: 100%;
   height: 100%;
@@ -243,6 +249,16 @@ a.fn-item {
 
 .post-template .post-header {
   padding: 60px 0; }
+
+.header-link {
+  text-decoration: none;
+  /* Removes the default underline from the anchor link */ }
+
+.header-link:hover {
+  color: inherit;
+  /* Keeps the font color unchanged on hover */
+  text-decoration: none;
+  /* Ensures underline remains removed even on hover */ }
 
 .post-content img {
   display: block;

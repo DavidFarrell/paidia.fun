@@ -273,6 +273,19 @@ a.fn-item {
   }
 }
 
+
+
+//df just to stop header colour changing on mousover
+.header-link {
+  text-decoration: none; /* Removes the default underline from the anchor link */
+}
+
+.header-link:hover {
+  color: inherit; /* Keeps the font color unchanged on hover */
+  text-decoration: none; /* Ensures underline remains removed even on hover */
+}
+
+
 // Keep large images within the bounds of the post-width
 .post-content img {
   display: block;
