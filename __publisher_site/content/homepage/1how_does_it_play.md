@@ -1,5 +1,5 @@
 ---
-title: "How does it play?"
+title: "how does it play?"
 header_menu_title: "How does it play?"
 navigation_menu_title: "How does it play?"
 weight: 3
@@ -21,16 +21,16 @@ The game features a mix of strategic planning and social negotiation.  Players p
 
 What's unique about the experience is the mix of playing as a team as well as fighting to win solo.
 
-Like Pandemic, players are working together to stop the spread of a (raccoon) invasion.  But unlike Pandemic players individually want to win.  This means a lot of backstabbing that can lead to everyone failing, but if you play too nice... you're not going to win!
+Like Pandemic, players are working together to stop the spread of a (raccoon) invasion.  But, unlike Pandemic, players individually want to win.  This means a lot of backstabbing that can lead to everyone failing, but if you play too nice... you're not going to win!
 
 Key features:
 * ages 12+
-* 3 or 4 player
+* 3 or 4 players
 * 45 - 60 mins
 * over 160 beautiful cards
 * four storylines (that can be mashed up)
 * a large game board
-* four unique player roles each with a unique deck and player mat
+* four unique player roles each with their own unique decks and player boards
 
 
 ## Four player decks made of policy and action cards
@@ -46,10 +46,10 @@ Action cards let players *mess* with each other.  Whether it's stealing votes, s
 Each deck also has a mix of standard and unique action cards (white border).
 
 
-## Four storylines that can be mashed up for varaitions
+## Four storylines that can be mashed up for variations
 
 ![image of story cards](images/story_cards.jpg)
-Every round a new story card is flipped.  These story cards put pressure on players to work together puts their personal goals in tension with the group mission.  Every vote counts - do we act on the story event for immediate benefit? or do we keep working towards preventing the invasion?
+Every round a new story card is flipped.  These story cards put pressure on players to work together and put their personal goals in conflict with the group mission.  Every vote counts - do we act on the story event for immediate benefit? Or do we instead invest in longer term goals?
 
 
 <!-- 

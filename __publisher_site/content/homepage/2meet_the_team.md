@@ -1,10 +1,10 @@
 ---
-title: "Meet us at Spiel"
+title: "meet us at spiel"
 weight: 4
 header_menu: true
 ---
 
-* We are showing the game in the education day on Friday as well as the Prototype Gallery
+* We are showing the game at the Education Day on Friday as well as at the Prototype Gallery
 * [Hall 4, Stand 4F106 - Table 4](images/hallplan.png)
 * Let's talk about marketing, sales, and distribution
 
