@@ -18,4 +18,4 @@ Perfect for 3-4 players in classrooms or on family game nights, this game is ide
 
 >My friends and I had a great night playing Raccoon Rampage. It is fun, challenging and on top of it all, it looks amazing!
 
-\---Anouk Tuijnman
+\--Anouk Tuijnman

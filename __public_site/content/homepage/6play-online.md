@@ -1,5 +1,5 @@
 ---
-title: "Play Online"
+title: "play online"
 weight: 6
 
 header_menu: true

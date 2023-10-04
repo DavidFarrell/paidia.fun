@@ -1,5 +1,5 @@
 ---
-title: "How to Play"
+title: "how to play"
 header_menu_title: "How to Play"
 navigation_menu_title: "How to Play"
 weight: 4

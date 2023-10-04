@@ -1,5 +1,5 @@
 ---
-title: "Contact"
+title: "contact"
 weight: 7
 header_menu: true
 ---

@@ -1,5 +1,5 @@
 ---
-title: "Credits"
+title: "credits"
 weight: 8
 header_menu: true
 ---

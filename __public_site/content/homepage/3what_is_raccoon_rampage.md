@@ -1,5 +1,5 @@
 ---
-title: "What is Raccoon Rampage?"
+title: "what is raccoon rampage?"
 header_menu_title: "What is Raccoon Rampage?"
 navigation_menu_title: "What is Raccoon Rampage?"
 weight: 3

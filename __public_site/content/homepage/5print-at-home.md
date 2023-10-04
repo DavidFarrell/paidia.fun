@@ -1,5 +1,5 @@
 ---
-title: "Print at Home"
+title: "print at home"
 header_menu_title: "Print at Home"
 navigation_menu_title: "Print at Home"
 weight: 5
