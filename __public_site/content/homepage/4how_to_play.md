@@ -6,7 +6,7 @@ weight: 4
 header_menu: true
 ---
 
-The easiest way to learn the game is to watch this video (coming tomorrow!)
+<!--The easiest way to learn the game is to watch this video (coming tomorrow!)-->
 
 You can download the rulebook [here](https://drive.google.com/file/d/14Nng7MsOQp2H0pkIXKGODv16xZxWK8lO/view?usp=sharing).
 
