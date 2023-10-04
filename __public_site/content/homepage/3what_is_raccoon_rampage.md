@@ -19,13 +19,13 @@ That is the important part, right? You want to know what I can do for you. This 
 
 ![image of Raccoon Rampage on a table](images/glamourshot.jpg)
 
-Raccoon Rampage is a semi-cooperative game where players work together to stop raccoons from invading Europe and destorying all of our stuff.
+Raccoon Rampage is a semi-cooperative game where players work together to stop raccoons from spreading further within Europe and destroying all of our stuff.
 
 It features a mix of strategic planning and social negotiation.  You pick policies to put into a queue, vote on policies *in* the queue, and dabble in chaos using action cards that manipulate things in your favour.  
 
 What's unique about the experience is that *yes* you have to work together.  But you also want to *beat everyone else*!
 
-Like Pandemic, you'll work with other players to stop the spread of a (🦝) invasion.  But unlike Pandemic you individually want to win.  This means a lot of backstabbing that can lead to everyone failing, but if you play too nice... you're not going to win!
+Like Pandemic, you'll work with other players to stop the spread of a (raccoon) invasion.  But unlike Pandemic you individually want to win.  This means a lot of backstabbing that can lead to everyone failing, but if you play too nice... you're not going to win!
 
 Key features:
 * ages 12+
@@ -52,10 +52,10 @@ Action cards let you *mess* with other players.  Whether it's stealing votes, sw
 Each deck also has a mix of standard and unique action cards (white border).
 
 
-## Four storylines that can be mashed up for varaitions
+## Four storylines that can be mashed up for variations
 
 ![image of story cards](images/story_cards.jpg)
-Every round a new story card is flipped.  These story cards put pressure on players to work together puts their personal goals in tension with the group mission.  Every vote counts - do we act on the story event for immediate benefit? or do we keep working towards preventing the invasion?
+Every round a new story card is flipped.  These story cards put pressure on players to work together and put their personal goals in conflict with the group mission.  Every vote counts - do we act on the story event for immediate benefit? Or do we instead invest in longer term goals?
 
 
 <!-- 
