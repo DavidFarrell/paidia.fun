@@ -1,6 +1,6 @@
 ---
 title: "Credits"
-weight: 7
+weight: 8
 header_menu: true
 ---
 {{< imageWithText src="images/4x/bw_logo_small.png" alt="Description" >}}Paidia is:{{< /imageWithText >}}

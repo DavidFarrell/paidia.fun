@@ -6,7 +6,7 @@ weight: 2
 header_menu: true
 ---
 
-![Play on Tabletopia](images/tabletopia.png)
+![Play on Tabletopia](images/glamourshot.jpg)
 
 ##### We need a partner
 

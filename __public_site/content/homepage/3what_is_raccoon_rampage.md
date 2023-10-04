@@ -34,14 +34,14 @@ Key features:
 * over 160 beautiful cards
 * four storylines (that can be mashed up)
 * a large game board
-* four unique player roles each with a unique deck and player mat
+* four unique player roles, each with a unique deck and player mat
 
 ![image of Raccoon Rampage back of box](images/back_of_box.png)
 
 ## Four player decks made of policy and action cards
 
 
-Each unique deck is a mix of **policy** and **action** cards.  On your turn, put a polic cards into a queue that you and the other players can vote on.  If a card gets enough votes, we move towards victory as a group but of course, each player wants *their* policies to win so they might not vote for you.
+Each unique deck is a mix of **policy** and **action** cards.  On your turn, put a policy card into a queue that you and the other players can vote on.  If a card gets enough votes, we move towards victory as a group but of course, each player wants *their* policies to win so they might not vote for you.
 
 ![image of policy cards](images/policy_cards.jpg)
 Each deck has a mix of standard and unique policy cards (black border).
