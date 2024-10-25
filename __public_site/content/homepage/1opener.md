@@ -6,7 +6,7 @@ weight: 1
 ![image of Raccoon Rampage on a table](images/box.jpg)
 
 
-Raccoons have invaded Europe and they're destroying all of our stuff! In this fast paced, semi-cooperative game you will work together to stop Raccoons from messing up our houses, eating our local wildlife, and causing mischief at the same time as trying to make sure YOU come out on top.
+Raccoons have invaded Europe (🦝) and they're destroying all of our stuff! In this fast paced, semi-cooperative game you will work together to stop Raccoons from messing up our houses, eating our local wildlife, and causing mischief at the same time as trying to make sure YOU come out on top.
 
 
 ![image of Raccoon Rampage on a table](images/morecards.jpg)
