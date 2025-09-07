@@ -39,7 +39,7 @@ experience.
 
 A Role-Playing Game aimed at expert and real life stakeholders that have to deal with invasive species, European BioInvasions covers multiple species and how we might manage them in different potential European futures.
 
-![Screenshot from Superbmarket showing the shopfront from outside, a digital narrative game about living wage and decent work](images/superbmarket.png)
+![Screenshot from Superbmarket showing the shopfront from outside, a digital narrative game about living wage and decent work](images/SuperbMarket.png)
 ### Superbmarket
 
 A digital narrative game that draws on science concerning living wages and decent work. Developed in partnership with the University of Glasgow and University of Edinburgh, Superbmarket can be used to develop understanding of the impact of poor quality and low paid work for employees and their leaders.
