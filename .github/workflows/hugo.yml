@@ -46,7 +46,7 @@ jobs:
         run: |
           hugo \
             --minify \
-            --baseURL "https://raccoonrampage.ecologygames.eu"
+            --baseURL "https://paidia.fun"
       # Debug step to inspect the build output
       - name: Debug Hugo build output
         run: |
