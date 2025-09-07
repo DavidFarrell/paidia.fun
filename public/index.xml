@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Paidia</title>
+    <link>http://localhost:1313/</link>
+    <description>Recent content on Paidia</description>
+    <generator>Hugo</generator>
+    <language>en-gb</language>
+    <lastBuildDate>Fri, 14 Apr 2023 12:00:00 +0100</lastBuildDate>
+    <atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Welcome to Ecology Games</title>
+      <link>http://localhost:1313/posts/welcome-to-ecology-games/</link>
+      <pubDate>Fri, 14 Apr 2023 12:00:00 +0100</pubDate>
+      <guid>http://localhost:1313/posts/welcome-to-ecology-games/</guid>
+      <description>&lt;p&gt;Welcome to Ecology Games, a project dedicated to creating educational and entertaining games focused on ecological concepts and environmental awareness.&lt;/p&gt;&#xA;&lt;p&gt;Our mission is to make learning about ecology fun and engaging for people of all ages. Through interactive games and simulations, we aim to increase understanding of environmental issues and inspire action towards a more sustainable future.&lt;/p&gt;&#xA;&lt;p&gt;Stay tuned for our upcoming games and educational resources!&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>
