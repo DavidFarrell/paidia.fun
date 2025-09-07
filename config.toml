@@ -9,7 +9,7 @@ theme = 'hugo-scroll'
       unsafe = true
 
 [params]
-  favicon = ""
+  favicon = "favicon.png"
   site_logo = ""
   description = "Finding the play in problems"
   facebook = ""
