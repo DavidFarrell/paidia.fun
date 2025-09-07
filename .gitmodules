@@ -1,0 +1,9 @@
+[submodule "__public_site/themes/hugo-scroll"]
+    path = __public_site/themes/hugo-scroll
+    url = https://github.com/zjedi/hugo-scroll.git
+[submodule "__publisher_site/themes/hugo-scroll"]
+    path = __publisher_site/themes/hugo-scroll
+    url = https://github.com/zjedi/hugo-scroll.git
+[submodule "__landing_page_site/themes/hugo-scroll"]
+    path = __landing_page_site/themes/hugo-scroll
+    url = https://github.com/zjedi/hugo-scroll.git
