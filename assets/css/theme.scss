@@ -19,6 +19,11 @@ p {
   line-height: 0;
 }
 
+@media (min-width: 900px) {
+  #blog-logo {
+    max-height: 180px; // Increase logo size for desktop
+  }
+}
 
 /* creating css to support a hugo shortcode for the logo & test */
 
