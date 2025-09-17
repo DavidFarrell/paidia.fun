@@ -7,7 +7,7 @@ header_use_video: false
 #
 # Optional header logo. CSS: `#blog-logo`, with max-height defined, optimize to prevent scaling
 #header_logo: "images/title_logo.png"
-header_logo: "images/bw_logo.png"
+header_logo: "images/logo_blue.png"
 #
 # Headers are safeHTML, you can use HTML tags such as b,i,u,br
 
