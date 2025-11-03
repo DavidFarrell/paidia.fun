@@ -19,10 +19,10 @@ weight: 30
 header_menu: true
 ---
 
-Paidia is led by Dr. David Gérouville-Farrell, who brings over 20 years of experience in technology and design-related fields. While at Glasgow Caledonian University, Dr. Gérouville-Farrell led a research team and managed projects totaling £2.5 million over seven years.
+Paidia is led by Dr. David Farrell, who brings over 20 years of experience in technology and design-related fields. While at Glasgow Caledonian University, Dr. Farrell led a research team and managed projects totaling £2.5 million over seven years.
 
 The research team specialized in developing serious games in collaboration with subject matter experts from other universities. Their work focused on game design pedagogy and effectively communicating complex concepts through interactive entertainment, while their academic partners contributed expertise in their respective fields. Notable collaborations include working with Purdue University and Oxford University on climate change simulation games designed for international diplomats.
 
-Dr. Gérouville-Farrell has authored approximately 40 papers in the field of educational and serious game design and has developed and designed more than 10 games in this space. His expertise lies in translating intricate ideas into engaging game systems, including digital games, board games, and role-playing games. His skills extend to game design, computer science, artificial intelligence, and public science communication.
+Dr. Farrell has authored approximately 40 papers in the field of educational and serious game design and has developed and designed more than 10 games in this space. His expertise lies in translating intricate ideas into engaging game systems, including digital games, board games, and role-playing games. His skills extend to game design, computer science, artificial intelligence, and public science communication.
 
-Paidia continues this legacy, consisting of Dr. Gérouville-Farrell and his former research team from Glasgow Caledonian University. Together, they partner with academic subject matter experts to transform research into impactful, game-based experiences that effectively engage audiences.
+Paidia continues this legacy, consisting of Dr. Farrell and his former research team from Glasgow Caledonian University. Together, they partner with academic subject matter experts to transform research into impactful, game-based experiences that effectively engage audiences.
