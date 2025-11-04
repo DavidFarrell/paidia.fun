@@ -1,16 +1,18 @@
 :root {
-  /* light  #e0dfe6 dark #1f2a33  sticky menu #D2B5C7  */
+  /* light  #FFFDE8 dark #5F4A52  sticky menu #D2B5C7  */
   /* === Cover / Landing area === */
   --cover-text-color: #1f2a33;
   /* Used for Landing screen menu buttons, but potentially usable for highlighting other things */
-  --highlight: #e0dfe6;
-  --highlight-contrast: var(--cover-text-color);
-  /*iverse colors used for :hover */
-  --highlight-inverse: var(--cover-text-color);
-  --highlight-inverse-contrast: white;
+  --cover-button-bg-color: #1f2a33;
+  --cover-button-text-color: #e0dfe6;
+  --highlight: var(--cover-button-bg-color);
+  --highlight-contrast: var(--cover-button-text-color);
+  /*inverse colors used for :hover */
+  --highlight-inverse: var(--cover-button-text-color);
+  --highlight-inverse-contrast: cover(--cover-button-bg-color);
   /* visual guard around title and description, when the feature is enabled */
   --cover-title-and-description-guard-bg-color: rgba(255, 255, 255, 0.6);
-  --cover-title-text-shadow: white 0px 0px 7px;
+  --cover-title-text-shadow: white 0px 0px 0px;
   /* === sticky top/left navigation menus === */
   --sticky-menu-text-color: #D2B5C7;
   /* === Alternating content (post) sections  === */
@@ -22,9 +24,9 @@
   --section-dark-text-color: var(--section-light-bg-color);
   /* Dark section - background color */
   --section-dark-bg-color: #1f2a33;
-  te: grey;
+  --section-uni-quote: grey;
   /* Light&Dark section `code` a bit darker than 'Light section - background color' */
-  --section-uni-code-bg-color: #e0ded7;
+  --section-uni-code-bg-color: #9C9CA1;
   /* === Footer === */
   --footer-color-background: #22343a;
   --footer-color: #bbc7cc; }
@@ -45,6 +47,10 @@ p {
   width: auto;
   margin: 0 auto;
   line-height: 0; }
+
+@media (min-width: 900px) {
+  #blog-logo {
+    max-height: 180px; } }
 
 /* creating css to support a hugo shortcode for the logo & test */
 .flex-container {
@@ -225,8 +231,11 @@ a.fn-item {
   padding-bottom: 4rem;
   padding-top: 4rem;
   height: 70%;
-  word-break: break-word;
-  hyphens: auto; }
+  -webkit-hyphens: none !important;
+  -ms-hyphens: none !important;
+  hyphens: none !important;
+  word-break: normal !important;
+  overflow-wrap: normal !important; }
 
 /* ======= Single pages =========== */
 .post-template .post {

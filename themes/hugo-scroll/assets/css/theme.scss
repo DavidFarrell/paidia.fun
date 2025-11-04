@@ -211,8 +211,11 @@ a.fn-item {
   padding-bottom: 4rem;
   padding-top: 4rem;
   height: 70%;
-  word-break: break-word;
-  hyphens: auto;
+  -webkit-hyphens: none !important;
+  -ms-hyphens: none !important;
+  hyphens: none !important;
+  word-break: normal !important;
+  overflow-wrap: normal !important;
 }
 
 /* ======= Single pages =========== */
