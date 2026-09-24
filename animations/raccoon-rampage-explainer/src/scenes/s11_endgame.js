@@ -179,6 +179,16 @@
 
   // ---------------------------------------------------------------- board pieces
   const drawStory = (t) => {
+    // the NEW ROUND circle pulses as each year's event flips
+    RR.flush();
+    noFill();
+    for (const i of [2, 3, 4]) {
+      const u = RR.seg(t, FLIPS[i][1] - 0.05, FLIPS[i][1] + 0.45);
+      if (u <= 0 || u >= 1) continue;
+      const c = color(C.gold); c.setAlpha(230 * (1 - u)); stroke(c); strokeWeight(10 * (1 - u) + 2);
+      circle(330, B.STORY_Y, 150 + 90 * RR.E.outCubic(u));
+    }
+    noStroke();
     for (let i = 0; i < 5; i++) {
       const [x, y] = B.story(i);
       if (i < 2) { RR.drawCard(S0.story[i], x, y, { w: 300 }); continue; }

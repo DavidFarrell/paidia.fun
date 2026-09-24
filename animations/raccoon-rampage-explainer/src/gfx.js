@@ -66,7 +66,17 @@ RR.ink = (pts0, o = {}) => {
   }
   if (o.stroke !== false) {
     brush.set(o.brush || 'ink', o.stroke || RR.C.ink, o.w ?? 1);
-    brush.beginShape(curve); _verts(pts); brush.endShape(true);
+    // p5.brush stops plotting a stroke once it wanders off the canvas, so a big outline
+    // that leaves the frame (or a sprite tile) and comes back loses its far side. Large
+    // outlines are therefore drawn as short overlapping open pieces.
+    const span = Math.max(...pts.map((p) => Math.abs(p[0])), ...pts.map((p) => Math.abs(p[1])));
+    if (span > 300 && pts.length >= 6) {
+      const ring = pts.concat([pts[0], pts[1]]);
+      const step = 3;
+      for (let i = 0; i < pts.length; i += step) brush.spline(ring.slice(i, Math.min(ring.length, i + step + 2)).map((p) => [p[0], p[1]]), curve);
+    } else {
+      brush.beginShape(curve); _verts(pts); brush.endShape(true);
+    }
     brush.noStroke();
   }
   pop();

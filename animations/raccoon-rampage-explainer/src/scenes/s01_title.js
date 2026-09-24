@@ -110,7 +110,7 @@
             x = p[0]; y = p[1];
             pose = { ...pose, squash: u < 1 ? -0.15 : 0, lean: 0.25, mouth: 'grin', brow: 'neutral', armB: 2.4, tailUp: 1 };
             if (t >= 8.55) {
-              x = BIN.x + 300 + (t - 8.55) * 1500;
+              x = BIN.x + 300 + (t - 8.55) * 2200;
               pose = { ...pose, run: t * 16, stride: 1, lean: 0.3, squash: 0, tail: t * 6 };
               RR.shadow(x, BIN.base + 4, 60, 12, 40);
             }
