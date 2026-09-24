@@ -273,17 +273,19 @@
   };
 
   // ---- spotlight: dim everything except the tracker panel
+  // One full-strength layer outside a soft band, the band at half strength (fill-rate is
+  // the cost here, so each screen pixel is covered at most once).
+  const frameQuads = (x0, y0, x1, y1, X0, Y0, X1, Y1, col, al) => {
+    RR.flat([[X0, Y0], [X1, Y0], [X1, y0], [X0, y0]], col, al);
+    RR.flat([[X0, y1], [X1, y1], [X1, Y1], [X0, Y1]], col, al);
+    RR.flat([[X0, y0], [x0, y0], [x0, y1], [X0, y1]], col, al);
+    RR.flat([[x1, y0], [X1, y0], [X1, y1], [x1, y1]], col, al);
+  };
   const dimAround = (a) => {
     if (a <= 0) return;
-    const X0 = 42, X1 = 510, Y0 = 436, Y1 = 1274, F = 8000, col = RR.C.plumDark;
-    for (let i = 0; i < 3; i++) {
-      const m = i * 16, al = (165 * a) / 3;
-      const x0 = X0 - m, x1 = X1 + m, y0 = Y0 - m, y1 = Y1 + m;
-      RR.flat([[-F, -F], [F, -F], [F, y0], [-F, y0]], col, al);
-      RR.flat([[-F, y1], [F, y1], [F, F], [-F, F]], col, al);
-      RR.flat([[-F, y0], [x0, y0], [x0, y1], [-F, y1]], col, al);
-      RR.flat([[x1, y0], [F, y0], [F, y1], [x1, y1]], col, al);
-    }
+    const X0 = 42, X1 = 510, Y0 = 436, Y1 = 1274, E = 26, F = 8000, col = RR.C.plumDark, al = 160 * a;
+    frameQuads(X0 - E, Y0 - E, X1 + E, Y1 + E, -F, -F, F, F, col, al);
+    frameQuads(X0, Y0, X1, Y1, X0 - E, Y0 - E, X1 + E, Y1 + E, col, al * 0.5);
   };
   const ring = (x, y, r, w, col, alpha) => {
     if (alpha <= 0 || r <= 0) return;
@@ -391,6 +393,22 @@
   const SB = { x: 1440, y: 420, gap: 92 };
   const RACE = { de: [9, 11.3, 12.05, 'outCubic'], fr: [11, 11.22, 11.75, 'outQuad'], ar: [13, 11.35, 12.2, 'inCubic'], hu: [7, 11.26, 11.8, 'outCubic'] };
   const WINNER = 'ar', WIN_ROW = 2;
+  // Score rows in the style of RR.scoreBoard, with the static parts (panel and role badge)
+  // cached as sprites: painting them live cost more than a whole raccoon.
+  const ROLES4 = ['de', 'fr', 'ar', 'hu'];
+  const rowSpr = (r) => RR.sprite('s03:row:' + r, 440, 88, () => {
+    RR.ink(RR.rrectPts(10, 10, 420, 68, 18), { fill: RR.C.white, alpha: 230, w: 0.9 });
+    push(); translate(50, 44); RR.ICONS.role(22, { role: r }); pop();
+  }, { res: 1.5 });
+  const scoreRows = (scores, x, y, gap, max) => {
+    ROLES4.forEach((r, i) => {
+      const yy = y + i * gap, v = scores[r] ?? 0;
+      RR.drawSprite(rowSpr(r), x + 150, yy, { w: 440, h: 88 });
+      const bw = 300 * RR.clamp(v / max);
+      if (bw > 4) RR.ink(RR.rrectPts(x + 20, yy - 14, bw, 28, 10), { fill: RR.C[r], stroke: RR.C[r + 'Dark'] || RR.C.ink, w: 0.8 });
+      RR.text(String(Math.round(v)), x + 30 + bw + 26, yy + 13, { font: 'title', size: 40, col: RR.C.ink });
+    });
+  };
   const drawScores = (t) => {
     const inU = RR.seg(t, 10.95, 11.4), outU = RR.seg(t, 13.2, 13.62);
     if (inU <= 0 || outU >= 1) return;
@@ -402,7 +420,7 @@
     translate(dx, 0);
     const cu = RR.seg(t, CROWN_T, CROWN_T + 0.3);
     if (cu > 0) RR.flat(RR.rrectPts(SB.x - 74, yy - 48, 448, 96, 26), RR.C.gold, 170 * cu * (0.75 + 0.25 * Math.sin(t * 9)));
-    RR.scoreBoard(scores, { x: SB.x, y: SB.y, gap: SB.gap, max: 14 });
+    scoreRows(scores, SB.x, SB.y, SB.gap, 14);
     if (t >= CROWN_T) {
       const k = RR.pop(t, CROWN_T, 0.3);
       const bob = Math.sin((t - CROWN_T) * 7) * 3;
@@ -453,10 +471,12 @@
       // screen space
       if (t >= SKULL_T && t < SKULL_T + 0.5) RR.fadeScreen(0.26 * (1 - RR.seg(t, SKULL_T, SKULL_T + 0.5)), RR.C.red);
       RR.caption('Raccoon impact', t, 5.95, 7.55, CAP);
-      RR.caption('Hit the skull? Everyone loses', t, SKULL_T + 0.02, 9.9, CAP);
-      RR.caption('Keep it green...', t, 9.9, 11.4, CAP);
+      // two short strips (setup, punchline): cheaper than one very wide strip, and a better beat
+      RR.caption('Hit the skull?', t, SKULL_T + 0.02, 10.0, { x: 1250, y: 205, size: 66, rot: -0.025 });
+      RR.caption('Everyone loses', t, SKULL_T + 0.2, 10.0, { x: 1500, y: 318, size: 66, rot: 0.02 });
+      RR.caption('Keep it green...', t, 10.0, 11.5, CAP);
       drawScores(t);
-      RR.caption('...then the top score wins', t, 11.4, 12.95, { x: 1500, y: 800, size: 62 });
+      RR.caption('...then the top score wins', t, 11.5, 13.0, { x: 1500, y: 800, size: 60 });
       RR.banner('WORK TOGETHER. WIN ALONE.', t, 12.35, 13.88, { y: 150, size: 88 });
     },
   });

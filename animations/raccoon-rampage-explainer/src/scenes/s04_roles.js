@@ -465,6 +465,16 @@
         const items = t >= 4.85 ? [{ i: 0, kind: 'yellow', t: 4.85 }] : [];
         if (t > 1.6) drawStrip('de', t, Math.max(0, dy), items);
         drawP('de', P);
+        // shrug accents: little "what can you do" ticks by the raised hands
+        const sh = RR.env(t, 2.8, 3.45, 0.1, 0.12);
+        if (P && sh > 0) {
+          push(); translate(P.x, P.y - (P.pose.hop || 0)); scale(P.s);
+          for (const sx of [-1, 1]) {
+            RR.inkLine([[sx * 92, -150], [sx * (92 + 8 * sh), -150 - 22 * sh]], { w: 1.1 });
+            RR.inkLine([[sx * 116, -144], [sx * (116 + 16 * sh), -144 - 14 * sh]], { w: 1.1 });
+          }
+          pop();
+        }
         if (P && t >= 3.95) {
           const hand = pxf(P.x, P.y, P.s, P.pose, P.pose.handR);
           const held = add(hand, [0, -26]);
