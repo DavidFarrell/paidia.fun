@@ -1,0 +1,102 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Raccoon Rampage asset painter (p5.brush)</title>
+  <script src="../vendor/p5.min.js"></script>
+  <script src="../vendor/p5.brush.js"></script>
+  <script src="../src/palette.js"></script>
+  <script src="assets.js"></script>
+  <style>body { margin: 0; background: #222; }</style>
+</head>
+<body>
+<script>
+// Paints one asset (named in ?asset=) with p5.brush, post-processes it and
+// uploads the PNG to the local server, which saves it under assets/.
+const NAME = new URLSearchParams(location.search).get('asset');
+let RECIPE;
+
+async function setup() {
+  RECIPE = ASSETS[NAME];
+  if (!RECIPE) throw new Error('unknown asset ' + NAME);
+  pixelDensity(1);
+  createCanvas(RECIPE.w, RECIPE.h, WEBGL);
+  randomSeed(RECIPE.seed || 7);
+  noiseSeed(RECIPE.seed || 7);
+  translate(-width / 2, -height / 2);
+  background(RECIPE.bg || '#ffffff');
+  await RECIPE.paint(RECIPE);
+  noLoop();
+}
+
+function draw() {
+  // brush work from setup() has been flushed to the canvas by now
+  exportAsset().catch((e) => { window.failed = String(e); });
+}
+
+async function exportAsset() {
+  const gl = document.querySelector('canvas');
+  const cv = document.createElement('canvas');
+  cv.width = gl.width;
+  cv.height = gl.height;
+  const ctx = cv.getContext('2d', { willReadFrequently: true });
+  ctx.drawImage(gl, 0, 0);
+  const img = ctx.getImageData(0, 0, cv.width, cv.height);
+  if (RECIPE.gain) applyGain(img, RECIPE.gain);
+  if (RECIPE.tile) makeSeamless(img);
+  if (RECIPE.alpha) colourToAlpha(img, RECIPE.alpha);
+  ctx.putImageData(img, 0, 0);
+  const blob = await new Promise((r) => cv.toBlob(r, 'image/png'));
+  await fetch('/save/assets/' + NAME + '.png', { method: 'POST', body: blob });
+  window.done = true;
+}
+
+// Deepens a faint painting on white: v' = 255 - (255 - v) * gain.
+function applyGain(img, gain) {
+  const d = img.data;
+  for (let i = 0; i < d.length; i += 4) {
+    for (let c = 0; c < 3; c++) d[i + c] = Math.max(0, 255 - (255 - d[i + c]) * gain);
+  }
+}
+
+// Turns a painting made with one pigment on white into pigment + alpha.
+function colourToAlpha(img, pigment) {
+  const P = [1, 3, 5].map((i) => parseInt(pigment.slice(i, i + 2), 16));
+  const d = img.data;
+  // use the channel with the most contrast against white for a stable alpha
+  const ch = [0, 1, 2].sort((a, b) => P[a] - P[b])[0];
+  for (let i = 0; i < d.length; i += 4) {
+    let a = (255 - d[i + ch]) / (255 - P[ch]);
+    a = Math.max(0, Math.min(1, a));
+    if (a < 0.004) { d[i + 3] = 0; continue; }
+    for (let c = 0; c < 3; c++) {
+      // un-mix from white; keeps darker streaks from p5.brush's pigment darkening
+      const v = (d[i + c] - 255 * (1 - a)) / a;
+      d[i + c] = Math.max(0, Math.min(255, v));
+    }
+    d[i + 3] = Math.round(a * 255);
+  }
+}
+
+// Cross-fades the image with a half-offset copy of itself so it tiles.
+function makeSeamless(img) {
+  const { width: W, height: H, data } = img;
+  const pass = (horizontal) => {
+    const src = new Uint8ClampedArray(data);
+    for (let y = 0; y < H; y++) {
+      for (let x = 0; x < W; x++) {
+        const t = horizontal ? Math.abs(x / W - 0.5) * 2 : Math.abs(y / H - 0.5) * 2;
+        const w = t * t * (3 - 2 * t);
+        const sx = horizontal ? (x + W / 2) % W : x;
+        const sy = horizontal ? y : (y + H / 2) % H;
+        const i = (y * W + x) * 4, j = (sy * W + sx) * 4;
+        for (let c = 0; c < 3; c++) data[i + c] = src[i + c] * (1 - w) + src[j + c] * w;
+      }
+    }
+  };
+  pass(true);
+  pass(false);
+}
+</script>
+</body>
+</html>

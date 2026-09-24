@@ -1,0 +1,17 @@
+{
+  "name": "raccoon-rampage-explainer",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Animated how-to-play explainer for BioInvaders! Raccoon Rampage, built with p5.js and p5.brush",
+  "type": "module",
+  "scripts": {
+    "paint": "node tools/paint.mjs",
+    "preview": "node tools/preview.mjs",
+    "render": "node tools/render.mjs",
+    "audio": "python3 tools/audio.py out/timeline.json out/cues.json out/audio.wav",
+    "build": "bash tools/make.sh"
+  },
+  "devDependencies": {
+    "playwright": "1.55.1"
+  }
+}

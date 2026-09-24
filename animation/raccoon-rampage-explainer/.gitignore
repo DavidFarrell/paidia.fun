@@ -1,0 +1,8 @@
+node_modules
+out/frames/
+out/chunk_*.mp4
+out/chunks.txt
+out/*_test.*
+out/render_log.txt
+out/video_silent.mp4
+out/audio.wav
