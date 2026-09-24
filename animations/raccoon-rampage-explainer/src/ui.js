@@ -204,8 +204,12 @@ RR.scoreBoard = (scores, o = {}) => {
   roles.forEach((r, i) => {
     const yy = y + i * gap;
     const v = scores[r] ?? 0;
-    RR.ink(RR.rrectPts(x - 60, yy - 34, 420, 68, 18), { fill: RR.C.white, alpha: 230 * a, w: 0.9 });
-    push(); translate(x - 20, yy); RR.ICONS.role(22, { role: r }); pop();
+    // static row panel + role badge, painted once
+    const row = RR.sprite('scoreRow:' + r, 440, 88, () => {
+      RR.ink(RR.rrectPts(10, 10, 420, 68, 18), { fill: RR.C.white, alpha: 230, w: 0.9 });
+      push(); translate(50, 44); RR.ICONS.role(22, { role: r }); pop();
+    }, { res: 1.5 });
+    RR.drawSprite(row, x - 70, yy - 44, { w: 440, h: 88, ax: 0, ay: 0, alpha: a });
     const bw = 300 * RR.clamp(v / max);
     if (bw > 4) RR.ink(RR.rrectPts(x + 20, yy - 14, bw, 28, 10), { fill: RR.C[r], stroke: RR.C[r + 'Dark'] || RR.C.ink, w: 0.8 });
     RR.text(String(Math.round(v)), x + 30 + bw + 26, yy + 13, { font: 'title', size: 40, col: RR.C.ink, alpha: a });
