@@ -8,6 +8,8 @@ RR.FPS = 24;
 RR.BOIL = 2;          // live ink "boils" (re-seeds) every 2 frames = 12 drawings per second
 RR.BPM = 120;         // music tempo: 1 beat = 0.5 s = 12 frames, 1 bar = 2 s
 RR.BRUSH_SCALE = 2.4;
+RR.FB_FLIP = false;   // set true if framebuffer textures come out upside down in RR.blit
+RR.TEXT_RES = 1.5;     // resolution multiplier for cached text sprites
 
 // Palette sampled from the game's art direction (board, cards, box).
 RR.C = {

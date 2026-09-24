@@ -1,0 +1,20 @@
+window.PROF = {};
+const tm = (k, fn) => { const gl = drawingContext; const px = new Uint8Array(4); RR.flush(); gl.readPixels(0,0,1,1,gl.RGBA,gl.UNSIGNED_BYTE,px); const t0 = performance.now(); fn(); RR.flush(); gl.readPixels(0,0,1,1,gl.RGBA,gl.UNSIGNED_BYTE,px); PROF[k] = Math.round(performance.now() - t0); };
+let SH = null;
+const VS = `precision highp float;
+attribute vec3 aPosition; attribute vec2 aTexCoord;
+uniform mat4 uModelViewMatrix; uniform mat4 uProjectionMatrix;
+varying vec2 vUV;
+void main(){ vUV = aTexCoord; gl_Position = uProjectionMatrix * uModelViewMatrix * vec4(aPosition, 1.0); }`;
+const FS = `precision mediump float;
+varying vec2 vUV; uniform sampler2D uTex; uniform float uAlpha;
+void main(){ vec4 c = texture2D(uTex, vUV); gl_FragColor = c * uAlpha; }`;
+RR.scene({ id: 'prof3', order: 1, dur: 10, draw(t) {
+  if (!SH) SH = createShader(VS, FS);
+  tm('paperImg', () => image(RR.img.paper, 0, 0, RR.W, RR.H));
+  tm('customShader', () => { shader(SH); SH.setUniform('uTex', RR.img.paper); SH.setUniform('uAlpha', 1.0); noStroke(); rect(0, 0, RR.W, RR.H); resetShader(); });
+  tm('texture()', () => { noStroke(); texture(RR.img.paper); rect(0, 0, RR.W, RR.H); });
+  const fb = RR.cubeSprite('de').fbs[0];
+  tm('fbImg', () => { for (let i = 0; i < 20; i++) image(fb, i * 90, 900, 90, 90); });
+  tm('fbCustom', () => { shader(SH); SH.setUniform('uTex', fb); SH.setUniform('uAlpha', 1.0); noStroke(); for (let i = 0; i < 20; i++) rect(i * 90, 800, 90, 90); resetShader(); });
+}});

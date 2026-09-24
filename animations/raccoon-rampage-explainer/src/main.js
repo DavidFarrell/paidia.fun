@@ -33,14 +33,13 @@ function draw() {
   clear();
   push();
   translate(-RR.W / 2, -RR.H / 2);
-  imageMode(CORNER);
-  image(RR.img.paper, 0, 0, RR.W, RR.H);
+  RR.blit(RR.img.paper, 0, 0, RR.W, RR.H);
   RR.drawScene(RR.T);
   RR.flush();
   // Paper tooth and vignette over everything.
   push();
   blendMode(MULTIPLY);
-  image(RR.img.grain, 0, 0, RR.W, RR.H);
+  RR.blit(RR.img.grain, 0, 0, RR.W, RR.H);
   blendMode(BLEND);
   pop();
   if (RR.PREVIEW && RR.showHud) {

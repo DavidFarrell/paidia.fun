@@ -217,7 +217,7 @@ RR.sprite = (key, w, h, drawFn, o = {}) => {
           brush.flush();
           const texts = RR._deferText;
           RR._deferText = null;
-          for (const [str, x, y, to, m] of texts) { push(); _setMatrix(m); RR.text(str, x, y, to); pop(); }
+          for (const [str, x, y, to, m] of texts) { push(); _setMatrix(m); RR._textNative(str, x, y, to); pop(); }
           pop();
           sc.end();
           brush.load();
@@ -241,6 +241,31 @@ RR.sprite = (key, w, h, drawFn, o = {}) => {
   randomSeed(RR.frameSeed + RR.strHash(key) + ++RR._spriteCalls * 7);
   return s;
 };
+// Fast textured quad. p5's default image shader costs ~8x more per pixel under
+// SwiftShader, so all sprite/background blits go through this minimal shader.
+// Textures hold premultiplied colour (p5's WebGL convention), so alpha scales rgb too.
+const _BLIT_VS = `precision highp float;
+attribute vec3 aPosition; attribute vec2 aTexCoord;
+uniform mat4 uModelViewMatrix; uniform mat4 uProjectionMatrix;
+uniform vec4 uUV;
+varying vec2 vUV;
+void main(){ vUV = mix(uUV.xy, uUV.zw, aTexCoord); gl_Position = uProjectionMatrix * uModelViewMatrix * vec4(aPosition, 1.0); }`;
+const _BLIT_FS = `precision mediump float;
+varying vec2 vUV; uniform sampler2D uTex; uniform float uAlpha;
+void main(){ gl_FragColor = texture2D(uTex, vUV) * uAlpha; }`;
+let _blitShader = null;
+RR.blit = (tex, x, y, w, h, alpha = 1, flipY = false) => {
+  RR.flush();
+  if (!_blitShader) _blitShader = createShader(_BLIT_VS, _BLIT_FS);
+  shader(_blitShader);
+  _blitShader.setUniform('uTex', tex);
+  _blitShader.setUniform('uAlpha', alpha);
+  _blitShader.setUniform('uUV', flipY ? [0, 1, 1, 0] : [0, 0, 1, 1]);
+  noStroke();
+  rect(x, y, w, h);
+  resetShader();
+};
+
 // Draw a sprite. opts: w, h (display size), rot, alpha (0-1), sx, sy (flip/squash), ax, ay (anchor 0-1), variant
 RR.drawSprite = (s, x, y, o = {}) => {
   if (!s) return;
@@ -251,9 +276,13 @@ RR.drawSprite = (s, x, y, o = {}) => {
   translate(x, y);
   if (o.rot) rotate(o.rot);
   scale(o.sx ?? 1, o.sy ?? 1);
-  if (o.alpha !== undefined && o.alpha < 1) tint(255, 255 * Math.max(0, o.alpha));
-  imageMode(CORNER);
-  image(s.fbs[v], -w * (o.ax ?? 0.5), -h * (o.ay ?? 0.5), w, h);
+  if (o.slow) {
+    if (o.alpha !== undefined && o.alpha < 1) tint(255, 255 * Math.max(0, o.alpha));
+    imageMode(CORNER);
+    image(s.fbs[v], -w * (o.ax ?? 0.5), -h * (o.ay ?? 0.5), w, h);
+  } else {
+    RR.blit(s.fbs[v], -w * (o.ax ?? 0.5), -h * (o.ay ?? 0.5), w, h, Math.max(0, o.alpha ?? 1), RR.FB_FLIP);
+  }
   pop();
 };
 
@@ -293,9 +322,33 @@ RR.textWidth = (str, o = {}) => {
   return w;
 };
 RR._deferText = null;
+// Text is expensive to draw live in WebGL (~250 ms for a big line under SwiftShader), so
+// by default each distinct string/style is painted once into a sprite and blitted.
+// o.live draws it natively (used inside sprite painters, where it is cached anyway).
 RR.text = (str, x, y, o = {}) => {
   // Inside sprite painting, text is queued and drawn after all brush work (see RR.sprite).
   if (RR._deferText) { RR._deferText.push([str, x, y, o, _getMatrix()]); return; }
+  if (o.live) return RR._textNative(str, x, y, o);
+  str = String(str);
+  if (!str.trim()) return;
+  const font = o.font || 'hand', size = o.size || 40;
+  const tw = RR.textWidth(str, o);
+  const pad = size * 0.25 + (o.outline ? (o.outlineW ?? size * 0.06) : 0);
+  const w = Math.ceil(tw + pad * 2), h = Math.ceil(size * 1.45 + pad * 2);
+  const base = pad + size * 1.05; // baseline inside the sprite
+  const res = o.res ?? RR.TEXT_RES;
+  const key = ['txt', font, size, o.col || RR.C.ink, o.outline || '', o.outlineW ?? '', o.shadow ? 1 : 0, o.track || 0, o.fallbackScale ?? '', res, str].join('|');
+  const spr = RR.sprite(key, w, h, () => RR._textNative(str, pad, base, { ...o, align: 'left', valign: 'baseline', alpha: 1, rot: 0, scale: 1 }), { res });
+  const x0 = o.align === 'left' ? 0 : o.align === 'right' ? -tw : -tw / 2;
+  const vy = o.valign === 'middle' ? size * 0.34 : o.valign === 'top' ? size * 0.75 : 0;
+  push();
+  translate(x, y);
+  if (o.rot) rotate(o.rot);
+  if (o.scale) scale(o.scale);
+  RR.drawSprite(spr, x0 - pad, vy - base, { w, h, ax: 0, ay: 0, alpha: o.alpha ?? 1 });
+  pop();
+};
+RR._textNative = (str, x, y, o = {}) => {
   RR.flush();
   const font = o.font || 'hand', size = o.size || 40;
   const runs = RR._runs(String(str), font);

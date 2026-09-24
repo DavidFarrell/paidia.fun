@@ -1,0 +1,30 @@
+import { chromium } from 'playwright';
+import http from 'http'; import fs from 'fs'; import path from 'path';
+const ROOT = process.cwd();
+const server = http.createServer((req, res) => { const p = path.join(ROOT, decodeURIComponent(req.url.split('?')[0])); if (!fs.existsSync(p) || fs.statSync(p).isDirectory()) { res.writeHead(404); return res.end(); } res.writeHead(200); fs.createReadStream(p).pipe(res); });
+await new Promise((r) => server.listen(0, r));
+const browser = await chromium.launch({ args: ['--use-angle=vulkan', '--use-vulkan=native', '--enable-features=Vulkan,DefaultANGLEVulkan,VulkanFromANGLE', '--ignore-gpu-blocklist', '--disable-vulkan-surface', '--disable-gpu-watchdog'], env: { ...process.env, VK_ICD_FILENAMES: '/usr/share/vulkan/icd.d/lvp_icd.json' } });
+const page = await browser.newPage();
+page.on('console', (m) => { if (!m.text().includes('GL Driver')) console.log('[console]', m.text().slice(0, 200)); });
+await page.goto(`http://localhost:${server.address().port}/dev/test.html?test=${process.argv[2]}&render=1`);
+await page.waitForFunction(() => window.READY === true);
+const r = await page.evaluate(async () => { const gl = drawingContext; const steps = []; const px = new Uint8Array(4);
+  const chk = (k, x = 960, y = 540) => { gl.readPixels(x, 1080 - y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px); steps.push(k + ':' + gl.isContextLost() + ':' + [...px].join(',')); };
+  try {
+    push(); translate(-960, -540);
+    clear(); background(240); chk('bg'); RR.water(RR.rrectPts(100, 100, 400, 300, 20), '#cc8899', { layers: 4, alpha: 60 }); chk('water', 300, 250);
+    RR.shadow(500, 500, 100, 20); chk('shadow');
+    const s1 = RR.sprite('t1', 100, 100, () => { RR.inkCircle(50, 50, 30, { fill: '#e0556f' }); }, { res: 1 }); chk('sprite-small', 300, 250);
+    RR.drawSprite(s1, 300, 300); chk('drawSprite', 300, 300);
+    RR.icon('paw', 600, 300, 100); chk('icon');
+    RR.drawCube(700, 300, 50, 'de'); chk('cube', 700, 300);
+    const s2 = RR.sprite('t2', 1500, 900, () => { RR.inkCircle(750, 450, 300, { fill: '#e0556f' }); RR.text('big', 700, 400, { size: 60 }); }, { res: 1.5 }); chk('sprite-tiled');
+    push(); blendMode(MULTIPLY); image(RR.img.grain, 0, 0, 1920, 1080); blendMode(BLEND); pop(); chk('multiply');
+    RR.drawRaccoon(900, 900, 1, {}); chk('raccoon', 905, 830);
+    RR.text('HELLO', 900, 200, { font: 'title', size: 100, outline: '#000' }); chk('text-outline');
+    RR.drawCard('protect', 1200, 500, { w: 190 }); chk('card', 1200, 500);
+    pop();
+  } catch (e) { steps.push('ERR ' + e.message); }
+  return steps; });
+console.log(r);
+await browser.close(); server.close();

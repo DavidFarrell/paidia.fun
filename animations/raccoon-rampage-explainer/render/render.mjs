@@ -30,8 +30,12 @@ const server = http.createServer((req, res) => {
 await new Promise((r) => server.listen(0, r));
 const PORT = server.address().port;
 
+// WebGL runs on Chromium's bundled SwiftShader (no GPU in the container). Mesa lavapipe
+// was ~9x faster in micro-benchmarks but lost the WebGL context mid-frame, so it is not used.
+const GL_ARGS = ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'];
+
 async function openPage() {
-  const browser = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--disable-gpu-driver-bug-workarounds'] });
+  const browser = await chromium.launch({ args: GL_ARGS });
   const page = await browser.newPage({ viewport: { width: 1920, height: 1080 } });
   page.on('pageerror', (e) => console.error('[pageerror]', e.message));
   page.on('console', (m) => { if (m.type() === 'error' || m.type() === 'warning') { const t = m.text(); if (!t.includes('GL Driver')) console.error('[console]', t); } });
