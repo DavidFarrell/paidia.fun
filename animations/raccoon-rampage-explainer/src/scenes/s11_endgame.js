@@ -435,7 +435,7 @@
       const tA = aTime(t);
       // camera
       let cam = RR.camKf(t, [[0, FULL], [0.7, FULL], [2.3, SF, 'inOutSine'], [2.95, EF], [5.95, EF], [6.6, TC], [10.3, TC], [11.35, TCB], [11.6, TCB], [12.4, TC]]);
-      cam = RR.drift(cam, t, 0.7);
+      cam = RR.drift(cam, t, 0.7 * RR.seg(t, 0, 1));   // exact FULL on the first frame (s10 hand-off)
       // record scratch: jolt, then a wobbling rewind
       const rw = RR.env(t, SCR, RWE + 0.05, 0.03, 0.1);
       const jolt = RR.shake(t, SCR, 0.25, 26);
