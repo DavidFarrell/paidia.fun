@@ -30,10 +30,10 @@
   const STAMP = 4.5;                                  // PASSED slams at STAMP + 0.22
   const MAJ = 6.2;                                    // yellow majority glows
   const DEUP = 6.55;                                  // German agency pops up
-  const MOVE0 = 8.0, MOVE1 = 8.9;                     // to the map; card shrinks to an inset
-  const TOK = [9.0, 10.1];                            // tokens lift off Germany
+  const MOVE0 = 7.95, MOVE1 = 9.0;                     // to the map; card shrinks to an inset
+  const TOK = [9.12, 10.17];                            // tokens lift off Germany
   const FLY = 0.55;
-  const TRK = [9.62, 10.72];                          // tracker steps
+  const TRK = [9.74, 10.79];                          // tracker steps
   const DEDOWN = 11.95, ARUP = 12.4, PAW = 12.0, CUBE0 = 12.75, CUBE1 = 13.5;
   const OUT0 = 14.4;                                  // discard + pull back
 

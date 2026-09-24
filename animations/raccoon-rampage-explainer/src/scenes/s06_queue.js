@@ -272,11 +272,11 @@
       [3.62, 'flip'], [3.76, 'chitter', 0.7], [4.1, 'pop', 0.5], [4.55, 'pop', 0.4], [4.85, 'paper'],
       [4.98, 'hop'], [5.75, 'hop'], [6.3, 'hop'], [6.85, 'hop'], [7.45, 'paper'], [7.5, 'sparkle', 0.6],
       [8.0, 'boing'], [8.05, 'chitter'], [8.95, 'pop', 0.35], [9.3, 'whoosh', 0.7],
-      [10.05, 'whoosh', 0.4], [10.3, 'paper'], [11.6, 'sparkle', 0.6],
+      [9.85, 'whoosh', 0.4], [10.3, 'paper'], [11.6, 'sparkle', 0.6],
     ],
     draw(t) {
-      let cam = RR.camKf(t, [[0, QCAM], [0.3, QCAM], [1.8, WIDE], [5.7, WIDE], [7.35, K4CAM], [10.0, K4CAM], [13.7, ECAM]]);
-      const d = RR.env(t, 0, 13.6, 1.5, 1.5);
+      let cam = RR.camKf(t, [[0, QCAM], [0.3, QCAM], [1.8, WIDE], [5.7, WIDE], [7.35, K4CAM], [9.8, K4CAM], [13.5, ECAM]]);
+      const d = RR.env(t, 0, 13.4, 1.5, 1.5);
       if (d > 0) { const dr = RR.drift(cam, t, d); cam = dr; }
       const sh = RR.shake(t, FALL1, 0.3, 5);
       cam = { ...cam, x: cam.x + sh[0] / cam.z, y: cam.y + sh[1] / cam.z };

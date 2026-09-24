@@ -173,7 +173,8 @@ RR.fadeScreen = (alpha, col = RR.C.plumDark) => {
 // Ink wipe transition. Big painted swipes cross the screen; u = 0 (clear) .. 1 (covered).
 // dir 1 sweeps left-to-right; use `out` to uncover (swipes continue off the far side).
 RR.wipe = (u, o = {}) => {
-  if (u <= 0) return;
+  if (u <= 0 && !o.out) return;
+  if (u >= 1 && o.out) return; // fully uncovered
   const col = o.col ?? RR.C.plumDark;
   const dir = o.dir ?? 1;
   const bands = 6;
@@ -181,7 +182,7 @@ RR.wipe = (u, o = {}) => {
   for (let i = 0; i < bands; i++) {
     const delay = RR.hr(i + 11) * 0.25;
     const k = RR.E.inOutCubic(RR.clamp((u - delay) / (1 - 0.25)));
-    if (k <= 0) continue;
+    if (k <= 0 && !o.out) continue;
     const y0 = (i / bands) * RR.H - 40, y1 = ((i + 1) / bands) * RR.H + 40;
     let xa, xb;
     if (!o.out) { xa = -200; xb = -200 + k * (RR.W + 400); } else { xa = -200 + k * (RR.W + 400); xb = RR.W + 200; }
