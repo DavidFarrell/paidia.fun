@@ -104,6 +104,21 @@
   const DE_STRIP = (t) => [760, RR.lerp(-70, 96, RR.E.outBack(RR.seg(t, 8.55, 8.95))) - 180 * RR.seg(t, OUT0 + 0.1, OUT0 + 0.5, 'inBack')];
   const AR_STRIP = (t) => [RR.lerp(2150, 1700, RR.E.outBack(RR.seg(t, 12.1, 12.5))) + 500 * RR.seg(t, OUT0 + 0.1, OUT0 + 0.5, 'inBack'), 655];
 
+  // Number badge (as RR.badge), painted once per label/colour and drawn as a sprite.
+  const badge = (label, x, y, r, sc, bg) => {
+    if (sc <= 0.01) return;
+    const S = 2 * r + 16;
+    const spr = RR.sprite(`s07:badge:${label}:${bg}:${r}`, S, S, () => {
+      RR.inkCircle(S / 2, S / 2, r, { fill: bg, stroke: RR.C.ink, w: 1.2 });
+      RR.text(String(label), S / 2, S / 2 + r * 0.4, { font: 'title', size: r * 1.3, col: RR.C.ink });
+    }, { res: 1.5 });
+    RR.drawSprite(spr, x, y, { w: S * sc, h: S * sc });
+  };
+  // Gold ring around the cost tab while the votes are counted.
+  const costRing = () => RR.sprite('s07:costring', 170, 170, () => {
+    RR.ink(RR.rrectPts(13, 13, 144, 144, 26), { stroke: RR.C.gold, w: 2.6, fill: false, curve: 0.25 });
+  }, { res: 1.5 });
+
   // PASSED stamp, painted once and slammed down as a sprite.
   const STAMP_SIZE = 84;
   const stampSprite = () => {
@@ -226,7 +241,7 @@
       const ring = RR.env(t, 1.95, STAMP + 0.3, 0.25, 0.3);
       if (ring > 0) {
         const rk = RR.E.outBack(RR.seg(t, 1.95, 2.3));
-        RR.ink(RR.rrectPts(tab[0] - 72 * rk, tab[1] - 72 * rk, 144 * rk, 144 * rk, 26), { stroke: RR.C.gold, w: 2.6 * ring, fill: false, curve: 0.25 });
+        RR.drawSprite(costRing(), tab[0], tab[1], { w: 170 * rk, h: 170 * rk, alpha: ring });
       }
       for (const p0 of [2.0, TC[4] + 0.1]) {
         const u = RR.seg(t, p0, p0 + 0.6);
@@ -247,13 +262,13 @@
         const sc = RR.pop(t, t0 + 0.06, 0.3) * fade;
         if (sc <= 0.01) return;
         const c = cubeState(t, i);
-        RR.badge(i + 1, c.x * SC, (c.y - 36) * SC, { r: 32, scale: sc, bg: i === 4 ? RR.C.gold : RR.C.white });
+        badge(i + 1, c.x * SC, (c.y - 36) * SC, 32, sc, i === 4 ? RR.C.gold : RR.C.white);
       });
       // majority tally: 3 yellow, 1 blue, 1 pink
       const mfade = 1 - RR.seg(t, MOVE0 - 0.1, MOVE0 + 0.2);
       [['de', -32, '3', MAJ + 0.05], ['fr', 32, '1', MAJ + 0.2], ['ar', 64, '1', MAJ + 0.28]].forEach(([r, x, n, t0]) => {
         const sc = RR.pop(t, t0, 0.3) * mfade;
-        if (sc > 0.01) RR.badge(n, x * SC, (r === 'de' ? -4 : 2) * SC, { r: r === 'de' ? 38 : 28, scale: sc, bg: RR.C[r], col: RR.C.ink });
+        badge(n, x * SC, (r === 'de' ? -4 : 2) * SC, r === 'de' ? 38 : 28, sc, RR.C[r]);
       });
       // PASSED
       drawStamp(t, -40, -175);

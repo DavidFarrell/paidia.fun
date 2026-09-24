@@ -81,6 +81,50 @@
     for (let i = 0; i < pts.length; i += 2) RR.inkLine([pts[i], pts[(i + 1) % pts.length]], { col: C.plumMid, w: 1.3 });
   }, { res: 2 });
   const LABEL_SIZE = 44;
+  // SPREAD! ribbon and FAILED stamp, painted once (same look as RR.banner / RR.stamp).
+  const BAN = { text: 'SPREAD!', size: 120, y: 150 };
+  const bannerSpr = () => {
+    const size = BAN.size, tw = RR.textWidth(BAN.text, { font: 'title', size });
+    const w = tw + size * 1.2, h = size * 1.25, W = Math.ceil(w + 90), H = Math.ceil(h + 50);
+    return RR.sprite('s08:banner', W, H, () => {
+      const seed = RR.strHash(BAN.text) + 7, pts = [], n = 14;
+      for (let i = 0; i <= n; i++) pts.push([-w / 2 + (w * i) / n, -h / 2 + RR.hrange(seed + i, -5, 5)]);
+      pts.push([w / 2 + 26, 0]);
+      for (let i = n; i >= 0; i--) pts.push([-w / 2 + (w * i) / n, h / 2 + RR.hrange(seed + 40 + i, -5, 5)]);
+      pts.push([-w / 2 - 26, 0]);
+      const P = pts.map(([x, y]) => [x + W / 2, y + H / 2 - 5]);
+      RR.flat(P.map(([x, y]) => [x + 8, y + 10]), C.ink, 50);
+      RR.ink(P, { fill: C.redDeep, stroke: false, curve: 0.05 });
+    }, { res: 1 });
+  };
+  const drawBanner = (t, t0, t1) => {
+    const a = RR.env(t, t0, t1, 0.25, 0.35);
+    if (a <= 0) return;
+    const grow = E.outCubic(seg(t, t0, t0 + 0.45)), spr = bannerSpr();
+    push(); translate(RR.W / 2, BAN.y - (1 - a) * 30); rotate(-0.015);
+    RR.drawSprite(spr, 0, 5, { w: spr.w, h: spr.h, sx: Math.max(0.01, grow), alpha: a });
+    if (grow > 0.6) RR.text(BAN.text, 0, BAN.size * 0.35, { font: 'title', size: BAN.size, col: C.card, alpha: a * seg(t, t0 + 0.2, t0 + 0.45) });
+    pop();
+  };
+  const STAMP_SIZE = 50;
+  const stampSpr = () => {
+    const tw = RR.textWidth('FAILED', { font: 'title', size: STAMP_SIZE });
+    const w = tw + STAMP_SIZE * 0.8, h = STAMP_SIZE * 1.2, W = Math.ceil(w + 24), H = Math.ceil(h + 24);
+    return RR.sprite('s08:stamp', W, H, () => {
+      RR.ink(RR.rrectPts(12, 12, w, h, 12), { stroke: C.red, w: 3.4, curve: 0.2, fill: C.white, alpha: 150 });
+      RR.ink(RR.rrectPts(22, 22, w - 20, h - 20, 8), { stroke: C.red, w: 1.4, curve: 0.2 });
+      RR.text('FAILED', W / 2, H / 2 + STAMP_SIZE * 0.36, { font: 'title', size: STAMP_SIZE, col: C.red });
+    }, { res: 2.2 });
+  };
+  const drawStamp = (x, y, t, t0, rot) => {
+    if (t < t0) return;
+    const k = seg(t, t0, t0 + 0.22, 'inQuad');
+    const sc = RR.lerp(2.4, 1, k) + (k >= 1 ? 0.06 * Math.exp(-(t - t0 - 0.22) * 12) * Math.sin((t - t0) * 40) : 0);
+    const spr = stampSpr();
+    push(); translate(x, y); rotate(rot); scale(sc);
+    RR.drawSprite(spr, 0, 0, { w: spr.w, h: spr.h, alpha: RR.clamp(k * 1.4) });
+    pop();
+  };
   const labelSpr = (txt) => {
     const tw = RR.textWidth(txt, { font: 'title', size: LABEL_SIZE });
     const w = Math.ceil(tw + 44), h = 70;
@@ -168,7 +212,7 @@
     const ba = RR.pop(t, 3.95, 0.3) * (1 - seg(t, 4.8, 4.95));
     if (ba > 0.01) RR.badge('1', 46, 8, { r: 24, scale: ba });
     ringOn(68, -106, 34, seg(t, 4.15, 4.45), { col: C.red, w: 2.4 });
-    RR.stamp('FAILED', 0, -16, t, 4.97, { kind: 'fail', size: 50, rot: -0.2 });
+    drawStamp(0, -16, t, 4.97, -0.2);
     pop();
   };
   const METER = { x: 2535, y: 590, gap: 100 };
@@ -492,8 +536,8 @@
 
   const spreadRaccoon = (t) => {
     if (t < 5.6 || t > 7.66) return;
-    const X = 1480, S = 3.2;
-    const y = RR.kf(t, [[5.6, 1950], [5.72, 1600, 'outCubic'], [5.84, 1610], [5.92, 1680, 'inOutQuad'], [6.2, 1110, 'outBack'], [7.28, 1110], [7.36, 1080, 'outQuad'], [7.66, 1950, 'inCubic']]);
+    const X = 1480, S = 2.85;
+    const y = RR.kf(t, [[5.6, 1950], [5.72, 1600, 'outCubic'], [5.84, 1610], [5.92, 1680, 'inOutQuad'], [6.2, 1085, 'outBack'], [7.28, 1085], [7.36, 1060, 'outQuad'], [7.66, 1950, 'inCubic']]);
     const p = RR.raccoonIdle(t, { face: -1, mouth: 'grin', brow: 'sly', tailUp: 0.9, tail: t * 5, armF: 0.4, armB: -0.3, look: [-0.4, 0] });
     let dy = 0;
     if (t < 5.92) { p.ear = Math.sin(t * 50) * 0.6; p.mouth = 'o'; }
@@ -566,7 +610,7 @@
       drawInset(t, cam);
       RR.fadeScreen(0.3 * RR.env(t, 5.6, 7.55, 0.3, 0.3));
       spreadRaccoon(t);
-      RR.banner('SPREAD!', t, 5.55, 7.5, { y: 150, size: 120, bg: C.redDeep });
+      drawBanner(t, 5.55, 7.5);
       RR.caption('A few turns later...', t, 0.12, 2.3, { x: 1010, y: 60, size: 50 });
       RR.caption('Not enough votes?', t, 4.05, 5.85);
       RR.caption('More spread, more cards', t, 8.65, 10.45);

@@ -347,7 +347,6 @@
 
   // ---------------------------------------------------------------- scoreboard + confetti (screen space)
   const SB = { x: 1500, y: 290, gap: 92 };
-  const finalBoard = () => RR.sprite('s11:scoresFinal', 520, 400, () => RR.scoreBoard(FINAL, { x: 90, y: 50, gap: SB.gap, max: 10 }), { res: 1 });
   const drawScores = (t) => {
     const k = RR.seg(t, 11.55, 11.95, 'outBack');
     if (k <= 0) return;
@@ -357,9 +356,7 @@
     const win = RR.seg(t, CROWN_T, CROWN_T + 0.3);
     const yy = SB.y + 2 * SB.gap;
     if (win > 0) RR.flat(RR.rrectPts(SB.x - 76, yy - 50, 452, 100, 26), C.gold, 170 * win * (0.75 + 0.25 * Math.sin(t * 9)));
-    // live while the scores count up; once final, the same board is blitted from a cached painting
-    if (t < CROWN_T) RR.scoreBoard(sc, { x: SB.x, y: SB.y, gap: SB.gap, max: 10 });
-    else RR.drawSprite(finalBoard(), SB.x - 90, SB.y - 50, { w: 520, h: 400, ax: 0, ay: 0 });
+    RR.scoreBoard(sc, { x: SB.x, y: SB.y, gap: SB.gap, max: 10 });
     const ck = RR.pop(t, CROWN_T, 0.4);
     if (ck > 0) RR.icon('crown', SB.x - 122, yy - 10, 118 * ck, {}, { rot: -0.3 + 0.06 * Math.sin(t * 5) });
     pop();

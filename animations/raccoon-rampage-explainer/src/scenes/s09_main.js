@@ -218,8 +218,8 @@
   const huAt = (t) => {
     let x, y;
     const p = RR.personIdle(t, 3, { turn: -0.7, look: [-1, 0], mouth: 'smile' });
-    if (t >= 8.3 && t < 10.75) {
-      x = kfv(t, [[8.3, 2250], [8.8, 1790, 'outBack'], [10.25, 1790], [10.75, 2350, 'inCubic']]);
+    if (t >= 8.3 && t < 10.55) {
+      x = kfv(t, [[8.3, 2250], [8.8, 1790, 'outBack'], [10.2, 1790], [10.55, 2350, 'inCubic']]);
       y = 1250;
       p.lean = -0.2;
       if (t < 9.3) Object.assign(p, { look: [-0.8, -0.8], brow: 'up', mouth: 'grin' });
@@ -228,16 +228,21 @@
       p.handL = kfv(t, [[8.7, REST_L], [8.9, [-140, -300], 'outBack'], [9.35, [-140, -300]], [9.55, [-60, -170]], [9.85, [-60, -170]], [10.0, [-110, -290], 'outBack'], [10.25, [-110, -290]]]);
       p.handR = [60, -170];
     } else if (t >= 13.1 && t < 15.45) {
+      // peeking side-eye: a near-static pose, so it is a cached (boiling) sprite, not a live figure
       x = kfv(t, [[13.1, 2250], [13.5, 1800, 'outBack'], [14.95, 1800], [15.45, 2350, 'inCubic']]);
-      y = 1275;
-      p.lean = -0.12;
-      const rub = Math.sin(t * 20) * 6;
-      Object.assign(p, { look: [-1, 0.15], brow: 'sly', mouth: t > 13.9 ? 'grin' : 'flat', turn: -0.4, blink: 0 });
-      p.handL = [-22 + rub, -172];
-      p.handR = [24 - rub, -168];
+      const pose = t < 13.9 ? 'flat' : Math.floor(t * 8) % 2 ? 'grinA' : 'grinB';
+      return { x, y: 1275, s: 2.0, sprite: pose, lean: -0.12 };
     } else return null;
     return { x, y, s: 2.0, p };
   };
+  const HU_BASE = { turn: -0.4, look: [-1, 0.15], brow: 'sly', blink: 0, squash: 0 };
+  const HU_POSES = {
+    flat: { ...HU_BASE, mouth: 'flat', handL: [-22, -172], handR: [24, -168] },
+    grinA: { ...HU_BASE, mouth: 'grin', handL: [-16, -174], handR: [18, -166] },
+    grinB: { ...HU_BASE, mouth: 'grin', handL: [-28, -170], handR: [30, -170] },
+  };
+  const HU_SPR = { w: 380, h: 540, gy: 660 }; // ground point sits below the sprite (legs are off screen)
+  const huSprite = (name) => RR.sprite('s09:hu:' + name, HU_SPR.w, HU_SPR.h, () => RR.drawPerson('hu', HU_SPR.w / 2, HU_SPR.gy, 2.0, HU_POSES[name]), { res: 1, variants: 2 });
 
   // ---------------------------------------------------------------- deck and discard (screen)
   const DECK = [720, 885], DISCARD = [905, 885], PILE_W = 118;
@@ -335,7 +340,8 @@
       });
 
       // ---- characters (screen space)
-      if (hu) RR.drawPerson('hu', hu.x, hu.y, hu.s, hu.p);
+      if (hu && hu.sprite) RR.drawSprite(huSprite(hu.sprite), hu.x, hu.y, { w: HU_SPR.w, h: HU_SPR.h, rot: hu.lean, ax: 0.5, ay: HU_SPR.gy / HU_SPR.h });
+      else if (hu) RR.drawPerson('hu', hu.x, hu.y, hu.s, hu.p);
       RR.drawPerson('fr', fr.x, fr.y, fr.s, fr.p);
       // the fan of cards in the French player's hand
       const pivot = personPt(fr.x, fr.y, fr.s, fr.p, FAN_L);
