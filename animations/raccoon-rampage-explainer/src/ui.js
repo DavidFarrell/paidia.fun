@@ -14,17 +14,26 @@ RR.caption = (text, t, t0, t1, o = {}) => {
   const tw = RR.textWidth(text, { font, size });
   const w = tw + size * 1.4, h = size * 1.35;
   const seed = RR.strHash(text);
+  const bg = o.bg ?? RR.C.white, col = o.col ?? RR.C.ink;
+  // The paper strip + text is painted once per caption and reused (drawing it live cost
+  // as much as a character).
+  const SW = Math.ceil(w + 40), SH = Math.ceil(h + 40);
+  const spr = RR.sprite(['cap', text, font, size, bg, col].join('|'), SW, SH, () => {
+    push(); translate(SW / 2 - 3, SH / 2 - 4);
+    const strip = [];
+    const n = 10;
+    for (let i = 0; i <= n; i++) strip.push([-w / 2 + (w * i) / n, -h / 2 + RR.hrange(seed + i, -3, 3)]);
+    for (let i = n; i >= 0; i--) strip.push([-w / 2 + (w * i) / n, h / 2 + RR.hrange(seed + 50 + i, -3, 3)]);
+    RR.flat(strip.map(([px, py]) => [px + 6, py + 8]), RR.C.ink, 40);
+    RR.ink(strip, { fill: bg, stroke: RR.C.ink, w: 0.9, curve: 0.1 });
+    RR.text(text, 0, size * 0.33, { font, size, col });
+    pop();
+  }, { res: 1.25 });
   push();
   translate(x, y);
   rotate((o.rot ?? RR.hrange(seed, -0.018, 0.018)));
   scale(RR.lerp(0.85, 1, k));
-  const strip = [];
-  const n = 10;
-  for (let i = 0; i <= n; i++) strip.push([-w / 2 + (w * i) / n, -h / 2 + RR.hrange(seed + i, -3, 3)]);
-  for (let i = n; i >= 0; i--) strip.push([-w / 2 + (w * i) / n, h / 2 + RR.hrange(seed + 50 + i, -3, 3)]);
-  RR.flat(strip.map(([px, py]) => [px + 6, py + 8]), RR.C.ink, 40 * a);
-  RR.ink(strip, { fill: o.bg ?? RR.C.white, alpha: 255 * a, stroke: a > 0.6 ? RR.C.ink : false, w: 0.9, curve: 0.1 });
-  RR.text(text, 0, size * 0.33, { font, size, col: o.col ?? RR.C.ink, alpha: a });
+  RR.drawSprite(spr, 3, 4, { w: SW, h: SH, alpha: a });
   pop();
 };
 
@@ -36,19 +45,27 @@ RR.banner = (text, t, t0, t1, o = {}) => {
   const size = o.size ?? 92;
   const x = o.x ?? RR.W / 2, y = o.y ?? 150;
   const tw = RR.textWidth(text, { font: 'title', size });
-  const w = (tw + size * 1.2) * grow, h = size * 1.25;
+  const w = tw + size * 1.2, h = size * 1.25;
   const seed = RR.strHash(text) + 7;
+  const bg = o.bg ?? RR.C.plumDark;
+  // Ribbon painted once, then stretched open horizontally; text drawn on top.
+  const SW = Math.ceil(w + 100), SH = Math.ceil(h + 50);
+  const spr = RR.sprite(['ban', text, size, bg].join('|'), SW, SH, () => {
+    push(); translate(SW / 2 - 4, SH / 2 - 5);
+    const pts = [];
+    const n = 14;
+    for (let i = 0; i <= n; i++) pts.push([-w / 2 + (w * i) / n, -h / 2 + RR.hrange(seed + i, -5, 5)]);
+    pts.push([w / 2 + 26, 0]);
+    for (let i = n; i >= 0; i--) pts.push([-w / 2 + (w * i) / n, h / 2 + RR.hrange(seed + 40 + i, -5, 5)]);
+    pts.push([-w / 2 - 26, 0]);
+    RR.flat(pts.map(([px, py]) => [px + 8, py + 10]), RR.C.ink, 50);
+    RR.ink(pts, { fill: bg, stroke: false, curve: 0.05 });
+    pop();
+  }, { res: 1.25 });
   push();
   translate(x, y - (1 - a) * 30);
   rotate(o.rot ?? -0.015);
-  const pts = [];
-  const n = 14;
-  for (let i = 0; i <= n; i++) pts.push([-w / 2 + (w * i) / n, -h / 2 + RR.hrange(seed + i, -5, 5)]);
-  pts.push([w / 2 + 26, 0]);
-  for (let i = n; i >= 0; i--) pts.push([-w / 2 + (w * i) / n, h / 2 + RR.hrange(seed + 40 + i, -5, 5)]);
-  pts.push([-w / 2 - 26, 0]);
-  RR.flat(pts.map(([px, py]) => [px + 8, py + 10]), RR.C.ink, 50 * a);
-  RR.ink(pts, { fill: o.bg ?? RR.C.plumDark, alpha: 255 * a, stroke: false, curve: 0.05 });
+  RR.drawSprite(spr, 4 * grow, 5, { w: SW, h: SH, sx: Math.max(0.02, grow), alpha: a });
   if (grow > 0.6) RR.text(text, 0, size * 0.35, { font: 'title', size, col: o.col ?? RR.C.card, alpha: a * RR.seg(t, t0 + 0.2, t0 + 0.45) });
   pop();
   if (o.sub) RR.caption(o.sub, t, t0 + 0.4, t1, { y: y + h * 0.95, size: size * 0.5 });
@@ -63,14 +80,20 @@ RR.stamp = (text, x, y, t, t0, o = {}) => {
   const col = o.col || (o.kind === 'fail' ? RR.C.red : RR.C.greenDeep);
   const size = o.size ?? 80;
   const tw = RR.textWidth(text, { font: 'title', size });
+  const w = tw + size * 0.8, h = size * 1.2;
+  const SW = Math.ceil(w + 30), SH = Math.ceil(h + 30);
+  const spr = RR.sprite(['stamp', text, col, size].join('|'), SW, SH, () => {
+    push(); translate(SW / 2, SH / 2);
+    RR.ink(RR.rrectPts(-w / 2, -h / 2, w, h, 12), { stroke: col, w: 3.4, curve: 0.2, fill: RR.C.white, alpha: 150 });
+    RR.ink(RR.rrectPts(-w / 2 + 10, -h / 2 + 10, w - 20, h - 20, 8), { stroke: col, w: 1.4, curve: 0.2 });
+    RR.text(text, 0, size * 0.36, { font: 'title', size, col });
+    pop();
+  }, { res: 1.5 });
   push();
   translate(x, y);
   rotate(o.rot ?? -0.18);
   scale(sc);
-  const w = tw + size * 0.8, h = size * 1.2;
-  RR.ink(RR.rrectPts(-w / 2, -h / 2, w, h, 12), { stroke: col, w: 3.4, curve: 0.2, fill: RR.C.white, alpha: 150 * a });
-  RR.ink(RR.rrectPts(-w / 2 + 10, -h / 2 + 10, w - 20, h - 20, 8), { stroke: col, w: 1.4, curve: 0.2 });
-  RR.text(text, 0, size * 0.36, { font: 'title', size, col, alpha: a });
+  RR.drawSprite(spr, 0, 0, { w: SW, h: SH, alpha: a });
   pop();
 };
 
@@ -102,9 +125,14 @@ RR.badge = (label, x, y, o = {}) => {
   const r = o.r ?? 34;
   const s = o.scale ?? 1;
   if (s <= 0.01) return;
+  const bg = o.bg ?? RR.C.white, st = o.stroke ?? RR.C.ink, col = o.col ?? RR.C.ink, font = o.font ?? 'title', size = o.size ?? r * 1.3;
+  const D = Math.ceil(r * 2 + 16);
+  const spr = RR.sprite(['badge', label, r, bg, st, col, font, size].join('|'), D, D, () => {
+    RR.inkCircle(D / 2, D / 2, r, { fill: bg, stroke: st, w: 1.2 });
+    RR.text(String(label), D / 2, D / 2 + r * 0.4, { font, size, col });
+  }, { res: 1.5 });
   push(); translate(x, y); scale(s);
-  RR.inkCircle(0, 0, r, { fill: o.bg ?? RR.C.white, stroke: o.stroke ?? RR.C.ink, w: 1.2 });
-  RR.text(String(label), 0, r * 0.4, { font: o.font ?? 'title', size: o.size ?? r * 1.3, col: o.col ?? RR.C.ink });
+  RR.drawSprite(spr, 0, 0, { w: D, h: D, alpha: o.alpha ?? 1 });
   pop();
 };
 

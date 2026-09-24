@@ -30,8 +30,8 @@
   const STAMP = 4.5;                                  // PASSED slams at STAMP + 0.22
   const MAJ = 6.2;                                    // yellow majority glows
   const DEUP = 6.55;                                  // German agency pops up
-  const MOVE0 = 7.95, MOVE1 = 9.0;                     // to the map; card shrinks to an inset
-  const TOK = [9.12, 10.17];                            // tokens lift off Germany
+  const MOVE0 = 7.95, MOVE1 = 9.0;                    // to the map; card shrinks to an inset
+  const TOK = [9.12, 10.17];                          // tokens lift off Germany
   const FLY = 0.55;
   const TRK = [9.74, 10.79];                          // tracker steps
   const DEDOWN = 11.95, ARUP = 12.4, PAW = 12.0, CUBE0 = 12.75, CUBE1 = 13.5;
@@ -50,7 +50,7 @@
       x = RR.lerp(E0[0], CLOSE[0], u);
       y = RR.lerp(E0[1], CLOSE[1], u) - 80 * Math.sin(Math.PI * u);
       s = Math.exp(RR.lerp(Math.log(ECAM.z), Math.log(SC), u));
-      rot = -0.08 * Math.sin(Math.PI * u) + 0.012 * Math.sin(Math.PI * RR.seg(t, LIFT1 - 0.1, LIFT1 + 0.5)) ;
+      rot = -0.08 * Math.sin(Math.PI * u) + 0.012 * Math.sin(Math.PI * RR.seg(t, LIFT1 - 0.1, LIFT1 + 0.5));
       lift = 0.35 * RR.seg(t, LIFT0, LIFT0 + 0.4) + 0.4 * Math.sin(Math.PI * u);
     } else {
       const u = RR.seg(t, MOVE0, MOVE1, 'inOutCubic');
@@ -87,7 +87,7 @@
     y -= Math.sin(Math.PI * RR.seg(t, TC[i], TC[i] + 0.32)) * 15;
     // majority hop (yellow only)
     if (VOTES[i] === 'de') y -= Math.sin(Math.PI * RR.seg(t, MAJ + 0.05 + i * 0.06, MAJ + 0.35 + i * 0.06)) * 10;
-    return { x, y, size, alpha: 1 };
+    return { x, y, size };
   };
 
   // ---------------------------------------------------------------- painted props
@@ -109,7 +109,8 @@
     if (sc <= 0.01) return;
     const S = 2 * r + 16;
     const spr = RR.sprite(`s07:badge:${label}:${bg}:${r}`, S, S, () => {
-      RR.inkCircle(S / 2, S / 2, r, { fill: bg, stroke: RR.C.ink, w: 1.2 });
+      RR.flatEllipse(S / 2, S / 2, r, r, bg);
+      RR.ink(RR.ellipsePts(S / 2, S / 2, r, r, 28), { stroke: RR.C.ink, w: 1.2, curve: 0.5 });
       RR.text(String(label), S / 2, S / 2 + r * 0.4, { font: 'title', size: r * 1.3, col: RR.C.ink });
     }, { res: 1.5 });
     RR.drawSprite(spr, x, y, { w: S * sc, h: S * sc });
@@ -231,7 +232,7 @@
       });
       VOTES.forEach((r, i) => {
         const c = cubeState(t, i);
-        RR.drawCube(c.x, c.y, c.size, r, { alpha: c.alpha });
+        RR.drawCube(c.x, c.y, c.size, r);
       });
     });
     withCard(ct, () => {
@@ -302,7 +303,7 @@
     cues: [
       [0.25, 'whoosh', 0.6], [0.35, 'paper', 0.6], [0.95, 'paper'], [1.42, 'hop', 0.5], [1.6, 'tock', 0.5], [2.0, 'tick', 0.7],
       ...TC.flatMap((t0) => [[t0 + 0.06, 'tick'], [t0 + 0.3, 'tock']]),
-      [TC[4] + 0.12, 'tick'], [STAMP + 0.2, 'stamp'], [STAMP + 0.32, 'ding'], [5.0, 'paper'],
+      [TC[4] + 0.12, 'tick'], [STAMP + 0.2, 'stamp'], [STAMP + 0.32, 'ding'], [4.85, 'paper'],
       [MAJ, 'sparkle', 0.6], [DEUP, 'pop'], [DEUP + 0.05, 'boing', 0.5], [6.7, 'paper'],
       [MOVE0, 'whoosh', 0.6], [8.55, 'paper', 0.5], [8.7, 'sparkle', 0.5],
       [TOK[0], 'poof'], [TOK[0] + FLY, 'tock'], [TRK[0], 'hop', 0.6], [TRK[0] + 0.3, 'sparkle'], [9.2, 'paper'],
@@ -386,7 +387,7 @@
       pop();
 
       RR.caption('Count the votes', t, 0.95, 4.3);
-      RR.caption('Enough votes? It passes!', t, 5.0, 6.55);
+      RR.caption('Enough votes? It passes!', t, 4.85, 6.55);
       RR.caption('Most votes decides where', t, 6.7, 8.45);
       RR.caption('Raccoons removed: impact down', t, 9.2, 11.9);
       RR.caption('Paw icon? Animal Rights scores too', t, 12.2, 14.35);

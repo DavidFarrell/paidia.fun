@@ -116,7 +116,7 @@
     [17.1, ['wear', 'behind', 'pets', 'protect']],
     [17.6, ['wear', 'behind', 'pets', 'protect', 'drones2']],
   ];
-  const FAN_W = 112, SPREAD = 0.2, FAN_TILT = 0.12;
+  const FAN_W = 100, FAN_D = 54, SPREAD = 0.2, FAN_TILT = 0.12;
   const fanAng = (list, key) => (list.indexOf(key) - (list.length - 1) / 2) * SPREAD + FAN_TILT;
   const fanAt = (t) => {
     let si = 0;
@@ -140,16 +140,60 @@
     return l;
   };
   const fanCardPos = (pivot, ang, lift) => {
-    const d = 62 + lift;
+    const d = FAN_D + lift;
     return [pivot[0] + Math.sin(ang) * d, pivot[1] - Math.cos(ang) * d];
   };
 
+  // ---------------------------------------------------------------- cached words
+  // Same look as RR.caption / RR.bubble, but the paper strip and bubble are painted once into
+  // sprites (the live versions cost ~0.1-0.25 s per frame at this size).
+  const capSpr = (text, size, font) => {
+    const w = RR.textWidth(text, { font, size }) + size * 1.4, h = size * 1.35, pad = 24;
+    return RR.sprite(`s09:cap:${font}:${size}:${text}`, w + pad * 2, h + pad * 2, () => {
+      const seed = RR.strHash(text), n = 10, strip = [];
+      for (let i = 0; i <= n; i++) strip.push([pad + (w * i) / n, pad + RR.hrange(seed + i, -3, 3)]);
+      for (let i = n; i >= 0; i--) strip.push([pad + (w * i) / n, pad + h + RR.hrange(seed + 50 + i, -3, 3)]);
+      RR.flat(strip.map(([px, py]) => [px + 6, py + 8]), RR.C.ink, 40);
+      RR.ink(strip, { fill: RR.C.white, stroke: RR.C.ink, w: 0.9, curve: 0.1 });
+      RR.text(text, pad + w / 2, pad + h / 2 + size * 0.33, { font, size, col: RR.C.ink });
+    }, { res: 1.5 });
+  };
+  const caption = (text, t, t0, t1, o = {}) => {
+    const a = RR.env(t, t0, t1, 0.35, 0.3);
+    if (a <= 0) return;
+    const k = RR.E.outBack(RR.seg(t, t0, t0 + 0.45));
+    const size = o.size ?? 58, font = o.font ?? 'hand';
+    const x = o.x ?? RR.W / 2, y = (o.y ?? 972) + (1 - k) * 40 + (t > t1 - 0.3 ? (1 - a) * 20 : 0);
+    push(); translate(x, y); rotate(o.rot ?? RR.hrange(RR.strHash(text), -0.018, 0.018)); scale(RR.lerp(0.85, 1, k));
+    RR.drawSprite(capSpr(text, size, font), 0, 0, { alpha: a });
+    pop();
+  };
+  const bubSpr = (text, dx, dy, o) => {
+    const size = o.size ?? 40;
+    const lines = RR.wrap(text, o.w ?? 360, { font: 'hand', size });
+    const tw = Math.max(...lines.map((l) => RR.textWidth(l, { font: 'hand', size })));
+    const w = tw + size * 1.2, h = lines.length * size * 1.1 + size * 0.8;
+    const rx = w * 0.62, ry = h * 0.7, pad = 26;
+    const x0 = Math.min(-rx, dx * 0.8) - pad, x1 = Math.max(rx, dx * 0.8) + pad, y0 = Math.min(-ry, dy * 0.8) - pad, y1 = Math.max(ry, dy * 0.8) + pad;
+    const spr = RR.sprite(`s09:bub:${text}:${dx}:${dy}`, x1 - x0, y1 - y0, () => RR.bubble(text, -x0, -y0, -x0 + dx, -y0 + dy, 1, 0, 2, o), { res: 1.25 });
+    return { spr, ax: -x0 / (x1 - x0), ay: -y0 / (y1 - y0) };
+  };
+  const bubble = (text, x, y, tx, ty, t, t0, t1, o = {}) => {
+    const a = RR.env(t, t0, t1, 0.2, 0.2);
+    if (a <= 0) return;
+    const k = RR.E.outBack(RR.seg(t, t0, t0 + 0.35));
+    const b = bubSpr(text, tx - x, ty - y, o);
+    RR.drawSprite(b.spr, x, y, { w: b.spr.w * k, h: b.spr.h * k, ax: b.ax, ay: b.ay, alpha: a });
+  };
+
   // ---------------------------------------------------------------- characters
+  // Figures are large and in screen space; feet sit below the frame (legs are culled).
+  const PS = 1.7, FY = 1200, MEET = [950, FY - PS * 190]; // scale, ground line, handshake point
   const REST_R = [51, -80], REST_L = [-51, -80], FAN_L = [-102, -172];
   const kfv = (t, keys) => RR.kf(t, keys);
 
   const frAt = (t) => {
-    const x = kfv(t, [[0.15, -330], [1.25, 390, 'outCubic'], [13.3, 390], [13.65, 580], [14.75, 580], [15.2, 390], [18.75, 390], [19.55, -400, 'inCubic']]);
+    const x = kfv(t, [[0.15, -330], [1.25, 390, 'outCubic'], [13.3, 390], [13.65, MEET[0] - PS * 185], [14.75, MEET[0] - PS * 185], [15.2, 390], [18.75, 390], [19.55, -400, 'inCubic']]);
     const walkIn = t > 0.15 && t < 1.25, walkOut = t > 18.75;
     const p = RR.personIdle(t, 1, { mouth: 'smile', brow: 'neutral', look: [0, 0], turn: 0 });
     if (walkIn || walkOut) { p.walk = t * 11; p.hop = Math.abs(Math.sin(t * 11)) * 12; }
@@ -194,12 +238,12 @@
     p.handR[1] += shake;
     if (t > 18.35 && t < 18.7) p.handR[0] += Math.sin((t - 18.35) * 16) * 22;
     p.handL = FAN_L;
-    return { x, y: 1230, s: 2.0, p };
+    return { x, y: FY, s: PS, p };
   };
 
   const deAt = (t) => {
     if (t < 10.35 || t > 15.6) return null;
-    const x = kfv(t, [[10.35, 2250], [10.95, 1480, 'outBack'], [13.3, 1480], [13.65, 1310], [14.8, 1310], [15.55, 2350, 'inCubic']]);
+    const x = kfv(t, [[10.35, 2250], [10.95, 1480, 'outBack'], [13.3, 1480], [13.65, MEET[0] + PS * 180], [14.8, MEET[0] + PS * 180], [15.55, 2350, 'inCubic']]);
     const p = RR.personIdle(t, 2, { turn: -0.6, look: [-1, -0.1], mouth: 'smile', prop: 'clipboard', propHand: 'R' });
     p.lean = -0.22 * (1 - RR.seg(t, 10.35, 11.0, 'outCubic')) + 0.1 * RR.seg(t, 14.9, 15.1);
     if (t > 14.9) { p.walk = t * 11; p.turn = 0.5; p.look = [0.8, 0]; }
@@ -212,7 +256,7 @@
     p.handL[1] += shake;
     p.handR = kfv(t, [[14.85, [62, -150]], [15.0, [100, -290], 'outBack']]);
     if (t < 14.85) p.handR = [62, -150];
-    return { x, y: 1230, s: 2.0, p };
+    return { x, y: FY, s: PS, p };
   };
 
   const huAt = (t) => {
@@ -220,7 +264,7 @@
     const p = RR.personIdle(t, 3, { turn: -0.7, look: [-1, 0], mouth: 'smile' });
     if (t >= 8.3 && t < 10.55) {
       x = kfv(t, [[8.3, 2250], [8.8, 1790, 'outBack'], [10.2, 1790], [10.55, 2350, 'inCubic']]);
-      y = 1250;
+      y = FY + 25;
       p.lean = -0.2;
       if (t < 9.3) Object.assign(p, { look: [-0.8, -0.8], brow: 'up', mouth: 'grin' });
       else if (t < 9.9) Object.assign(p, { look: [-1, 0.1], brow: 'worried', mouth: 'o' });
@@ -231,9 +275,9 @@
       // peeking side-eye: a near-static pose, so it is a cached (boiling) sprite, not a live figure
       x = kfv(t, [[13.1, 2250], [13.5, 1800, 'outBack'], [14.95, 1800], [15.45, 2350, 'inCubic']]);
       const pose = t < 13.9 ? 'flat' : Math.floor(t * 8) % 2 ? 'grinA' : 'grinB';
-      return { x, y: 1275, s: 2.0, sprite: pose, lean: -0.12 };
+      return { x, y: FY + 45, s: PS, sprite: pose, lean: -0.12 };
     } else return null;
-    return { x, y, s: 2.0, p };
+    return { x, y, s: PS, p };
   };
   const HU_BASE = { turn: -0.4, look: [-1, 0.15], brow: 'sly', blink: 0, squash: 0 };
   const HU_POSES = {
@@ -241,8 +285,8 @@
     grinA: { ...HU_BASE, mouth: 'grin', handL: [-16, -174], handR: [18, -166] },
     grinB: { ...HU_BASE, mouth: 'grin', handL: [-28, -170], handR: [30, -170] },
   };
-  const HU_SPR = { w: 380, h: 540, gy: 660 }; // ground point sits below the sprite (legs are off screen)
-  const huSprite = (name) => RR.sprite('s09:hu:' + name, HU_SPR.w, HU_SPR.h, () => RR.drawPerson('hu', HU_SPR.w / 2, HU_SPR.gy, 2.0, HU_POSES[name]), { res: 1, variants: 2 });
+  const HU_SPR = { w: 330, h: 460, gy: 560 }; // ground point sits below the sprite (legs are off screen)
+  const huSprite = (name) => RR.sprite('s09:hu:' + name, HU_SPR.w, HU_SPR.h, () => RR.drawPerson('hu', HU_SPR.w / 2, HU_SPR.gy, PS, HU_POSES[name]), { res: 1, variants: 2 });
 
   // ---------------------------------------------------------------- deck and discard (screen)
   const DECK = [720, 885], DISCARD = [905, 885], PILE_W = 118;
@@ -350,9 +394,9 @@
         const pos = fanCardPos(pivot, c.ang, lift);
         RR.drawCard(CARD_OF[c.key], pos[0], pos[1], { w: FAN_W, rot: c.ang, lift: lift > 20 ? 0.4 : 0 });
       }
-      RR.inkCircle(pivot[0] + 3, pivot[1] - 2, 21, { fill: RR.PEOPLE.fr.skin, w: 1 });
+      RR.inkCircle(pivot[0] + 3, pivot[1] - 2, 18, { fill: RR.PEOPLE.fr.skin, w: 1 });
       if (de) RR.drawPerson('de', de.x, de.y, de.s, de.p);
-      if (de) RR.sparkle(950, 850, t, 13.78, { n: 7, r: 90, col: RR.C.gold });
+      if (de) RR.sparkle(MEET[0], MEET[1], t, 13.78, { n: 7, r: 90, col: RR.C.gold });
 
       // ---- the chosen policy flies face down to the back of the queue
       if (t >= 3.05 && t < LAND_K8) {
@@ -403,12 +447,12 @@
 
       // ---- words
       RR.banner('STEP 2: MAIN PHASE', t, 0.1, 2.3);
-      RR.caption('Add a policy to the queue', t, 3.1, 5.9);
-      RR.caption('Vote with your influence', t, 6.7, 10.2);
-      if (de) RR.bubble('Back my policy?', 1360, 560, 1440, 790, t, 11.1, 12.55, { size: 48, w: 520 });
-      RR.bubble('Only if you back mine!', 680, 560, 450, 790, t, 12.3, 13.95, { size: 48, w: 560 });
-      RR.caption('Make deals... or break them', t, 12.9, 15.25, { y: 96 });
-      RR.caption('Draw back up to 5', t, 16.45, 18.7, { x: 1330 });
+      caption('Add a policy to the queue', t, 3.1, 5.9);
+      caption('Vote with your influence', t, 6.7, 10.2);
+      if (de) bubble('Back my policy?', 1360, 580, 1440, 800, t, 11.1, 12.55, { size: 48, w: 520 });
+      bubble('Only if you back mine!', 680, 580, 450, 800, t, 12.3, 13.95, { size: 48, w: 560 });
+      caption('Make deals... or break them', t, 12.9, 15.25, { y: 96 });
+      caption('Draw back up to 5', t, 16.45, 18.7, { x: 1330 });
     },
   });
 })();

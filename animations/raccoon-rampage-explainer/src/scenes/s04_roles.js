@@ -31,7 +31,7 @@
   const ROW_X = { de: 300, fr: 740, ar: 1180, hu: 1620 };
   const OUT_X = { hu: 300, ar: 740, fr: 1180, de: 1620 };
   const OUT_IN = { hu: 18.9, ar: 18.75, fr: 18.82, de: 18.89 };
-  const OUT_OFF = { hu: 19.36, ar: 19.40, fr: 19.44, de: 19.48 };
+  const OUT_OFF = { hu: 19.28, ar: 19.32, fr: 19.36, de: 19.40 };
   const INFO = {
     de: { name: 'GERMAN ENVIRONMENTAL AGENCY', line: 'Limit the damage in Germany', inf: 3, label: [1.75, 5.3], strip: [800, 992], stripIn: 2.05 },
     fr: { name: 'FRENCH ENVIRONMENTAL AGENCY', line: "Keep France's raccoons down", inf: 3, label: [6.0, 9.75], strip: [905, 992], stripIn: 6.3 },
@@ -163,6 +163,7 @@
   // Removal windows [gone, back] for tokens that leave the map; they return while off screen.
   const GONE = { de: { 9: [3.95, 10.9] }, fr: { 2: [7.33, 10.9], 1: [7.40, 10.9] }, roe: { 1: [18.0, 19.86] } };
   const gone = (kind, i, t) => { const g = GONE[kind][i]; return g && t >= g[0] && t < g[1]; };
+  const mapToken = (x, y, kind) => RR.drawToken(x, y, TOK, kind);
   const tokenPos = (kind, i) => (kind === 'roe' ? B.SQUARES[i].pos : B.SPOTS[kind][i]);
   const drawMapTokens = (t) => {
     const n = B.SETUP.tokens;
@@ -172,19 +173,19 @@
       // "here to stay": the German raccoons bounce happily while the agency looks on
       let hop = 0;
       for (const t0 of [2.35, 2.8]) hop += bump(t, t0 + RR.hr(i + 3) * 0.2, 0.3) * 12;
-      RR.drawToken(x, y - TOK * 0.1 - hop, TOK, 'yellow');
+      mapToken(x, y - TOK * 0.1 - hop, 'yellow');
     }
     for (let i = 0; i < n.fr; i++) {
       if (gone('fr', i, t)) continue;
       const [x, y] = tokenPos('fr', i);
       const jit = RR.env(t, 6.45, 7.35, 0.1, 0.05) * 2.4;
-      RR.drawToken(x + Math.sin(t * 57 + i * 2) * jit, y - TOK * 0.1, TOK, 'blue');
+      mapToken(x + Math.sin(t * 57 + i * 2) * jit, y - TOK * 0.1, 'blue');
     }
     for (let i = 0; i < n.roe; i++) {
       if (gone('roe', i, t)) continue;
       const [x, y] = tokenPos('roe', i);
       const jit = i === 1 ? RR.env(t, 17.8, 18.0, 0.05, 0.02) * 3 : 0;
-      RR.drawToken(x + Math.sin(t * 61) * jit, y - TOK * 0.1, TOK, 'black');
+      mapToken(x + Math.sin(t * 61) * jit, y - TOK * 0.1, 'black');
     }
   };
   const starOf = (k) => add(B.slot(k), [69, 106.5]); // scoring star on a policy card in slot k

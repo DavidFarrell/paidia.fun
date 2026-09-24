@@ -102,6 +102,51 @@
     RR.inkLine([[40, 49], [160, 49]], { col: '#d6b48c', w: 0.6, brush: 'pencil' });
   }, { res: 1.8 });
 
+  // Cached caption: same look as RR.caption, but the paper strip is painted once into a sprite.
+  const capSpr = (text, size, font) => {
+    const w = RR.textWidth(text, { font, size }) + size * 1.4, h = size * 1.35, pad = 24;
+    return RR.sprite(`s10:cap:${font}:${size}:${text}`, w + pad * 2, h + pad * 2, () => {
+      const seed = RR.strHash(text), n = 10, strip = [];
+      for (let i = 0; i <= n; i++) strip.push([pad + (w * i) / n, pad + RR.hrange(seed + i, -3, 3)]);
+      for (let i = n; i >= 0; i--) strip.push([pad + (w * i) / n, pad + h + RR.hrange(seed + 50 + i, -3, 3)]);
+      RR.flat(strip.map(([px, py]) => [px + 6, py + 8]), RR.C.ink, 40);
+      RR.ink(strip, { fill: RR.C.white, stroke: RR.C.ink, w: 0.9, curve: 0.1 });
+      RR.text(text, pad + w / 2, pad + h / 2 + size * 0.33, { font, size, col: RR.C.ink });
+    }, { res: 1.5 });
+  };
+  const caption = (text, t, t0, t1, o = {}) => {
+    const a = RR.env(t, t0, t1, 0.35, 0.3);
+    if (a <= 0) return;
+    const k = RR.E.outBack(RR.seg(t, t0, t0 + 0.45));
+    const size = o.size ?? 58, font = o.font ?? 'hand';
+    const x = o.x ?? RR.W / 2, y = (o.y ?? 972) + (1 - k) * 40 + (t > t1 - 0.3 ? (1 - a) * 20 : 0);
+    push(); translate(x, y); rotate(o.rot ?? RR.hrange(RR.strHash(text), -0.018, 0.018)); scale(RR.lerp(0.85, 1, k));
+    RR.drawSprite(capSpr(text, size, font), 0, 0, { alpha: a });
+    pop();
+  };
+
+  // Turn chip: CELEBRITY ENDORSEMENT is a YOUR MAIN PHASE card, so the turn passes from
+  // France to Animal Rights before the pink hand plays it (flag -> arrow -> paw badge).
+  const TURN = [330, 100];
+  const chipSpr = () => RR.sprite('s10:turnchip', 250, 110, () => {
+    RR.flat(RR.rrectPts(19, 21, 220, 80, 22), RR.C.ink, 40);
+    RR.ink(RR.rrectPts(12, 13, 220, 80, 22), { fill: RR.C.white, stroke: RR.C.ink, w: 0.9, curve: 0.2 });
+    RR.inkLine([[98, 53], [150, 53]], { col: RR.C.inkSoft, w: 1.3 });
+    RR.ink([[164, 53], [148, 43], [148, 63]], { fill: RR.C.inkSoft, stroke: false, curve: 0 });
+  }, { res: 1.5 });
+  const turnChip = (t) => {
+    const a = RR.env(t, 6.35, 9.4, 0.2, 0.3);
+    if (a <= 0) return;
+    const k = RR.E.outBack(RR.seg(t, 6.35, 6.7));
+    push(); translate(TURN[0], TURN[1]); rotate(-0.02); scale(k * 1.4);
+    RR.drawSprite(chipSpr(), 0, 0, { alpha: a });
+    const dim = RR.seg(t, 6.75, 7.0);
+    RR.icon('role', -64, -8, 64 * (1 - 0.15 * dim), { role: 'fr' }, { alpha: a * (1 - 0.55 * dim) });
+    const pk = RR.pop(t, 6.8, 0.35);
+    if (pk > 0.01) RR.icon('role', 66, -8, 64 * pk, { role: 'ar', bg: RR.C.arDark }, { alpha: a });
+    pop();
+  };
+
   // ---------------------------------------------------------------- the strings
   const [WX, WY] = BD.slot(2), [PX, PY] = BD.slot(1);
   const SRC = [cubeLayout(WX, WY, 1, 3), cubeLayout(WX, WY, 2, 3)];   // corp, fr on WEAR THEM
@@ -140,7 +185,7 @@
       [0.1, 'brush'], [0.45, 'whoosh'], [1.1, 'paper', 0.5], [1.35, 'pencil'], [2.5, 'slide'],
       [3.0, 'pop', 0.6], [3.1, 'pop', 0.6], [3.2, 'whoosh', 0.6], [3.3, 'paper'], [3.9, 'tick'], [3.95, 'tick'],
       [LIFT, 'whoosh'], [4.25, 'buzz', 0.6], [4.6, 'whoosh', 0.4], [L_CORP, 'tock'], [L_FR, 'tock'], [5.95, 'whoosh', 0.4],
-      [6.3, 'whoosh'], [6.5, 'slide', 0.6], [6.95, 'flip'], [6.9, 'paper', 0.6], [7.3, 'pencil'], [7.55, 'pop'], [7.7, 'pop'],
+      [6.3, 'whoosh'], [6.4, 'pop', 0.5], [6.8, 'tick'], [6.5, 'slide', 0.6], [6.95, 'flip'], [6.9, 'paper', 0.6], [7.3, 'pencil'], [7.55, 'pop'], [7.7, 'pop'],
       [L_PINK[0], 'tock'], [L_PINK[1], 'tock'], [8.45, 'sparkle'], [8.5, 'ding'],
       [9.45, 'boing'], [9.7, 'chitter'], [10.2, 'whoosh', 0.6], [10.45, 'chitter'], [11.05, 'hop'],
     ],
@@ -255,6 +300,8 @@
         RR.drawCube(pos[0], pos[1], size, 'ar', { rot: t >= F ? Math.sin(Math.PI * RR.seg(t, F, L)) * -0.7 : 0, shadow: false });
       });
 
+      turnChip(t);
+
       // ---- the Raccoon cheers the chaos from the corner
       if (t > 9.4 && t < 11.5) {
         const beat = Math.sin((t - 9.8) * 15);
@@ -270,8 +317,8 @@
 
       // ---- words
       RR.banner('ACTION CARDS', t, 0.1, 2.4);
-      RR.caption('Play them to twist the vote', t, 3.3, 6.3);
-      RR.caption('Anytime, or on your turn', t, 6.9, 9.35, { size: 52 });
+      caption('Play them to twist the vote', t, 3.3, 6.3);
+      caption('Anytime, or on your turn', t, 6.9, 9.35, { size: 52 });
     },
   });
 })();
