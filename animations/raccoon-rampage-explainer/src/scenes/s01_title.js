@@ -78,6 +78,10 @@
         RR.drawSprite(backdrop(), 960, 540, { w: 1920, h: 1080 });
         RR.shadow(BIN.x, BIN.base + 6, 210, 26, 50);
 
+        // the whole bin wobbles on its base while something rummages inside
+        const wob = t < 2.05 ? 0.035 * Math.sin(t * 26) * RR.env(t, 0.45, 2.0, 0.15, 0.05) : 0;
+        push();
+        translate(BIN.x, BIN.base); rotate(wob); translate(-BIN.x, -BIN.base);
         // lid: rattles, then flies off spinning
         const rattle = t < 2 ? Math.abs(Math.sin(t * 22)) * RR.env(t, 0.5, 1.9, 0.1, 0.1) * 14 : 0;
         const lidRot = t < 2 ? Math.sin(t * 29) * 0.06 * RR.env(t, 0.5, 1.9, 0.1, 0.1) : 0;
@@ -87,7 +91,6 @@
           lidPos = [BIN.x - 700 * u, BIN.rim - 16 - 900 * u + 900 * u * u];
           lidA = -u * 6;
         }
-        if (t < 3.2) RR.drawSprite(lid(), lidPos[0], lidPos[1], { w: 400, h: 140, rot: lidA });
 
         RR.drawSprite(binBack(), BIN.x, BIN.rim, { w: 380, h: 120 });
 
@@ -116,6 +119,17 @@
         }
         // front of the bin hides the raccoon's lower half while it is inside
         RR.drawSprite(binFront(), BIN.x, BIN.rim + 150, { w: 380, h: 360 });
+        // lid sits on top of the rim (drawn last so it covers the opening)
+        if (t < 3.2) RR.drawSprite(lid(), lidPos[0], lidPos[1], { w: 400, h: 140, rot: lidA });
+        pop();
+        // rattle marks either side of the lid
+        for (const [a, b] of [[0.55, 0.95], [1.2, 1.7]]) {
+          const e = RR.env(t, a, b, 0.05, 0.1);
+          if (e > 0) for (const side of [-1, 1]) for (let i = 0; i < 3; i++) {
+            const x0 = BIN.x + side * (205 + i * 4), y0 = BIN.rim - 40 + i * 26;
+            RR.inkLine([[x0, y0], [x0 + side * 34 * e, y0 - 8 + i * 4]], { col: RR.C.inkSoft, w: 1.4 });
+          }
+        }
         // crumbs flying during the bite
         if (t > 7.5 && t < 8.1) for (let i = 0; i < 5; i++) {
           const u = RR.seg(t, 7.5 + i * 0.08, 7.9 + i * 0.08);
