@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Raccoon Rampage: how to play</title>
+<style>
+  body { margin: 0; background: #1d1a20; color: #eee; font: 14px system-ui, sans-serif; }
+  canvas { display: block; max-width: 100vw; height: auto !important; width: 100% !important; }
+  #ui { display: none; gap: 10px; align-items: center; padding: 8px 12px; }
+  #ui input[type=range] { flex: 1; }
+</style>
+<script src="lib/p5.min.js"></script>
+<script src="lib/p5.brush.flush.js"></script>
+<!-- engine -->
+<script src="src/config.js"></script>
+<script src="src/util.js"></script>
+<script src="src/gfx.js"></script>
+<script src="src/data/europe.js"></script>
+<script src="src/props/icons.js"></script>
+<script src="src/props/pieces.js"></script>
+<script src="src/props/cards.js"></script>
+<script src="src/actors/raccoon.js"></script>
+<script src="src/actors/people.js"></script>
+<script src="src/board.js"></script>
+<script src="src/ui.js"></script>
+<script src="src/timeline.js"></script>
+<!-- scenes (each registers itself with RR.scene; order comes from its `order` field) -->
+<script src="src/scenes/s01_title.js"></script>
+<script src="src/scenes/s02_history.js"></script>
+<script src="src/scenes/s03_board.js"></script>
+<script src="src/scenes/s04_roles.js"></script>
+<script src="src/scenes/s05_rounds.js"></script>
+<script src="src/scenes/s06_queue.js"></script>
+<script src="src/scenes/s07_pass.js"></script>
+<script src="src/scenes/s08_spread.js"></script>
+<script src="src/scenes/s09_main.js"></script>
+<script src="src/scenes/s10_actions.js"></script>
+<script src="src/scenes/s11_endgame.js"></script>
+<script src="src/scenes/s12_finale.js"></script>
+<script src="src/main.js"></script>
+</head>
+<body>
+<div id="ui"><button id="play">Play</button><input id="scrub" type="range" min="0" max="4319" value="0"><span id="lbl"></span>
+<label><input id="hud" type="checkbox"> HUD</label></div>
+<script>
+// Preview: scrub or play (slow, it renders every frame live). Headless rendering uses ?render=1.
+if (!new URLSearchParams(location.search).has('render')) {
+  document.getElementById('ui').style.display = 'flex';
+  const scrub = document.getElementById('scrub'), lbl = document.getElementById('lbl');
+  let playing = false, busy = false;
+  const show = async (f) => { if (busy) return; busy = true; await renderFrame(f); lbl.textContent = (f / RR.FPS).toFixed(2) + ' s'; busy = false; };
+  window.previewReady = () => {
+    scrub.max = Math.round(RR.DURATION * RR.FPS) - 1;
+    const t0 = parseFloat(new URLSearchParams(location.search).get('t') || '0');
+    scrub.value = Math.round(t0 * RR.FPS); show(+scrub.value);
+  };
+  scrub.oninput = () => show(+scrub.value);
+  document.getElementById('hud').onchange = (e) => { RR.showHud = e.target.checked; show(+scrub.value); };
+  document.getElementById('play').onclick = async () => {
+    playing = !playing;
+    while (playing && +scrub.value < +scrub.max) { scrub.value = +scrub.value + 1; await show(+scrub.value); }
+  };
+}
+</script>
+</body>
+</html>
