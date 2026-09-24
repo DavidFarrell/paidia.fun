@@ -294,6 +294,36 @@ RR.blit = (tex, x, y, w, h, alpha = 1, flipY = false) => {
   resetShader();
 };
 
+// Lower-resolution copy of an existing sprite (for level of detail). Deriving it from the
+// same painting, rather than repainting at a lower resolution, keeps the texture identical
+// so there is no visible pop when the camera zooms across the LOD threshold.
+RR.downsampleSprite = (key, src, res) => {
+  let s = RR._sprites[key];
+  if (s) return s;
+  RR.flush();
+  s = { w: src.w, h: src.h, res, fbs: [] };
+  for (const srcFb of src.fbs) {
+    let cur = srcFb, curRes = src.res;
+    while (curRes / res > 1.01) {
+      const next = Math.max(res, curRes / 2);
+      const fb = createFramebuffer({ width: Math.ceil(src.w * next), height: Math.ceil(src.h * next), density: 1, antialias: false });
+      fb.begin();
+      clear();
+      push();
+      translate(-fb.width / 2, -fb.height / 2);
+      blendMode(REPLACE);
+      RR.blit(cur, 0, 0, fb.width, fb.height, 1, RR.FB_FLIP);
+      blendMode(BLEND);
+      pop();
+      fb.end();
+      cur = fb; curRes = next;
+    }
+    s.fbs.push(cur);
+  }
+  RR._sprites[key] = s;
+  return s;
+};
+
 // Draw a sprite. opts: w, h (display size), rot, alpha (0-1), sx, sy (flip/squash), ax, ay (anchor 0-1), variant
 RR.drawSprite = (s, x, y, o = {}) => {
   if (!s) return;

@@ -180,7 +180,8 @@ B.SECTIONS = {
 
 B.sectionSprite = (name, lod) => {
   const S = B.SECTIONS[name];
-  return RR.sprite(`board:${name}:${lod}`, S.w, S.h, () => { push(); translate(-S.x, -S.y); S.paint(); pop(); }, { res: S.res[lod === 'hi' ? 0 : 1] });
+  if (lod !== 'hi') return RR.downsampleSprite(`board:${name}:lo`, B.sectionSprite(name, 'hi'), S.res[1]);
+  return RR.sprite(`board:${name}:hi`, S.w, S.h, () => { push(); translate(-S.x, -S.y); S.paint(); pop(); }, { res: S.res[0] });
 };
 // Draw the static board. o.sections: {name: {alpha, scale, dy}} for assembly animations;
 // o.only: list of section names; o.lod forces 'hi'/'lo'.

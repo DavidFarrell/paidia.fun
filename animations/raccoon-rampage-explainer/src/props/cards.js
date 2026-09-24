@@ -277,8 +277,9 @@ RR.cardSize = (id) => {
 };
 RR.cardSprite = (id, lod = 'hi') => {
   const [w, h] = RR.cardSize(id);
-  const res = lod === 'hi' ? 2.6 : 1.1;
-  return RR.sprite(`card:${id}:${lod}`, w, h, () => {
+  if (lod !== 'hi') return RR.downsampleSprite(`card:${id}:lo`, RR.cardSprite(id, 'hi'), 1.1);
+  const res = 2.6;
+  return RR.sprite(`card:${id}:hi`, w, h, () => {
     if (id === 'back:policy') return RR.paintPolicyBack(w, h);
     if (id === 'back:spread') return RR.paintSpreadBack(w, h);
     if (id === 'back:event') return RR.paintEventBack(w, h);
