@@ -12,12 +12,12 @@ Rules follow the January 2024 rulebook; game details come from raccoonrampage.ec
 ```bash
 npm install                      # p5, p5.brush, playwright, esbuild, map data
 npx http-server -p 8080 -c-1 .   # then open http://localhost:8080/?t=80 (preview with scrubber)
-render/build.sh                  # full render: frames, soundtrack, MP4 in out/
+render/build.sh                  # full render: frames, soundtrack, MP4
 ```
 
 Preview in a browser is slow (every frame is painted live) but handy for scrubbing. The build renders
 4,320 frames (1920 x 1080, 24 fps) in headless Chromium, generates the music and sound effects, and
-encodes `out/raccoon-rampage-how-to-play.mp4` with ffmpeg. Existing frames are reused, so after
+encodes `raccoon-rampage-how-to-play.mp4` with ffmpeg. Existing frames are reused, so after
 editing one scene you can delete just its frames and rebuild.
 
 Useful commands:
