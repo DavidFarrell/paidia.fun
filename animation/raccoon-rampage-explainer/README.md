@@ -57,6 +57,12 @@ ffmpeg -y -i out/video_silent.mp4 -i out/audio.wav -c:v copy -c:a aac -b:a 192k 
   -shortest -movflags +faststart out/raccoon-rampage-how-to-play.mp4
 ```
 
+Or run everything at once with `npm run build` (`tools/make.sh`).
+
+Review helpers: `python3 tools/review.py sheets <video> out/review` writes contact sheets
+at one frame per second, and `python3 tools/review.py motion <video>` lists sudden jumps
+between frames. `node tools/timeline.mjs` writes `out/timeline.json` without rendering.
+
 `data/europe.json` is rebuilt with `tools/build_map.py` and `tools/build_spaces.py`
 from Natural Earth's `ne_50m_admin_0_countries.geojson`.
 

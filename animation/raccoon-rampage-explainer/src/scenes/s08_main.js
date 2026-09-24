@@ -23,11 +23,11 @@ function handFan(cards, f, o = {}) {
 }
 
 scene({
-  id: 'main', bars: 9, mood: 'bouncy', trans: { type: 'brush', len: 36, stroke: 'stroke_b' },
+  id: 'main', bars: 10, mood: 'bouncy', trans: { type: 'brush', len: 36, stroke: 'stroke_b' },
   draw(f) {
     tableBG(f);
-    const CX = kf(f, [[0, 1150], [520, 1150]]), CY = kf(f, [[0, 420], [520, 440]]);
-    const Z = kf(f, [[0, 0.9], [150, 0.95, E.io], [520, 0.95]]);
+    const CX = kf(f, [[0, 1150], [600, 1150]]), CY = kf(f, [[0, 420], [600, 440]]);
+    const Z = kf(f, [[0, 0.9], [150, 0.95, E.io], [600, 0.95]]);
     // queue state: FR adds a card at slot 8, then votes
     const addT = ez(f, 60, 104, E.io);
     const vote = (i, a) => ({ a, t: seg(f, a, a + 26) });
@@ -52,16 +52,16 @@ scene({
     const sq = (bx, by) => toScreen(bx, by, CX, CY, Z);
 
     // 2a. play a policy face down onto the back of the queue
-    const handIn = ez(f, 6, 30, E.outBack) * (1 - ez(f, 300, 330, E.inQ)) + ez(f, 486, 506, E.outBack);
+    const handIn = ez(f, 6, 30, E.outBack) * (1 - ez(f, 300, 330, E.inQ)) + ez(f, 512, 532, E.outBack);
     if (handIn > 0) {
       const pick = ez(f, 36, 56, E.outBack);
-      const redraw = f > 506 ? seg(f, 506, 526) : 1;
+      const redraw = f > 532 ? seg(f, 532, 552) : 1;
       const hand = FR_HAND.map((c, i) => (i === 0 ? null : c));
-      if (f > 486) hand[0] = { type: 'back' };
+      if (f > 512) hand[0] = { type: 'back' };
       C.save();
       C.translate(0, (1 - clamp(handIn)) * 360);
-      handFan(f < 60 ? FR_HAND : hand, f, { lift: [pick, 0, 0, 0, 0], skip: f > 486 && redraw < 1 ? [0] : [] });
-      if (f > 486 && redraw < 1) {
+      handFan(f < 60 ? FR_HAND : hand, f, { lift: [pick, 0, 0, 0, 0], skip: f > 512 && redraw < 1 ? [0] : [] });
+      if (f > 512 && redraw < 1) {
         const [dx, dy] = [W + 200, 300];
         const x = lerp(dx, W / 2 - 240, E.io(redraw)), y = lerp(dy, H + 52, E.io(redraw));
         card({ type: 'back', x, y, w: 170, h: 238, rot: (1 - redraw) * 1.2 - 0.24, seed: 150 });
@@ -97,7 +97,7 @@ scene({
 
     // negotiation: the others lobby with icon bubbles
     const others = [['de', 250], ['ar', 960], ['hu', 1670]];
-    const negIn = ez(f, 300, 324, E.outBack) * (1 - ez(f, 506, 526, E.inQ));
+    const negIn = ez(f, 300, 324, E.outBack) * (1 - ez(f, 530, 550, E.inQ));
     if (negIn > 0) {
       others.forEach(([r, x], k) => {
         const angry = r === 'hu' && f > 470;
@@ -120,7 +120,7 @@ scene({
       cue('pop', 331, 0.6); cue('pop', 345, 0.6); cue('pop', 359, 0.6);
     }
     // an action card bends the rules: puppet strings move the hunter's vote
-    const act = ez(f, 424, 440, E.outBack) * (1 - ez(f, 486, 500, E.inQ));
+    const act = ez(f, 424, 440, E.outBack) * (1 - ez(f, 500, 514, E.inQ));
     if (act > 0) {
       card({ ...FR_HAND[1], x: 1560, y: 480, w: 250 * act, h: 350 * act, rot: 0.06, seed: 151, glow: PAL.lavender });
       cue('card', 425, 0.8);
@@ -139,16 +139,16 @@ scene({
     }
 
     // step 3: draw back up to five, then play passes clockwise
-    const step = f < 486 ? 2 : f < 526 ? 3 : 1;
-    turnHUD(step, f, f < 526 ? 'fr' : 'ar', 1);
-    if (f > 526) sparkle(84, 78, f, 527, 60, ROLES.ar.col);
-    cue('card', 490, 0.7);
-    cue('whoosh', 526, 0.5);
+    const step = f < 510 ? 2 : f < 568 ? 3 : 1;
+    turnHUD(step, f, f < 568 ? 'fr' : 'ar', 1);
+    if (f > 568) sparkle(84, 78, f, 569, 60, ROLES.ar.col);
+    cue('card', 534, 0.7);
+    cue('whoosh', 568, 0.5);
 
     caption(f, 14, 118, 'STEP 2: ADD A POLICY, FACE DOWN, AT THE BACK', { size: 50, top: true, x: 1180 });
     caption(f, 132, 290, 'VOTE ON FACE-UP POLICIES WITH YOUR INFLUENCE', { size: 48, top: true, x: 1180 });
     caption(f, 312, 420, 'NEGOTIATE, TRADE AND PERSUADE', { size: 56, top: true, x: 1180 });
-    caption(f, 426, 484, 'ACTION CARDS BEND THE RULES', { size: 56, top: true, x: 1180 });
-    caption(f, 490, 536, 'STEP 3: DRAW BACK UP TO 5 CARDS', { size: 54, top: true, x: 1180 });
+    caption(f, 426, 506, 'ACTION CARDS BEND THE RULES', { size: 56, top: true, x: 1180 });
+    caption(f, 514, 590, 'STEP 3: DRAW BACK UP TO 5 CARDS', { size: 54, top: true, x: 1180 });
   },
 });

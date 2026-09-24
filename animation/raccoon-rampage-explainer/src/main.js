@@ -30,7 +30,7 @@ window.renderAndGrab = function (F) {
   return MAIN.getImageData(0, 0, W, H).data;
 };
 window.getCues = () => [...CUES.values()].sort((a, b) => a.t - b.t);
-window.getTimeline = () => ({ total: TOTAL, fps: FPS, scenes: SCENES.map((s) => ({ id: s.id, start: s.start, len: s.len, bars: s.bars, mood: s.mood })) });
+window.getTimeline = () => ({ total: TOTAL, fps: FPS, scenes: SCENES.map((s) => ({ id: s.id, start: s.start, len: s.len, bars: s.bars, mood: s.mood, trans: s.trans ? s.trans.type : null })) });
 
 // ---- simple preview player ----
 const Preview = {

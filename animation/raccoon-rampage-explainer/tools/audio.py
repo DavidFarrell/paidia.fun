@@ -1,7 +1,7 @@
 """Synthesises the soundtrack: music that follows the scene moods, plus sound
 effects placed at the audio cues the animation registered while rendering.
 
-Usage: python3 tools/audio.py [out/timeline.json] [out/cues.json] [out/audio.wav]
+Usage: python3 tools/audio.py [out/timeline.json] [out/cues.json] [out/audio.wav] [--stems]
 Everything is generated from scratch with numpy (no samples).
 """
 import json
@@ -196,6 +196,14 @@ def sfx(name):
             seg_ = slice(i * len(t) // 3, (i + 1) * len(t) // 3)
             y[seg_] = band(n, lo, hi)[seg_]
         y = lp(y, 5000) * np.sin(np.pi * t / 0.5) ** 2 * 0.8
+    elif name == "brushswish":
+        # a big bristly brush dragged across paper
+        d = 1.0
+        t = tt(d)
+        n = RNG.standard_normal(len(t))
+        bristle = 0.6 + 0.4 * lp(np.abs(RNG.standard_normal(len(t))), 40) / 0.8
+        y = band(n, 500, 3500) * np.sin(np.pi * t / d) ** 1.2 * bristle
+        y += 0.5 * band(n, 2500, 8000) * np.sin(np.pi * np.clip(t / d * 1.4 - 0.2, 0, 1)) ** 2
     elif name == "sparkle":
         y = np.zeros(int(SR * 0.9))
         for i, m in enumerate((84, 88, 91, 96)):
@@ -465,9 +473,10 @@ def reverb(x, seconds=1.1, mix=0.18):
 
 
 def main():
-    tl_path = sys.argv[1] if len(sys.argv) > 1 else "out/timeline.json"
-    cue_path = sys.argv[2] if len(sys.argv) > 2 else "out/cues.json"
-    out_path = sys.argv[3] if len(sys.argv) > 3 else "out/audio.wav"
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    tl_path = args[0] if len(args) > 0 else "out/timeline.json"
+    cue_path = args[1] if len(args) > 1 else "out/cues.json"
+    out_path = args[2] if len(args) > 2 else "out/audio.wav"
     tl = json.load(open(tl_path))
     cues = json.load(open(cue_path))
     fps = tl["fps"]
@@ -501,25 +510,39 @@ def main():
         if t0 > 1:
             music.add(t0 - 1.0, cymbal_swell(1.0, 0.6), 1.0)
     mus = reverb(music.buf, 1.2, 0.2)
-    mus *= 0.42 / (np.max(np.abs(mus)) or 1)
+    mus *= 0.36 / (np.max(np.abs(mus)) or 1)
 
     fx = Mix(total)
     cache = {}
+    # transition sounds come from the timeline rather than from cues
+    for sc in tl["scenes"]:
+        kind = {"brush": "brushswish", "iris": "whoosh"}.get(sc.get("trans"))
+        if kind:
+            cues.append({"t": sc["start"] / fps, "frame": sc["start"], "name": kind, "gain": 0.9})
     for c in cues:
         name = c["name"]
         if name not in cache:
             cache[name] = sfx(name)
         g = {"pop": 0.35, "tick": 0.4, "step": 0.4, "clack": 0.45, "card": 0.4, "flip": 0.45, "slide": 0.3,
              "whoosh": 0.4, "boom": 0.8, "fanfare": 0.7, "fail": 0.55, "cheer": 0.5, "chitter": 0.35,
-             "sparkle": 0.35, "score": 0.45, "stamp": 0.6, "thud": 0.45}.get(name, 0.5)
+             "sparkle": 0.35, "score": 0.45, "stamp": 0.6, "thud": 0.45, "brushswish": 0.45}.get(name, 0.5)
         pan = float(np.clip((zlib.crc32(f"{name}{c['frame']}".encode()) % 100) / 100 - 0.5, -0.4, 0.4))
         fx.add(c["t"], cache[name], g * c.get("gain", 1), pan)
     fxs = reverb(fx.buf, 0.6, 0.12)
-    mixbuf = mus + fxs * 0.55
+    FX_LEVEL = 1.0
+    mixbuf = mus + fxs * FX_LEVEL
+    if "--stems" in sys.argv:
+        for name, stem in (("music", mus), ("sfx", fxs * FX_LEVEL)):
+            st = (np.clip(stem[:, : int(total * SR)], -1, 1).T * 32767).astype(np.int16)
+            with wave.open(out_path.replace(".wav", f"_{name}.wav"), "wb") as w:
+                w.setnchannels(2)
+                w.setsampwidth(2)
+                w.setframerate(SR)
+                w.writeframes(st.tobytes())
     n = int(total * SR)
     mixbuf = mixbuf[:, :n]
     # gentle limiter and a short fade at the very end
-    mixbuf = np.tanh(mixbuf * 1.3) / np.tanh(1.3)
+    mixbuf = np.tanh(mixbuf * 1.6) / np.tanh(1.6)
     mixbuf *= 0.89 / (np.max(np.abs(mixbuf)) or 1)
     fo = int(SR * 1.5)
     mixbuf[:, -fo:] *= np.linspace(1, 0, fo)

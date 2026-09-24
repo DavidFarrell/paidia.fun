@@ -47,8 +47,10 @@ scene({
     flips.forEach((a) => cue('flip', a, 0.8));
     // year counter
     const years = [0, 5, 10, 15, 20][Math.min(4, flipped - 1)];
+    const yt = ez(f, 26, 40, E.outBack);
     C.save();
     C.translate(W - 250, 150);
+    C.scale(yt, yt);
     P.ellipse(0, 0, 130, 130, { fill: PAL.cardCream, lw: 4, seed: 1700, texA: 0.35 });
     T.draw(String(years), 0, -14, { size: 110, col: PAL.plumDark });
     T.draw('YEARS', 0, 62, { size: 40, col: PAL.plumMid, spacing: 2 });
@@ -63,109 +65,119 @@ const FINAL_SCORES = { de: 7, fr: 6, ar: 9, hu: 5 };
 scene({
   id: 'ending', bars: 9, mood: 'finale', trans: { type: 'fade', len: 14 },
   draw(f) {
-    // a. end-game evaluation of all face-up policies (no spread for failures)
-    if (f < 132) {
-      tableBG(f);
-      cam(1000, 300, 1.02, 0, () => {
-        boardBase();
-        for (let i = 8; i >= 1; i--) {
-          const spec = QEND[i];
-          const [x, y] = qpos(i);
-          if (i > 4) { card({ ...spec, x, y, w: CARD_W, h: CARD_H, flip: 1, seed: 40 + i }); continue; }
-          const need = spec.cost, have = spec.votes.length;
-          const ok = have >= need;
-          const a = 24 + (4 - i) * 10;
-          const st = seg(f, a, a + 12);
-          const gone = !ok ? ez(f, 80, 110, E.inQ) : 0;
-          card({ ...spec, x, y: y - gone * 60, w: CARD_W, h: CARD_H, votes: gone > 0 ? [] : spec.votes, alpha: 1 - gone, stamp: st > 0 ? (ok ? 'pass' : 'fail') : null, stampT: st, seed: 40 + i,
-            glow: ok && st > 0 ? '#8fd18a' : null });
-          cue(ok ? 'stamp' : 'thud', a, 0.7);
-        }
-      });
-      caption(f, 8, 70, 'GAME END: EVERY FACE-UP POLICY IS EVALUATED', { size: 48 });
-      caption(f, 76, 128, 'FAILURES NOW JUST GET DISCARDED', { size: 52 });
-      return;
-    }
-    const g = f - 132;
-    // b. is the Impact Tracker in the green?
-    lavenderBG(f);
-    const check = ez(g, 40, 56, E.outBack);
-    const trkIn = ez(g, 0, 22, E.outBack) * (1 - ez(g, 150, 170, E.inQ));
-    if (trkIn > 0) {
-      C.save();
-      C.translate(0, -(1 - trkIn) * 500);
-      const at = bigTracker(W / 2, 330, 1500, -3, f);
-      // lose zone (neutral and red) and win zone (green)
-      if (check > 0) {
-        const [nx, ny] = at(0), [rx] = at(9.6), [gx] = at(-9), [gx2] = at(-1);
-        C.save();
-        C.globalAlpha = 0.9 * check;
-        P.line([[nx - 30, ny + 60], [rx + 40, ny + 60]], { w: 8, col: PAL.bad, seed: 1710, taper: false });
-        T.draw('EVERYONE LOSES', (nx + rx) / 2, ny + 110, { size: 50, col: PAL.badDark, spacing: 2 });
-        P.line([[gx - 30, ny + 60], [gx2 + 20, ny + 60]], { w: 8, col: PAL.greenDeep, seed: 1711, taper: false });
-        T.draw('SAVED!', (gx + gx2) / 2, ny + 110, { size: 56, col: PAL.greenDeep, spacing: 2 });
-        C.restore();
-      }
-      C.restore();
-      cue('whoosh', 133, 0.6);
-      cue('sparkle', 172, 0.8);
-    }
-    // the players watch, then cheer
-    if (g < 170) {
-      ROLE_ORDER.forEach((r, i) => {
-        const cheer = seg(g, 70 + i * 4, 84 + i * 4);
-        person({ role: r, x: 330 + i * 420, y: 1110 + Math.sin(f * 0.3 + i) * cheer * 10, s: 1.15, expr: cheer > 0 ? 'grin' : 'shock', look: [0, -1],
-          armL: [0.2 + cheer * 2.5, 0.3], armR: [0.2 + cheer * 2.5, 0.3], seed: 5 });
-      });
-      cue('cheer', 204, 0.8);
-      caption(g, 20, 160, 'FINISH ON THE GREEN SIDE, OR EVERYONE LOSES', { size: 50, y: 610 });
-      return;
-    }
-    // c. only now compare scores: the most points wins
-    const h = g - 170;
-    const rows = ROLE_ORDER.map((r, i) => [r, 150 + i * 196]);
-    const fill = (r) => Math.min(FINAL_SCORES[r], Math.floor(seg(h, 30, 150) * 9.99));
-    rows.forEach(([r, y], i) => {
-      const t = ez(h, i * 6, i * 6 + 18, E.outBack);
-      C.save();
-      C.translate((1 - t) * -1100, 0);
-      const winner = r === 'ar' && h > 160;
-      if (winner) P.glow(560, y, 480, PAL.pink, 0.45);
-      playerBoard(r, 520, y, 0.82, { score: fill(r) });
-      // running total
-      P.ellipse(1000, y, 66, 66, { fill: winner ? '#f3d27a' : PAL.cardCream, lw: 3.4, seed: 1720 + i, texA: 0.3, n: 24 });
-      T.draw(String(fill(r)), 1000, y + 4, { size: 84, col: PAL.plumDark });
-      if (winner) {
-        const ct = ez(h, 164, 176, E.outBack);
-        C.save();
-        C.translate(1000, y - 84 - ct * 6);
-        C.scale(ct * 1.3, ct * 1.3);
-        P.shape([[-30, 10], [-34, -24], [-14, -6], [0, -32], [14, -6], [34, -24], [30, 10]], { fill: '#f1c542', lw: 3, seed: 1730, smooth: 0.1, texA: 0.3 });
-        C.restore();
-      }
-      C.restore();
-    });
-    for (let k = 1; k <= 9; k++) cue('tick', 302 + 30 + ((k - 0.5) / 10) * 120, 0.35);
-    // winner
-    const win = ez(h, 160, 180, E.outBack);
-    const reactions = { de: 'happy', fr: 'sad', ar: 'grin', hu: 'cross' };
-    ROLE_ORDER.forEach((r, i) => {
-      const isWin = r === 'ar';
-      const [x, y] = { ar: [1340, 640], de: [1680, 640], fr: [1340, 1090], hu: [1680, 1090] }[r];
-      const bob = isWin && win > 0 ? Math.abs(Math.sin(f * 0.25)) * 20 : 0;
-      person({ role: r, x, y: y - bob, s: 0.8, expr: win > 0 ? reactions[r] : 'neutral', look: [r === 'ar' ? 0 : -1, 0],
-        armL: isWin && win > 0 ? [2.6, 0.2] : r === 'de' && win > 0 ? [0.9, 1.9 + Math.sin(f * 0.8) * 0.3] : [0.15, 0.2],
-        armR: isWin && win > 0 ? [2.6, 0.2] : r === 'de' && win > 0 ? [0.9, 1.9 - Math.sin(f * 0.8) * 0.3] : [0.15, 0.2], seed: 6 });
-    });
-    if (win > 0) {
-      trophy(1340, 180 - (1 - win) * 300, 0.9, f);
-      confetti(f, 132 + 170 + 160, 1340, 300, 90, 1100, 4);
-      cue('fanfare', 132 + 170 + 160, 1);
-    }
-    caption(h, 12, 150, '...THEN THE MOST POINTS WINS', { size: 58, y: H - 76, x: 640 });
-    caption(h, 160, 236, 'A TIE IS A SHARED VICTORY', { size: 52, y: H - 76, x: 640 });
+    const AB = 132, BC = 302, XF = 18;
+    if (f < AB - XF / 2) return endPartA(f);
+    if (f < AB + XF / 2) return crossfade((f - (AB - XF / 2)) / XF, () => endPartA(f), () => endPartB(f));
+    if (f < BC - XF / 2) return endPartB(f);
+    if (f < BC + XF / 2) return crossfade((f - (BC - XF / 2)) / XF, () => endPartB(f), () => endPartC(f));
+    endPartC(f);
   },
 });
+
+// a. end-game evaluation of all face-up policies (no spread for failures)
+function endPartA(f) {
+  tableBG(f);
+  cam(1000, 300, 1.02, 0, () => {
+    boardBase();
+    for (let i = 8; i >= 1; i--) {
+      const spec = QEND[i];
+      const [x, y] = qpos(i);
+      if (i > 4) { card({ ...spec, x, y, w: CARD_W, h: CARD_H, flip: 1, seed: 40 + i }); continue; }
+      const need = spec.cost, have = spec.votes.length;
+      const ok = have >= need;
+      const a = 24 + (4 - i) * 10;
+      const st = seg(f, a, a + 12);
+      const gone = !ok ? ez(f, 80, 110, E.inQ) : 0;
+      card({ ...spec, x, y: y - gone * 60, w: CARD_W, h: CARD_H, votes: gone > 0 ? [] : spec.votes, alpha: 1 - gone, stamp: st > 0 ? (ok ? 'pass' : 'fail') : null, stampT: st, seed: 40 + i,
+        glow: ok && st > 0 ? '#8fd18a' : null });
+      cue(ok ? 'stamp' : 'thud', a, 0.7);
+    }
+  });
+  caption(f, 8, 70, 'GAME END: EVERY FACE-UP POLICY IS EVALUATED', { size: 48 });
+  caption(f, 76, 128, 'FAILURES NOW JUST GET DISCARDED', { size: 52 });
+}
+
+// b. is the Impact Tracker in the green?
+function endPartB(f) {
+  const g = f - 132;
+  lavenderBG(f);
+  const check = ez(g, 40, 56, E.outBack);
+  const trkIn = ez(g, 0, 22, E.outBack);
+  if (trkIn > 0) {
+    C.save();
+    C.translate(0, -(1 - trkIn) * 500);
+    const at = bigTracker(W / 2, 330, 1500, -3, f);
+    // lose zone (neutral and red) and win zone (green)
+    if (check > 0) {
+      const [nx, ny] = at(0), [rx] = at(9.6), [gx] = at(-9), [gx2] = at(-1);
+      C.save();
+      C.globalAlpha = 0.9 * check;
+      P.line([[nx - 30, ny + 60], [rx + 40, ny + 60]], { w: 8, col: PAL.bad, seed: 1710, taper: false });
+      T.draw('EVERYONE LOSES', (nx + rx) / 2, ny + 110, { size: 50, col: PAL.badDark, spacing: 2 });
+      P.line([[gx - 30, ny + 60], [gx2 + 20, ny + 60]], { w: 8, col: PAL.greenDeep, seed: 1711, taper: false });
+      T.draw('SAVED!', (gx + gx2) / 2, ny + 110, { size: 56, col: PAL.greenDeep, spacing: 2 });
+      C.restore();
+    }
+    C.restore();
+    cue('whoosh', 133, 0.6);
+    cue('sparkle', 172, 0.8);
+  }
+  // the players watch, then cheer
+  ROLE_ORDER.forEach((r, i) => {
+    const cheer = seg(g, 70 + i * 4, 84 + i * 4);
+    person({ role: r, x: 330 + i * 420, y: 1110 + Math.sin(f * 0.3 + i) * cheer * 10, s: 1.15, expr: cheer > 0 ? 'grin' : 'shock', look: [0, -1],
+      armL: [0.2 + cheer * 2.5, 0.3], armR: [0.2 + cheer * 2.5, 0.3], seed: 5 });
+  });
+  cue('cheer', 204, 0.8);
+  caption(g, 20, 160, 'FINISH ON THE GREEN SIDE, OR EVERYONE LOSES', { size: 50, y: 610 });
+}
+
+// c. only now compare scores: the most points wins
+function endPartC(f) {
+  const h = f - 302;
+  lavenderBG(f);
+  const rows = ROLE_ORDER.map((r, i) => [r, 150 + i * 196]);
+  const fill = (r) => Math.min(FINAL_SCORES[r], Math.floor(seg(h, 30, 150) * 9.99));
+  rows.forEach(([r, y], i) => {
+    const t = ez(h, i * 6, i * 6 + 18, E.outBack);
+    C.save();
+    C.translate((1 - t) * -1100, 0);
+    const winner = r === 'ar' && h > 160;
+    if (winner) P.glow(560, y, 480, PAL.pink, 0.45);
+    playerBoard(r, 520, y, 0.82, { score: fill(r) });
+    // running total
+    P.ellipse(1000, y, 66, 66, { fill: winner ? '#f3d27a' : PAL.cardCream, lw: 3.4, seed: 1720 + i, texA: 0.3, n: 24 });
+    T.draw(String(fill(r)), 1000, y + 4, { size: 84, col: PAL.plumDark });
+    if (winner) {
+      const ct = ez(h, 164, 176, E.outBack);
+      C.save();
+      C.translate(1000, y - 84 - ct * 6);
+      C.scale(ct * 1.3, ct * 1.3);
+      P.shape([[-30, 10], [-34, -24], [-14, -6], [0, -32], [14, -6], [34, -24], [30, 10]], { fill: '#f1c542', lw: 3, seed: 1730, smooth: 0.1, texA: 0.3 });
+      C.restore();
+    }
+    C.restore();
+  });
+  for (let k = 1; k <= 9; k++) cue('tick', 302 + 30 + ((k - 0.5) / 10) * 120, 0.35);
+  // winner
+  const win = ez(h, 160, 180, E.outBack);
+  const reactions = { de: 'happy', fr: 'sad', ar: 'grin', hu: 'cross' };
+  ROLE_ORDER.forEach((r, i) => {
+    const isWin = r === 'ar';
+    const [x, y] = { ar: [1340, 640], de: [1680, 640], fr: [1340, 1090], hu: [1680, 1090] }[r];
+    const bob = isWin && win > 0 ? Math.abs(Math.sin(f * 0.25)) * 20 : 0;
+    person({ role: r, x, y: y - bob, s: 0.8, expr: win > 0 ? reactions[r] : 'neutral', look: [r === 'ar' ? 0 : -1, 0],
+      armL: isWin && win > 0 ? [2.6, 0.2] : r === 'de' && win > 0 ? [0.9, 1.9 + Math.sin(f * 0.8) * 0.3] : [0.15, 0.2],
+      armR: isWin && win > 0 ? [2.6, 0.2] : r === 'de' && win > 0 ? [0.9, 1.9 - Math.sin(f * 0.8) * 0.3] : [0.15, 0.2], seed: 6 });
+  });
+  if (win > 0) {
+    trophy(1340, 180 - (1 - win) * 300, 0.9, f);
+    confetti(f, 132 + 170 + 160, 1340, 300, 90, 1100, 4);
+    cue('fanfare', 132 + 170 + 160, 1);
+  }
+  caption(h, 12, 150, '...THEN THE MOST POINTS WINS', { size: 58, y: H - 76, x: 640 });
+  caption(h, 160, 236, 'A TIE IS A SHARED VICTORY', { size: 52, y: H - 76, x: 640 });
+}
 
 // ---- 13: outro ---------------------------------------------------------------
 scene({

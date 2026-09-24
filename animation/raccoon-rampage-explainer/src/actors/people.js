@@ -33,6 +33,9 @@ function capsule(ax, ay, bx, by, w0, w1, o) {
 function person(opts) {
   const o = { x: 0, y: 0, s: 1, lean: 0, tilt: 0, look: [0, 0], expr: 'happy', talk: 0, blink: 0,
     armL: [0.15, 0.2], armR: [0.15, 0.2], seed: 1, bounce: 0, ...opts };
+  const fr = P.frame + o.seed * 29 + ROLE_ORDER.indexOf(o.role) * 41;
+  if (opts.blink === undefined) { const k = fr % 131; o.blink = k < 3 ? 1 : k < 5 ? 0.5 : 0; }
+  if (opts.bounce === undefined) o.bounce = Math.sin(fr * 0.07) * 2.5;
   if (o.alpha !== undefined && o.alpha <= 0) return;
   const R = ROLES[o.role];
   const sd = o.seed * 53 + ROLE_ORDER.indexOf(o.role) * 7;

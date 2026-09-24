@@ -8,6 +8,7 @@ const P = {
   img: {},    // loaded images (p5.brush assets)
   pat: {},    // CanvasPatterns built from textures
   boil: 0,    // changes every few frames for a hand-drawn line boil
+  frame: 0,   // current frame, for idle motion such as blinking
 
   init(images) {
     this.img = images;

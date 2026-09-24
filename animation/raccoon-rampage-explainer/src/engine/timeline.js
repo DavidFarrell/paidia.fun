@@ -57,6 +57,7 @@ function drawScene(s, lf, ctx) {
 function renderFrame(F) {
   F = clamp(Math.round(F), 0, TOTAL - 1);
   P.boil = Math.floor(F / 4) % 3; // hand-drawn line boil, on fours
+  P.frame = F;
   let i = SCENES.findIndex((s) => F >= s.start && F < s.start + s.len);
   if (i < 0) i = SCENES.length - 1;
   const s = SCENES[i];
@@ -105,14 +106,16 @@ const TRANSITIONS = {
     const dir = tr.dir ?? 1;
     const e = E.io(t);
     const sw = W * 1.9, sh = H * 1.9;
-    // x of the stroke's leading (right) edge, travelling from off-left to off-right
-    const lead = lerp(-60, W + sw * 0.72, e);
+    // x of the stroke's leading (right) edge; it starts off-screen left and
+    // leaves completely off-screen right, covering the frame in the middle
+    const lead = lerp(-60, W + sw + 40, e);
     const tail = lead - sw * 0.72;
     ctx.drawImage(A, 0, 0);
     ctx.save();
     ctx.beginPath();
-    if (dir > 0) ctx.rect(0, 0, Math.max(0, tail + sw * 0.35), H);
-    else ctx.rect(W - Math.max(0, tail + sw * 0.35), 0, W, H);
+    const reveal = Math.max(0, tail + sw * 0.35); // width revealed behind the stroke
+    if (dir > 0) ctx.rect(0, 0, reveal, H);
+    else ctx.rect(W - reveal, 0, reveal, H);
     ctx.clip();
     ctx.drawImage(B, 0, 0);
     ctx.restore();
@@ -121,7 +124,10 @@ const TRANSITIONS = {
       if (dir < 0) { ctx.translate(W, 0); ctx.scale(-1, 1); }
       ctx.translate(lead, H / 2);
       ctx.rotate(-0.06);
-      ctx.drawImage(img, -sw, -sh / 2, sw, sh);
+      // mirrored so the wet, rounded end of the stroke leads and the dry
+      // bristle end trails behind, as when a real brush is pulled across
+      ctx.scale(-1, 1);
+      ctx.drawImage(img, 0, -sh / 2, sw, sh);
       ctx.restore();
     }
   },
@@ -150,6 +156,32 @@ const TRANSITIONS = {
   },
   cut(ctx, A, B) { ctx.drawImage(B, 0, 0); },
 };
+
+// draw fn into an offscreen buffer (full frame) and return its canvas
+function drawInto(name, fn) {
+  const b = buffer(name);
+  b.setTransform(1, 0, 0, 1, 0, 0);
+  b.globalAlpha = 1;
+  b.globalCompositeOperation = 'source-over';
+  b.clearRect(0, 0, W, H);
+  const prev = C;
+  C = b;
+  b.save();
+  fn();
+  b.restore();
+  C = prev;
+  return b.canvas;
+}
+
+// cross-dissolve between two drawing functions inside a scene
+function crossfade(t, fnA, fnB) {
+  const a = drawInto('xa', fnA), b = drawInto('xb', fnB);
+  C.drawImage(a, 0, 0);
+  C.save();
+  C.globalAlpha = E.ioS(clamp(t));
+  C.drawImage(b, 0, 0);
+  C.restore();
+}
 
 // ---- camera helper: look at (cx, cy) with zoom z and rotation r ----
 function cam(cx, cy, z, r, fn) {

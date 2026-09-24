@@ -17,9 +17,9 @@ scene({
   id: 'spread', bars: 8, mood: 'tense', trans: { type: 'iris', len: 26, x: 1290, y: 1010 },
   draw(f) {
     tableBG(f, '#4f3f55');
-    const CX = kf(f, [[0, 1500], [290, 1500], [330, 1030, E.io], [420, 1030], [470, 1380, E.io]]);
+    const CX = kf(f, [[0, 1500], [290, 1500], [330, 1030, E.io], [380, 1030], [420, 1400, E.io]]);
     const CY = kf(f, [[0, 800], [290, 800], [330, 820, E.io]]);
-    const Z = kf(f, [[0, 0.95], [290, 0.95], [330, 0.8, E.io], [420, 0.8], [470, 0.86, E.io]]);
+    const Z = kf(f, [[0, 0.95], [290, 0.95], [330, 0.8, E.io], [380, 0.8], [420, 0.84, E.io]]);
     // piles: France, Germany, rest of Europe (placed in the sea next to each area)
     const piles = [
       { name: 'FRANCE', at: mapPt(250, 560), n: 0 },
@@ -44,8 +44,16 @@ scene({
       trackerMarker(trk, f);
       drawQueue(Q2S, f);
       // spread rules: the green row = 1 card per pile
-      if (f > 26 && f < 90) ring(BOARD.rules[0] - 40, BOARD.rules[1] - 13, 40, f, '#bfe79a');
-      if (f > 380) ring(BOARD.rules[0] - 40, BOARD.rules[1] + 33, 40, f, '#f2b47a');
+      if (f > 26 && f < 90) ring(BOARD.rules[0] - 47, BOARD.rules[1] - 13, 36, f, '#bfe79a');
+      // reaching orange, then red, spaces means more cards per pile
+      if (f > 392 && f < 432) {
+        ring(BOARD.rules[0] - 47, BOARD.rules[1] + 32, 36, f, '#f2b47a');
+        for (const [x, y] of MAPDATA.spaces.orange) ring(...mapPt(x, y), 30, f, '#f2b47a');
+      }
+      if (f >= 432) {
+        ring(BOARD.rules[0] - 47, BOARD.rules[1] + 78, 36, f, '#ef7d6d');
+        for (const [x, y] of MAPDATA.spaces.red) ring(...mapPt(x, y), 30, f, '#ef7d6d');
+      }
       // the deck and the German player's protection cube
       card({ type: 'spreadBack', x: BOARD.deck[0], y: BOARD.deck[1], w: CARD_W, h: CARD_H, seed: 90, glow: f < 60 ? '#e2574c' : null });
       const cubeT = seg(f, 160, 188);
@@ -88,14 +96,14 @@ scene({
     popText(...toScreen(...trackPos(0), CX, CY, Z), '+1', f, 350, { col: '#f08a6a' });
     if (f > 326 && f < 380) ring(...toScreen(...trackPos(trk), CX, CY, Z), 46, f, '#f08a6a');
     cue('step', 328, 0.7); cue('step', 352, 0.7);
+    cue('sparkle', 394, 0.5); cue('sparkle', 434, 0.5);
     // the spread boss grins in the corner
     const bt = ez(f, 0, 20, E.outBack) * (1 - ez(f, 60, 76, E.inQ));
     if (bt > 0) raccoon({ x: W - 210, y: H + 40 - bt * 40, s: 1.6 * bt, suit: true, shades: true, mouth: 'grin', prop: 'sign', arms: [1.3, 1.3], seed: 77, shadow: false });
     turnHUD(1, f, 'fr', 1);
     caption(f, 20, 150, 'SPREAD CARDS GO TO THREE AREAS', { size: 56 });
     caption(f, 160, 236, 'PROTECTION CANCELS A CARD', { size: 58 });
-    caption(f, 244, 310, 'THE OTHERS ARE REVEALED', { size: 58 });
     caption(f, 316, 400, 'NEW RACCOONS PUSH THE TRACKER TOWARDS RED', { size: 50 });
-    caption(f, 408, 470, 'GREEN SPACES FULL: 2 CARDS PER AREA NEXT TIME', { size: 46 });
+    caption(f, 404, 470, 'REACH ORANGE OR RED SPACES: MORE SPREAD CARDS', { size: 48 });
   },
 });

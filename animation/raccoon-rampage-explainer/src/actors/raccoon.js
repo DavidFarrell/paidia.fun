@@ -14,6 +14,10 @@ const RACCOON_DEFAULT = {
 
 function raccoon(opts) {
   const o = { ...RACCOON_DEFAULT, ...opts };
+  // unless a scene says otherwise, blink now and then and breathe gently
+  const fr = P.frame + o.seed * 37;
+  if (opts.blink === undefined) { const k = fr % 113; o.blink = k < 3 ? 1 : k < 5 ? 0.5 : 0; }
+  if (opts.squash === undefined) o.squash = Math.sin(fr * 0.09) * 0.012;
   if (o.alpha !== undefined && o.alpha <= 0) return;
   const sd = o.seed * 37;
   const lw = 3.4 / Math.sqrt(Math.max(0.2, o.s));
