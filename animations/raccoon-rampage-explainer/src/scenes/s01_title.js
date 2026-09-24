@@ -5,17 +5,22 @@
   const BIN = { x: 1440, rim: 650, base: 960 };
   const TX = 700; // title centre x
 
+  // The bin is split in two so the Raccoon stands INSIDE it: the back (whole rim ring and the
+  // dark opening) is drawn behind the Raccoon, the front (wall + front lip of the rim) over it.
   const binBack = () => RR.sprite('s01:binBack', 380, 120, () => {
-    RR.ink(RR.ellipsePts(190, 60, 170, 42, 28), { fill: '#4a5058', w: 1.2 });
-    RR.ink(RR.ellipsePts(190, 64, 150, 30, 28), { fill: '#2a2d33', stroke: false });
+    RR.ink(RR.ellipsePts(190, 60, 172, 26, 28), { fill: '#9aa5ad', w: 1.2 });
+    RR.ink(RR.ellipsePts(190, 60, 150, 16, 28), { fill: '#2a2d33', stroke: false });
   }, { res: 1.5 });
+  // lower (front) half of the rim ellipse, right end to left end, in binFront coordinates
+  const lower = (rx, ry, ov = 0) => Array.from({ length: 15 }, (_, i) => { const a = -ov + ((Math.PI + 2 * ov) * i) / 14; return [190 + rx * Math.cos(a), 30 + ry * Math.sin(a)]; });
   const binFront = () => RR.sprite('s01:binFront', 380, 360, () => {
-    const body = [[20, 30], [360, 30], [336, 340], [44, 340]];
+    const body = [...lower(172, 26), [44, 340], [336, 340]];
     RR.water(body, '#7f8a93', { layers: 12, alpha: 45, spread: 0.01, edge: 0.5 });
     for (let i = 0; i < 6; i++) RR.inkLine([[70 + i * 48, 50], [78 + i * 45, 325]], { col: '#5d676f', w: 0.8, brush: 'pencil' });
     RR.ink(body, { stroke: RR.C.ink, w: 1.3, curve: 0.08 });
-    RR.ink(RR.ellipsePts(190, 30, 172, 26, 28), { fill: '#9aa5ad', w: 1.2 });
-    RR.ink(RR.ellipsePts(190, 30, 150, 16, 28), { fill: '#2a2d33', stroke: false });
+    RR.ink([...lower(173, 26.5, 0.09), ...lower(149, 15.5, 0.09).reverse()], { fill: '#9aa5ad', stroke: false, curve: 0.15 }); // front lip (overlaps the back ring at its ends)
+    RR.inkLine(lower(172, 26), { col: RR.C.ink, w: 1.2 });
+    RR.inkLine(lower(150, 16), { col: '#5d676f', w: 0.9 });
     RR.inkLine([[110, 150], [135, 175], [150, 150]], { col: '#5d676f', w: 0.8 }); // dent
     RR.ink(RR.rrectPts(160, 120, 60, 22, 8), { fill: '#6c757d', w: 0.8 });   // handle
   }, { res: 1.5 });
@@ -67,7 +72,7 @@
 
   RR.scene({
     id: 's01_title', order: 1, dur: 10, music: 'intro',
-    cues: [[0.7, 'rattle'], [1.3, 'rattle'], [2.0, 'pop'], [2.05, 'boing'], [2.6, 'clang', 0.6], [3.1, 'chitter'], [3.6, 'brush'], [4.2, 'brush'], [6.0, 'paper'], [7.6, 'bite'], [8.2, 'boing'], [8.9, 'whoosh']],
+    cues: [[0.7, 'rattle'], [1.3, 'rattle'], [2.0, 'pop'], [2.05, 'boing'], [3.05, 'clang', 0.6], [3.3, 'chitter'], [3.6, 'brush'], [4.2, 'brush'], [6.0, 'paper'], [7.6, 'bite'], [8.2, 'boing'], [8.9, 'whoosh']],
     draw(t) {
       // camera: gentle drift, then whip-pan right at the end
       const pan = RR.E.inCubic(RR.seg(t, 8.6, 10)) * 2600;
@@ -88,18 +93,22 @@
         let lidPos = [BIN.x, BIN.rim - 16 - rattle], lidA = lidRot;
         if (t >= 2) {
           const u = (t - 2) / 1.1;
-          lidPos = [BIN.x - 700 * u, BIN.rim - 16 - 900 * u + 900 * u * u];
+          // flung hard to the left: it leaves the frame (about 3.0 s) before it stops being drawn
+          lidPos = [BIN.x - 1750 * u, BIN.rim - 16 - 900 * u + 900 * u * u];
           lidA = -u * 6;
         }
 
         RR.drawSprite(binBack(), BIN.x, BIN.rim, { w: 380, h: 120 });
 
-        // raccoon: pops up at 2.0, idles, bites at 7.6, hops out at 8.1, runs off
-        if (t >= 1.95) {
-          const up = RR.E.outBack(RR.seg(t, 1.95, 2.35));
+        // raccoon: bursts up as the lid pops (seen from 2.05, once the lid is off the rim, by which
+        // time its tail is already above the rim), idles, bites at 7.6, hops out at 8.0, runs off
+        let drawR = null, outside = false;
+        if (t >= 2.05) {
+          const up = RR.E.outBack(RR.seg(t, 2.0, 2.35));
           let x = BIN.x, y = BIN.rim + 330 - up * 250;
           let pose = RR.raccoonIdle(t, { hold: 'burger', armF: 1.7, armB: 0.3, mouth: 'grin', brow: 'sly' });
-          pose.squash = t < 2.5 ? -0.2 * Math.sin(RR.seg(t, 1.95, 2.5) * Math.PI) : pose.squash;
+          pose.squash = t < 2.55 ? -0.2 * Math.sin(RR.seg(t, 2.0, 2.55) * Math.PI) : pose.squash;
+          if (t < 2.3) pose.lean = 0.12 * (1 - RR.seg(t, 2.05, 2.3)); // burst forward (keeps the tail inside the rim)
           if (t < 3.3) { pose.look = [Math.sin(t * 6) > 0 ? 1 : -1, 0]; pose.mouth = 'o'; pose.brow = 'up'; }
           if (t >= 3.3 && t < 5.2) { pose.look = [-1, -0.4]; pose.headTilt = -0.12; pose.mouth = 'o'; pose.brow = 'up'; }
           if (t >= 5.2 && t < 7.4) { pose.look = [-0.1, 0.1]; }
@@ -108,6 +117,7 @@
             const u = RR.seg(t, 8.0, 8.55);
             const p = RR.hop([BIN.x, BIN.rim + 80], [BIN.x + 300, BIN.base], u, 260);
             x = p[0]; y = p[1];
+            outside = u >= 0.45; // clear of the rim: from here it is drawn in front of the bin
             pose = { ...pose, squash: u < 1 ? -0.15 : 0, lean: 0.25, mouth: 'grin', brow: 'neutral', armB: 2.4, tailUp: 1 };
             if (t >= 8.55) {
               x = BIN.x + 300 + (t - 8.55) * 2200;
@@ -115,10 +125,12 @@
               RR.shadow(x, BIN.base + 4, 60, 12, 40);
             }
           }
-          RR.drawRaccoon(x, y, 1.7, pose);
+          drawR = () => RR.drawRaccoon(x, y, 1.7, pose);
         }
-        // front of the bin hides the raccoon's lower half while it is inside
+        if (drawR && !outside) drawR();
+        // front of the bin (wall + front lip) hides the raccoon's lower half while it is inside
         RR.drawSprite(binFront(), BIN.x, BIN.rim + 150, { w: 380, h: 360 });
+        if (drawR && outside) drawR();
         // lid sits on top of the rim (drawn last so it covers the opening)
         if (t < 3.2) RR.drawSprite(lid(), lidPos[0], lidPos[1], { w: 400, h: 140, rot: lidA });
         pop();

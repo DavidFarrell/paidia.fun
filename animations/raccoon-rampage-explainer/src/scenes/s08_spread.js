@@ -1,17 +1,20 @@
 // Scene 8 (96-120 s): Evaluation fails, then the raccoons SPREAD.
-// A few turns later RACCOON BURGERS reaches the evaluation spot with 1 vote of 3: FAILED.
+// "Next turn...": Germany ends its turn by placing a face-down policy in space 8. France's
+// turn starts: the queue advances, RACCOON BURGERS (1 corp vote of 3) falls onto EVALUATE and
+// RACCOON-PROOF BINS flips into space 4 (not corporate, so no grey vote). FAILED.
 // The Raccoon pops up in shades and cackles. The Spread Rules card shows 2 cards per pile
 // (raccoons have reached orange), six spread cards are dealt to France, Germany and the rest
 // of Europe, two protection cubes cancel one card each, the rest are revealed (+0, +1, +0, +2),
-// new tokens pop onto the map and the impact tracker climbs to +4 while the Raccoon cheers.
-// Starts on FULL + S7, ends on FULL + S8 (see STORYBOARD.md).
+// three new tokens fly onto the map and the impact tracker climbs +1 to +4, one step per
+// token, while the Raccoon cheers.
+// Starts on FULL + RR.board.STATES.S7, ends on FULL + RR.board.STATES.S8 (see STORYBOARD.md).
 
 (() => {
   const B = RR.board, C = RR.C, E = RR.E, seg = RR.seg;
 
   // ---------------------------------------------------------------- cameras
+  const S7 = B.STATES.S7, S8 = B.STATES.S8;  // start and end states
   const FULL = RR.cam(1200, 750, 0.66);
-  const TL = RR.cam(1200, 712, 0.62);      // time-lapse: pulled back, room for the caption
   const QV = RR.cam(1780, 440, 0.95);      // queue front + evaluation spot
   const CU = RR.cam(2300, 650, 1.45);      // evaluation close-up, count on the table
   const MAP1 = RR.cam(1250, 800, 1.15);    // map + rules inset
@@ -19,16 +22,16 @@
   const REV = RR.cam(930, 820, 1.1);       // piles + impact tracker
   const CHEER = RR.cam(330, 760, 1.0);     // tracker + the Raccoon on the table
   const CAM_KEYS = [
-    [0, FULL], [0.5, TL, 'outCubic'], [2.2, TL], [2.8, QV], [3.4, QV], [4.0, CU], [7.45, CU], [8.35, MAP1],
-    [10.3, MAP1], [10.95, DEAL], [15.2, DEAL], [15.7, REV], [18.95, REV], [19.55, CHEER], [21.9, CHEER], [23.6, FULL],
+    [0, FULL], [0.7, FULL], [1.45, QV], [2.2, QV], [2.8, CU], [6.25, CU], [7.15, MAP1],
+    [9.1, MAP1], [9.75, DEAL], [14.0, DEAL], [14.5, REV], [18.45, REV], [19.05, CHEER], [21.9, CHEER], [23.6, FULL],
   ];
 
   // ---------------------------------------------------------------- timings
-  const ADV = 2.8;                                     // queue advances
-  const TICKS = [0.6, 0.85, 1.1, 17.1, 18.42, 18.7];   // impact tracker steps (-2 .. +4)
+  const ADV = 1.6;                                     // France's turn: the queue advances
+  const TICKS = [16.1, 17.87, 18.15];                  // impact tracker steps (+1 .. +4), one per new token
   const TICK_DUR = 0.22;
-  const SHAKES = [[3.36, 0.3, 5], [4.97, 0.45, 14], [6.2, 0.3, 6], [19.45, 0.4, 12], [20.45, 0.35, 10], [21.0, 0.35, 10]]
-    .concat(TICKS.slice(3).map((t0) => [t0 + TICK_DUR, 0.3, 9]));
+  const SHAKES = [[2.16, 0.3, 5], [3.77, 0.45, 14], [5.0, 0.3, 6], [18.95, 0.4, 12], [20.35, 0.35, 10], [20.95, 0.35, 10]]
+    .concat(TICKS.map((t0) => [t0 + TICK_DUR, 0.3, 9]));
 
   // ---------------------------------------------------------------- helpers
   // Hand-drawn ring that draws itself on (u 0..1), slightly spiralling like a pen circle.
@@ -51,7 +54,7 @@
     if (a <= 0.01) return;
     for (let k = 0; k < 4; k++) RR.flatEllipse(x, y, r * (1 + k * 0.4), r * (1 + k * 0.4), col, (90 * a) / (k + 1));
   };
-  const trackerAt = (t) => -2 + TICKS.reduce((s, t0) => s + seg(t, t0, t0 + TICK_DUR, 'inOutQuad'), 0);
+  const trackerAt = (t) => S7.tracker + TICKS.reduce((s, t0) => s + seg(t, t0, t0 + TICK_DUR, 'inOutQuad'), 0);
 
   // ---------------------------------------------------------------- cached art
   const shades = () => RR.sprite('s08:shades', 150, 50, () => {
@@ -63,18 +66,6 @@
     RR.inkLine([[38, 19], [48, 16]], { col: '#ffffff', w: 1.1, brush: 'pencil' });
     RR.inkLine([[86, 19], [96, 16]], { col: '#ffffff', w: 1.1, brush: 'pencil' });
   }, { res: 3 });
-  const clockSpr = () => RR.sprite('s08:clock', 140, 150, () => {
-    RR.inkLine([[42, 124], [28, 144]], { w: 1.8 });
-    RR.inkLine([[98, 124], [112, 144]], { w: 1.8 });
-    RR.ink(RR.ellipsePts(34, 34, 20, 16, 16, -0.6), { fill: C.gold, w: 1 });
-    RR.ink(RR.ellipsePts(106, 34, 20, 16, 16, 0.6), { fill: C.gold, w: 1 });
-    RR.inkCircle(70, 84, 56, { fill: C.red, w: 1.3 });
-    RR.inkCircle(70, 84, 45, { fill: C.white, w: 0.8 });
-    for (let i = 0; i < 12; i++) {
-      const a = (i * Math.PI) / 6;
-      RR.inkLine([[70 + Math.cos(a) * 35, 84 + Math.sin(a) * 35], [70 + Math.cos(a) * 42, 84 + Math.sin(a) * 42]], { w: i % 3 ? 0.6 : 1.2 });
-    }
-  }, { res: 2 });
   const slotSpr = () => RR.sprite('s08:slot', 100, 100, () => {
     RR.ink(RR.rrectPts(12, 12, 76, 76, 14), { fill: '#dccbb4', stroke: false });
     const pts = RR.rrectPts(12, 12, 76, 76, 14, 3);
@@ -163,28 +154,25 @@
   };
 
   // ---------------------------------------------------------------- queue
-  const Q = [
-    { id: 'burgers', k: 1, votes: ['corp'] },
-    { id: 'pets', k: 2, votes: ['ar', 'fr'] },
-    { id: 'wear', k: 3, votes: ['hu', 'corp'] },
-    { id: 'drones', k: 4, votes: [] },
-    { id: 'protect', k: 5, votes: [] },          // face down; flips when it enters space 4
-    { id: 'back:policy', k: 6 }, { id: 'back:policy', k: 7 },
-    { id: 'back:policy', k: 8 },                  // placed during the time-lapse
-  ];
+  // S7's queue (burgers, drones, wear, virus face up in 1-4; three backs in 5-7) plus the policy
+  // Germany adds to space 8 at the end of its turn. The back in space 5 is RACCOON-PROOF BINS.
+  const Q = B.clone(S7.queue).map((c) => (c.k === 5 ? { ...c, id: 'bins', votes: [] } : c))
+    .concat([{ id: 'back:policy', k: 8, placed: true }]);
+  const PLACE = [0.25, 0.62];                          // Germany's new policy slides into space 8
   const drawQueue = (t) => {
     for (let j = 1; j < Q.length; j++) {
       const c = Q[j];
       const u = seg(t, ADV + j * 0.035, ADV + 0.5 + j * 0.035, 'inOutCubic');
       let [x, y] = B.slot(c.k - u);
-      let lift = Math.sin(Math.PI * u) * 0.5, rot = Math.sin(Math.PI * u) * 0.025;
+      const bump = u > 0 && u < 1 ? Math.sin(Math.PI * u) : 0;
+      let lift = bump * 0.5, rot = bump * 0.025;
       let flip = c.k <= 4 ? 1 : 0;
-      if (c.id === 'protect') {
-        const f = seg(t, 3.12, 3.47, 'inOutQuad');
-        flip = f; lift = Math.max(lift, Math.sin(Math.PI * f) * 0.8); y -= Math.sin(Math.PI * f) * 14;
+      if (c.k === 5) { // moves into space 4 and flips face up: RACCOON-PROOF BINS (not corporate: no grey vote)
+        const f = seg(t, ADV + 0.32, ADV + 0.67, 'inOutQuad'), fb = f > 0 && f < 1 ? Math.sin(Math.PI * f) : 0;
+        flip = f; lift = Math.max(lift, fb * 0.8); y -= fb * 14;
       }
-      if (j === 7) {
-        const a = seg(t, 0.25, 0.62, 'outCubic');
+      if (c.placed) {
+        const a = seg(t, PLACE[0], PLACE[1], 'outCubic');
         if (a <= 0) continue;
         x -= (1 - a) * 900; lift = Math.max(lift, (1 - a) * 0.9); rot -= (1 - a) * 0.15;
       }
@@ -192,63 +180,67 @@
       RR.drawCard(c.id, x, y, { w: 190, flip, lift, rot });
       if (c.votes && c.votes.length && flip >= 0.5) B.cubesOnCard(x, y, c.votes, { size: 32 });
     }
+    // a yellow glint as Germany's card lands
+    const s8 = B.slot(8);
+    RR.sparkle(s8[0], s8[1], t, PLACE[1] - 0.05, { col: C.de, r: 120, dur: 0.55, seed: 8 });
   };
 
   // ---------------------------------------------------------------- evaluation: burgers fails
   const burgersPos = (t) => {
     const u = seg(t, ADV, ADV + 0.55, 'inOutCubic');
     const p = RR.bezier(B.slot(1), [2085, 120], [2240, 400], B.EVAL, u);
-    const d = seg(t, 7.4, 7.9, 'inCubic');
+    const d = seg(t, 6.2, 6.7, 'inCubic');
     return { x: p[0] + d * 1150, y: p[1] - d * 60, rot: Math.sin(Math.PI * u) * 0.14 + d * 0.25, lift: Math.max(Math.sin(Math.PI * u), d * 0.8) };
   };
   const drawBurgers = (t) => {
-    if (t > 7.92) return;
+    if (t > 6.72) return;
     const b = burgersPos(t);
-    const land = Math.sin(Math.PI * seg(t, 3.35, 3.55));
+    const land = Math.sin(Math.PI * seg(t, 2.15, 2.35));
     push(); translate(b.x, b.y); rotate(b.rot);
     RR.drawCard('burgers', 0, 0, { w: 190 * (1 + 0.035 * land), lift: b.lift });
-    const cnt = Math.sin(Math.PI * seg(t, 3.9, 4.12));
+    const cnt = Math.sin(Math.PI * seg(t, 2.7, 2.92));
     B.cubesOnCard(0, 0, ['corp'], { size: 32, pop: [1 + 0.4 * cnt] });
-    const ba = RR.pop(t, 3.95, 0.3) * (1 - seg(t, 4.8, 4.95));
+    const ba = RR.pop(t, 2.75, 0.3) * (1 - seg(t, 3.6, 3.75));
     if (ba > 0.01) RR.badge('1', 46, 8, { r: 24, scale: ba });
-    ringOn(68, -106, 34, seg(t, 4.15, 4.45), { col: C.red, w: 2.4 });
-    drawStamp(0, -16, t, 4.97, -0.2);
+    ringOn(68, -106, 34, seg(t, 2.95, 3.25), { col: C.red, w: 2.4 });
+    drawStamp(0, -16, t, 3.77, -0.2);
     pop();
   };
   const METER = { x: 2535, y: 590, gap: 100 };
   const drawMeter = (t) => {
-    const a = 1 - seg(t, 5.4, 5.65);
-    if (t < 4.28 || a <= 0) return;
+    const a = 1 - seg(t, 4.2, 4.45);
+    if (t < 3.08 || a <= 0) return;
     for (let i = 0; i < 3; i++) {
-      const sc = RR.pop(t, 4.28 + i * 0.07, 0.3) * a;
-      const wob = i > 0 ? Math.sin((t - 4.8) * 30 + i) * 0.14 * RR.env(t, 4.8, 5.3, 0.05, 0.3) : 0;
+      const sc = RR.pop(t, 3.08 + i * 0.07, 0.3) * a;
+      const wob = i > 0 ? Math.sin((t - 3.6) * 30 + i) * 0.14 * RR.env(t, 3.6, 4.1, 0.05, 0.3) : 0;
       if (sc > 0.01) RR.drawSprite(slotSpr(), METER.x + i * METER.gap, METER.y, { w: 90 * sc, h: 90 * sc, rot: wob });
     }
     // the counted vote hops from the card into the first slot
-    const hu = seg(t, 4.45, 4.72, 'inOutQuad');
+    const hu = seg(t, 3.25, 3.52, 'inOutQuad');
     if (hu > 0) {
       const p = RR.hop([2215, 678], [METER.x, METER.y + 2], hu, 170);
-      RR.drawCube(p[0], p[1], 46 * a * (1 + 0.25 * Math.sin(Math.PI * seg(t, 4.72, 4.9))), 'corp');
+      RR.drawCube(p[0], p[1], 46 * a * (1 + 0.25 * Math.sin(Math.PI * seg(t, 3.52, 3.7))), 'corp');
     }
-    const ts = RR.pop(t, 4.75, 0.35) * a;
+    const ts = RR.pop(t, 3.55, 0.35) * a;
     if (ts > 0.01) RR.text('1 of 3', METER.x + METER.gap, METER.y + 130, { font: 'title', size: 64, col: C.plumDark, scale: ts });
   };
 
   // ---------------------------------------------------------------- tokens and tracker
-  // Tokens added in this scene: [appear time, 'pop' (time-lapse) | 'land' (flew in)]
+  // Tokens added in this scene (index in that area: [landing time, 'land' (flew in from a spread card)]).
+  // S7 has DE 8, FR 6, rest 7; the spread adds DE +1 and rest +2, giving S8's DE 9, FR 6, rest 9.
   const ADD = {
-    de: { 8: [0.5, 'pop'], 9: [16.8, 'land'] },
-    fr: { 5: [0.75, 'pop'] },
-    roe: { 5: [1.0, 'pop'], 6: [1.25, 'pop'], 7: [18.15, 'land'], 8: [18.4, 'land'] },
+    de: { 8: [15.8, 'land'] },
+    fr: {},
+    roe: { 7: [17.6, 'land'], 8: [17.85, 'land'] },
   };
-  const tokensAt = (t) => ({
-    de: 8 + (t >= 0.5) + (t >= 16.8),
-    fr: 5 + (t >= 0.75),
-    roe: 5 + (t >= 1.0) + (t >= 1.25) + (t >= 18.15) + (t >= 18.4),
-  });
+  const tokensAt = (t) => {
+    const n = { ...S7.tokens };
+    for (const role of ['de', 'fr', 'roe']) for (const k in ADD[role]) if (t >= ADD[role][k][0]) n[role]++;
+    return n;
+  };
   const drawTokens = (t) => {
     const n = tokensAt(t);
-    const party = RR.env(t, 19.55, 21.75, 0.2, 0.25);
+    const party = RR.env(t, 19.05, 21.75, 0.2, 0.25);
     const one = (pos, kind, role, i) => {
       if (!vis(pos[0], pos[1], 60)) return;
       let sc = 1;
@@ -257,7 +249,7 @@
       if (sc <= 0.01) return;
       if (add) glow(pos[0], pos[1] - 4, 26, role === 'de' ? C.de : role === 'fr' ? C.fr : C.orange, RR.env(t, add[0], add[0] + 0.7, 0.05, 0.6));
       let dy = 0;
-      if (role === 'roe' && i === 6) dy += Math.sin(Math.PI * seg(t, 8.45, 8.75)) * 16;
+      if (role === 'roe' && i === 6) dy += Math.sin(Math.PI * seg(t, 7.25, 7.55)) * 16;
       if (party > 0) dy += Math.max(0, Math.sin((t - 19.55) * 10 + RR.hr(i * 7 + role.length) * 6)) * 14 * party;
       const size = 40 * sc;
       if (dy > 0.5) {
@@ -276,7 +268,7 @@
       if (k > 0) { const p = B.track(Math.round(trackerAt(t0 + TICK_DUR + 0.01))); glow(p[0], p[1], 34, C.orange, k); }
     }
     // danger glow once impact is up
-    const g = RR.env(t, 18.95, 22.4, 0.5, 0.5);
+    const g = RR.env(t, 18.45, 22.4, 0.5, 0.5);
     if (g > 0) {
       for (let i = 1; i <= 4; i++) {
         const p = B.track(i), pulse = 0.65 + 0.35 * Math.sin(t * 8 - i * 0.9);
@@ -290,8 +282,8 @@
     const v = trackerAt(t);
     const p = RR.along(B.TRACK_PATH, (v + 7) / 14);
     let hop = 0;
-    for (const t0 of TICKS) hop += Math.sin(Math.PI * seg(t, t0, t0 + TICK_DUR)) * 24;
-    const g = RR.env(t, 18.95, 22.4, 0.5, 0.5);
+    for (const t0 of TICKS) { const u = seg(t, t0, t0 + TICK_DUR); if (u > 0 && u < 1) hop += Math.sin(Math.PI * u) * 24; }
+    const g = RR.env(t, 18.45, 22.4, 0.5, 0.5);
     if (g > 0) glow(p[0], p[1] - 6, 44, C.red, g * (0.6 + 0.3 * Math.sin(t * 8)));
     if (vis(p[0], p[1], 80)) RR.drawMarker(p[0], p[1] - hop - 6, 74);
   };
@@ -301,24 +293,19 @@
     for (let i = 0; i < 5; i++) {
       const [x, y] = B.story(i);
       if (!vis(x, y, 200)) continue;
-      if (i === 1) {
-        const f = seg(t, 1.5, 1.85, 'inOutQuad'), l = Math.sin(Math.PI * f);
-        RR.drawCard('corpself', x, y - l * 24, { w: 300 * (1 + 0.06 * l), flip: f, back: 'back:event', lift: l });
-      } else RR.drawCard('corprelief', x, y, { w: 300, flip: i === 0 ? 1 : 0, back: 'back:event' });
+      // unchanged in this scene (still round 2): exactly as B.drawState draws S7.story
+      const id = S7.story[i];
+      RR.drawCard(id || 'corprelief', x, y, { w: 300, flip: id ? 1 : 0, back: 'back:event' });
     }
   };
-  const protPos = (i) => [B.PROT[0] - 40 + (i % 3) * 40, B.PROT[1] + 10];
-  const HOPS = { de: { i: 0, t0: 13.22 }, fr: { i: 1, t0: 13.0 } };
+  const protPos = (i) => [B.PROT[0] - 40 + (i % 3) * 40, B.PROT[1] + 10 + Math.floor(i / 3) * 34];
+  // Both protection cubes are on the board from the first frame (S7.prot); each hops onto a card.
+  const HOPS = { de: { i: S7.prot.indexOf('de'), t0: 12.02 }, fr: { i: S7.prot.indexOf('fr'), t0: 11.8 } };
   const drawProt = (t) => {
-    // yellow was already there; blue drops in during the time-lapse
     for (const role of ['de', 'fr']) {
       const h = HOPS[role];
       if (t >= h.t0) continue;
-      let [x, y] = protPos(h.i);
-      if (role === 'fr') {
-        if (t < 1.85) continue;
-        y -= (1 - E.outBounce(seg(t, 1.85, 2.2))) * 320;
-      }
+      const [x, y] = protPos(h.i);
       const an = RR.env(t, h.t0 - 0.16, h.t0, 0.1, 0.02); // anticipation squash
       if (vis(x, y, 60)) RR.drawCube(x, y + an * 3, 38, role, { sx: 1 + 0.15 * an, sy: 1 - 0.2 * an });
     }
@@ -326,15 +313,17 @@
 
   // ---------------------------------------------------------------- spread cards
   const PILE = { fr: [690, 882], de: [1012, 560], roe: [1622, 790] };
-  const LABELS = [['fr', 'FRANCE', [690, 726], 11.32], ['de', 'GERMANY', [1012, 402], 11.54], ['roe', 'REST OF EUROPE', [1622, 630], 11.76]];
+  // GERMANY's label sits on the map (Skagerrak, just off Germany's north coast), clear of the queue rail.
+  const LABELS = [['fr', 'FRANCE', [690, 726], 10.12], ['de', 'GERMANY', [1200, 488], 10.34], ['roe', 'REST OF EUROPE', [1622, 630], 10.56]];
+  const LABELS_OUT = 18.35;
   const CW = 140, DEAL_DUR = 0.42;
   const DEALT = [
-    { pile: 'fr', j: 0, td: 10.9, face: 'spread0', rev: 15.65, rest: [690, 884, -0.03], di: 0 },
-    { pile: 'de', j: 0, td: 11.12, face: 'spread1', rev: 16.05, rest: [1012, 562, 0.03], di: 1 },
-    { pile: 'roe', j: 0, td: 11.34, face: 'spread0', rev: 16.95, rest: [1548, 796, -0.04], di: 2 },
-    { pile: 'fr', j: 1, td: 11.56, face: 'spread1', cube: 'fr', out: [-1050, 40], tout: 14.05 },
-    { pile: 'de', j: 1, td: 11.78, face: 'spread2', cube: 'de', out: [60, -580], tout: 14.2 },
-    { pile: 'roe', j: 1, td: 12.0, face: 'spread2', rev: 17.35, rest: [1696, 784, 0.05], di: 3 },
+    { pile: 'fr', j: 0, td: 9.7, face: 'spread0', rev: 14.45, rest: [690, 884, -0.03], di: 0 },
+    { pile: 'de', j: 0, td: 9.92, face: 'spread1', rev: 15.05, rest: [1012, 562, 0.03], di: 1 },
+    { pile: 'roe', j: 0, td: 10.14, face: 'spread0', rev: 16.35, rest: [1548, 796, -0.04], di: 2 },
+    { pile: 'fr', j: 1, td: 10.36, face: 'spread1', cube: 'fr', out: [-1050, 40], tout: 12.85 },
+    { pile: 'de', j: 1, td: 10.58, face: 'spread2', cube: 'de', out: [60, -580], tout: 13.0 },
+    { pile: 'roe', j: 1, td: 10.8, face: 'spread2', rev: 16.8, rest: [1696, 784, 0.05], di: 3 },
   ];
   const HOP_DUR = 0.5;
   const slotOf = (c) => { const P = PILE[c.pile]; return c.j ? [P[0] + 34, P[1] - 5, 0.07] : [P[0] - 34, P[1] + 5, -0.08]; };
@@ -348,7 +337,7 @@
       x = p[0]; y = p[1]; rot = s[2] - (1 - e) * 3.4; w = RR.lerp(190, CW, e); lift = Math.sin(Math.PI * u);
     } else w = CW + 7 * Math.sin(Math.PI * seg(t, c.td + DEAL_DUR, c.td + DEAL_DUR + 0.18));
     if (c.rest) {
-      const r = seg(t, 14.7, 15.2, 'inOutCubic');
+      const r = seg(t, 13.5, 14.0, 'inOutCubic');
       x = RR.lerp(x, c.rest[0], r); y = RR.lerp(y, c.rest[1], r); rot = RR.lerp(rot, c.rest[2], r);
     }
     if (c.rev) {
@@ -375,14 +364,14 @@
   const cardVisible = (c, t) => t >= c.td && !(c.cube && t > c.tout + 0.5) && !(c.di !== undefined && t > 22.0 + c.di * 0.1 + 0.55);
 
   const FLY = [ // new tokens jump out of the revealed cards
-    { kind: 'yellow', card: 1, to: () => B.SPOTS.de[9], t0: 16.45, t1: 16.8, h: 150 },
-    { kind: 'black', card: 5, to: () => B.SQUARES[7].pos, t0: 17.8, t1: 18.15, h: 210 },
-    { kind: 'black', card: 5, to: () => B.SQUARES[8].pos, t0: 18.02, t1: 18.4, h: 300 },
+    { kind: 'yellow', card: 1, to: () => B.SPOTS.de[S7.tokens.de], t0: 15.45, t1: 15.8, h: 150 },
+    { kind: 'black', card: 5, to: () => B.SQUARES[S7.tokens.roe].pos, t0: 17.25, t1: 17.6, h: 210 },
+    { kind: 'black', card: 5, to: () => B.SQUARES[S7.tokens.roe + 1].pos, t0: 17.47, t1: 17.85, h: 300 },
   ];
-  const SPARKS = [[16.8, 17.1, 0], [18.15, 18.42, 1], [18.42, 18.7, 2]]; // token -> tracker
+  const SPARKS = [[15.8, 16.1, 0], [17.6, 17.87, 1], [17.87, 18.15, 2]]; // token -> tracker (ends as TICKS start)
 
   const drawSpread = (t) => {
-    if (t < 10.85 || t > 22.9) return;
+    if (t < 9.65 || t > 22.9) return;
     // cards
     for (const c of DEALT) {
       if (!cardVisible(c, t)) continue;
@@ -417,12 +406,12 @@
     }
     // France: a quiet year
     for (let i = 0; i < 3; i++) {
-      const z0 = 16.0 + i * 0.18, k = seg(t, z0, z0 + 0.8);
+      const z0 = 14.8 + i * 0.18, k = seg(t, z0, z0 + 0.8);
       if (k > 0 && k < 1) RR.text('z', 712 + k * 50 + i * 8 + Math.sin(k * 6) * 5, 918 - k * 80 - i * 6, { font: 'bold', size: 26 + i * 8, col: C.plumDark, alpha: Math.sin(Math.PI * k) });
     }
     // labels
     for (const [, txt, pos, t0] of LABELS) {
-      const sc = RR.pop(t, t0, 0.35), a = 1 - seg(t, 18.85, 19.15);
+      const sc = RR.pop(t, t0, 0.35), a = 1 - seg(t, LABELS_OUT, LABELS_OUT + 0.3);
       if (sc <= 0.01 || a <= 0) continue;
       const spr = labelSpr(txt);
       RR.drawSprite(spr, pos[0], pos[1], { w: spr.w * sc, h: spr.h * sc, alpha: a, rot: RR.hrange(txt.length, -0.03, 0.03) });
@@ -455,21 +444,27 @@
   // ---------------------------------------------------------------- the Raccoon cheers by the tracker
   const CHEER_X = -330, CHEER_Y = 1090, CHEER_S = 2.2;
   const drawCheer = (t) => {
-    if (t < 18.95 || t > 22.35) return;
+    if (t < 18.45 || t > 22.35) return;
     let x = CHEER_X, y = CHEER_Y, air = 0;
     const p = RR.raccoonIdle(t, { face: 1, mouth: 'grin', brow: 'sly', tailUp: 0.9, tail: t * 4, armF: 0.5, armB: -0.4 });
-    if (t < 19.45) { // hops in from the left
-      const u = seg(t, 18.95, 19.45);
+    if (t < 18.95) { // hops in from the left
+      const u = seg(t, 18.45, 18.95);
       const q = RR.hop([-1150, CHEER_Y], [CHEER_X, CHEER_Y], u, 280);
       x = q[0]; y = q[1]; air = CHEER_Y - y;
       Object.assign(p, { lean: 0.22, squash: -0.16, armF: 2.0, armB: -1.7, tailUp: 1, mouth: 'open', brow: 'up' });
-    } else if (t < 20.0) { // lands, spots the glowing tracker, points
-      p.squash = 0.28 * Math.exp(-(t - 19.45) * 9) * Math.cos((t - 19.45) * 22);
-      const k = seg(t, 19.55, 19.7, 'outBack');
+    } else if (t < 19.8) { // lands, spots the glowing tracker, points, then a smug chuckle
+      p.squash = 0.28 * Math.exp(-(t - 18.95) * 9) * Math.cos((t - 18.95) * 22);
+      const k = seg(t, 19.05, 19.2, 'outBack');
       p.armF = RR.lerp(0.5, 1.95, k); p.look = [1, -0.6]; p.headTilt = -0.08;
-      p.mouth = t < 19.78 ? 'o' : 'grin'; p.brow = t < 19.78 ? 'up' : 'sly';
+      if (t < 19.38) { p.mouth = 'o'; p.brow = 'up'; }
+      else {
+        const c = seg(t, 19.38, 19.52, 'outCubic');
+        p.look = [RR.lerp(1, 0.2, c), RR.lerp(-0.6, -0.1, c)]; p.headTilt = RR.lerp(-0.08, 0.1, c);
+        p.mouth = 'grin'; p.brow = 'sly';
+        p.squash += 0.05 * Math.sin((t - 19.38) * 30) * RR.env(t, 19.4, 19.8, 0.05, 0.15);
+      }
     } else if (t < 21.4) { // cackling jumps
-      const j = [[20.05, 20.45], [20.6, 21.0]];
+      const j = [[19.95, 20.35], [20.55, 20.95]];
       for (const [a, b] of j) {
         const u = seg(t, a, b);
         if (u > 0 && u < 1) { air = Math.sin(Math.PI * u) * 95; p.squash = -0.14; }
@@ -479,8 +474,8 @@
         if (pre > 0) p.squash = 0.14 * pre;
       }
       y -= air;
-      const fl = Math.sin(t * 22);
-      Object.assign(p, { mouth: 'cackle', brow: 'sly', headTilt: -0.16 + 0.05 * fl, armF: 2.0 + 0.3 * fl, armB: -1.9 - 0.3 * fl, tailUp: 1, tail: t * 9 });
+      const fl = Math.sin(t * 22), bl = seg(t, 19.8, 19.92, 'outCubic'); // blend out of the chuckle pose
+      Object.assign(p, { mouth: 'cackle', brow: 'sly', headTilt: RR.lerp(0.1, -0.16 + 0.05 * fl, bl), armF: RR.lerp(1.95, 2.0 + 0.3 * fl, bl), armB: RR.lerp(-0.4, -1.9 - 0.3 * fl, bl), tailUp: 1, tail: t * 9 });
     } else { // scampers off left
       const k = seg(t, 21.4, 21.55);
       const r = Math.max(0, t - 21.55);
@@ -494,7 +489,7 @@
 
   // ---------------------------------------------------------------- screen-space pieces
   const INSET = [1560, 500], INSET_W = 380;
-  const insetK = (t) => seg(t, 8.5, 9.1, 'inOutCubic') * (1 - seg(t, 10.2, 10.75, 'inOutCubic'));
+  const insetK = (t) => seg(t, 7.3, 7.9, 'inOutCubic') * (1 - seg(t, 9.0, 9.55, 'inOutCubic'));
   const drawInset = (t, cam) => {
     const k = insetK(t);
     if (k <= 0) return;
@@ -503,79 +498,74 @@
     const w = RR.lerp(170 * cam.z, INSET_W, k), s = w / 170;
     const rot = -0.03 * k + Math.sin(Math.PI * k) * 0.1;
     RR.drawCard('rules', x, y, { w, rot, lift: k });
-    const h = seg(t, 9.15, 9.4) * (1 - seg(t, 10.05, 10.25));
+    const h = seg(t, 7.95, 8.2) * (1 - seg(t, 8.85, 9.05));
     if (h > 0) {
       push(); translate(x, y); rotate(rot);
       for (const i of [0, 2]) RR.flat(RR.rrectPts(-78 * s, (13 + i * 34 - 16) * s, 158 * s, 32 * s, 6 * s), C.lilac, 170 * h);
       RR.flat(RR.rrectPts(-82 * s, 29 * s, 164 * s, 36 * s, 8 * s), C.orange, 80 * h);
-      const pulse = 1 + 0.04 * Math.sin((t - 9.15) * 12) * h;
+      const pulse = 1 + 0.04 * Math.sin((t - 7.95) * 12) * h;
       RR.ink(RR.rrectPts(-84 * s * pulse, 27 * s * pulse, 168 * s * pulse, 40 * s * pulse, 9 * s), { stroke: RR.shade(C.orange, 0.75), w: 2.6, curve: 0.2 });
       pop();
       // arrow from the token on the orange square to the orange row
       const tok = RR.toScreen(cam, B.SQUARES[6].pos);
       const ca = Math.cos(rot), sa = Math.sin(rot), ex = -92 * s, ey = 47 * s;
       const q = [x + ex * ca - ey * sa, y + ex * sa + ey * ca];
-      RR.arrow([tok[0] + 34, tok[1] + 10], q, seg(t, 9.3, 9.75, 'outCubic'), { col: C.ink, w: 2.6, bend: 0.22 });
+      RR.arrow([tok[0] + 34, tok[1] + 10], q, seg(t, 8.1, 8.55, 'outCubic'), { col: C.ink, w: 2.6, bend: 0.22 });
     }
-  };
-
-  const drawClock = (t) => {
-    const a = RR.pop(t, 0.1, 0.35) * (1 - seg(t, 2.15, 2.35, 'inBack'));
-    if (a <= 0.01) return;
-    const cx = 690, cy = 60, sz = 100 * a;
-    const rattle = Math.sin(t * 60) * 0.07 * RR.env(t, 0.3, 2.1, 0.1, 0.2);
-    push(); translate(cx, cy - Math.abs(Math.sin(t * 30)) * 4); rotate(rattle);
-    RR.drawSprite(clockSpr(), 0, 0, { w: sz, h: sz * 150 / 140 });
-    const fy = (84 - 75) * sz / 140, R = 42 * sz / 140;
-    const m = (t - 0.1) * 26, hh = (t - 0.1) * 2.2 - 1.2;
-    RR.inkLine([[0, fy], [Math.sin(hh) * R * 0.5, fy - Math.cos(hh) * R * 0.5]], { w: 1.6 });
-    RR.inkLine([[0, fy], [Math.sin(m) * R * 0.8, fy - Math.cos(m) * R * 0.8]], { w: 1.1 });
-    RR.flatEllipse(0, fy, 3, 3, C.ink);
-    pop();
   };
 
   const spreadRaccoon = (t) => {
-    if (t < 5.6 || t > 7.66) return;
+    if (t < 4.4 || t > 6.46) return;
     const X = 1480, S = 2.85;
-    const y = RR.kf(t, [[5.6, 1950], [5.72, 1600, 'outCubic'], [5.84, 1610], [5.92, 1680, 'inOutQuad'], [6.2, 1085, 'outBack'], [7.28, 1085], [7.36, 1060, 'outQuad'], [7.66, 1950, 'inCubic']]);
+    const y = RR.kf(t, [[4.4, 1950], [4.52, 1600, 'outCubic'], [4.64, 1610], [4.72, 1680, 'inOutQuad'], [5.0, 1085, 'outBack'], [6.08, 1085], [6.16, 1060, 'outQuad'], [6.46, 1950, 'inCubic']]);
     const p = RR.raccoonIdle(t, { face: -1, mouth: 'grin', brow: 'sly', tailUp: 0.9, tail: t * 5, armF: 0.4, armB: -0.3, look: [-0.4, 0] });
     let dy = 0;
-    if (t < 5.92) { p.ear = Math.sin(t * 50) * 0.6; p.mouth = 'o'; }
-    else if (t < 6.2) p.squash = -0.2;
-    else p.squash += 0.14 * Math.exp(-(t - 6.2) * 9) * Math.cos((t - 6.2) * 30);
-    if (t >= 6.25 && t < 6.95) { // "cool": pulls the shades down, peeks over them, flicks them back up
-      p.armF = RR.kf(t, [[6.25, 0.4], [6.42, 3.4, 'outBack'], [6.5, 3.4], [6.62, 3.72], [6.78, 3.72], [6.86, 3.1, 'outQuad'], [6.95, 2.4]]);
-      dy = RR.kf(t, [[6.5, 0], [6.62, 14, 'outQuad'], [6.8, 14], [6.87, 0, 'inQuad']]);
-      if (t >= 6.55 && t < 6.85) {
+    if (t < 4.72) { p.ear = Math.sin(t * 50) * 0.6; p.mouth = 'o'; }
+    else if (t < 5.0) p.squash = -0.2;
+    else p.squash += 0.14 * Math.exp(-(t - 5.0) * 9) * Math.cos((t - 5.0) * 30);
+    if (t >= 5.05 && t < 5.75) { // "cool": pulls the shades down, peeks over them, flicks them back up
+      p.armF = RR.kf(t, [[5.05, 0.4], [5.22, 3.4, 'outBack'], [5.3, 3.4], [5.42, 3.72], [5.58, 3.72], [5.66, 3.1, 'outQuad'], [5.75, 2.4]]);
+      dy = RR.kf(t, [[5.3, 0], [5.42, 14, 'outQuad'], [5.6, 14], [5.67, 0, 'inQuad']]);
+      if (t >= 5.35 && t < 5.65) {
         p.look = [0.1, -0.7]; p.mouth = 'smile'; p.headTilt = 0.12;
-        p.brow = Math.floor((t - 6.55) / 0.07) % 2 ? 'up' : 'sly';
+        p.brow = Math.floor((t - 5.35) / 0.07) % 2 ? 'up' : 'sly';
       }
     }
-    if (t >= 6.95 && t < 7.34) { // cackles
+    if (t >= 5.75 && t < 6.14) { // cackles
       const fl = Math.sin(t * 40);
       Object.assign(p, { mouth: 'cackle', brow: 'sly', headTilt: -0.22 + 0.05 * fl, armF: 2.1 + 0.25 * fl, armB: -1.9 - 0.25 * fl, squash: 0.05 * fl, tail: t * 12, tailUp: 1 });
     }
-    if (t >= 7.34) Object.assign(p, { mouth: 'grin', armF: 2.4, armB: -2.2, squash: -0.15, brow: 'up' });
-    const jx = t >= 6.95 && t < 7.34 ? Math.sin(t * 55) * 4 : 0;
+    if (t >= 6.14) Object.assign(p, { mouth: 'grin', armF: 2.4, armB: -2.2, squash: -0.15, brow: 'up' });
+    const jx = t >= 5.75 && t < 6.14 ? Math.sin(t * 55) * 4 : 0;
     RR.drawRaccoon(X + jx, y, S, p);
     shadesOn(X + jx, y, S, p, dy);
   };
+
+  // Guard: the spread must end exactly on the shared S8 counts (warns if the shared states change).
+  {
+    const n = tokensAt(99);
+    if (n.de !== S8.tokens.de || n.fr !== S8.tokens.fr || n.roe !== S8.tokens.roe || Math.abs(trackerAt(99) - S8.tracker) > 1e-6)
+      console.warn('s08_spread: end tokens/tracker do not match RR.board.STATES.S8');
+  }
 
   // ---------------------------------------------------------------- scene
   RR.scene({
     id: 's08_spread', order: 8, dur: 24, music: 'spread',
     cues: [
-      [0.08, 'whoosh', 0.5], [0.15, 'tick', 0.5], [0.28, 'slide', 0.7], [0.5, 'pop', 0.7], [0.75, 'pop', 0.7], [0.8, 'tick', 0.6],
-      [1.0, 'pop', 0.7], [1.05, 'tick', 0.6], [1.25, 'pop', 0.8], [1.3, 'tick', 0.6], [1.5, 'flip'], [2.0, 'tock'],
-      [2.25, 'whoosh', 0.4], [2.82, 'slide'], [3.15, 'flip', 0.7], [3.36, 'thud', 0.7],
-      [3.95, 'pop'], [4.15, 'pencil'], [4.3, 'tick', 0.4], [4.72, 'tock'], [4.97, 'stamp'], [5.0, 'buzz'],
-      [5.55, 'whoosh'], [5.62, 'drumroll', 0.5], [5.95, 'boing'], [6.5, 'slide', 0.4], [6.86, 'pop', 0.5], [6.95, 'chitter'], [7.34, 'hop'],
-      [7.45, 'whoosh', 0.6], [8.15, 'pencil'], [8.5, 'whoosh', 0.7], [9.15, 'sparkle'], [9.3, 'pencil'], [10.2, 'whoosh', 0.5],
-      [10.9, 'deal'], [11.12, 'deal'], [11.34, 'deal'], [11.56, 'deal'], [11.78, 'deal'], [12.0, 'deal'],
-      [13.0, 'hop'], [13.22, 'hop'], [13.5, 'tock'], [13.72, 'tock'], [14.05, 'slide'], [14.2, 'slide'],
-      [15.65, 'flip'], [16.05, 'flip'], [16.45, 'boing', 0.6], [16.8, 'pop'], [16.95, 'flip'], [17.3, 'tick'], [17.35, 'flip'],
-      [17.8, 'boing', 0.6], [18.15, 'pop'], [18.4, 'pop'], [18.62, 'tick'], [18.92, 'tick'],
-      [18.95, 'hop'], [19.45, 'thud'], [19.6, 'chitter'], [20.05, 'hop', 0.6], [20.45, 'thud', 0.8], [20.6, 'chitter'], [21.0, 'thud', 0.8],
+      // Next turn: Germany's new policy slides into space 8, camera to the queue front
+      [0.22, 'slide', 0.7], [0.6, 'tock', 0.6], [0.62, 'sparkle', 0.35], [0.75, 'whoosh', 0.4],
+      // France's turn: the queue advances, BINS flips into space 4, BURGERS lands on EVALUATE
+      [1.62, 'slide'], [1.95, 'flip', 0.7], [2.16, 'thud', 0.7],
+      [2.75, 'pop'], [2.95, 'pencil'], [3.1, 'tick', 0.4], [3.52, 'tock'], [3.77, 'stamp'], [3.8, 'buzz'],
+      [4.35, 'whoosh'], [4.42, 'drumroll', 0.5], [4.75, 'boing'], [5.3, 'slide', 0.4], [5.66, 'pop', 0.5], [5.75, 'chitter'], [6.14, 'hop'],
+      [6.25, 'whoosh', 0.6], [6.95, 'pencil'], [7.3, 'whoosh', 0.7], [7.95, 'sparkle'], [8.1, 'pencil'], [9.0, 'whoosh', 0.5],
+      [9.7, 'deal'], [9.92, 'deal'], [10.14, 'deal'], [10.36, 'deal'], [10.58, 'deal'], [10.8, 'deal'],
+      [11.8, 'hop'], [12.02, 'hop'], [12.3, 'tock'], [12.52, 'tock'], [12.85, 'slide'], [13.0, 'slide'],
+      // reveal: FR +0, DE +1 (token, tick), rest +0 and +2 (tokens, ticks)
+      [14.45, 'flip'], [15.05, 'flip'], [15.45, 'boing', 0.6], [15.8, 'pop'], [16.3, 'tick'], [16.35, 'flip'], [16.8, 'flip'],
+      [17.25, 'boing', 0.6], [17.6, 'pop'], [17.85, 'pop'], [18.07, 'tick'], [18.35, 'tick'],
+      // the Raccoon cheers by the tracker
+      [18.45, 'hop'], [18.95, 'thud'], [19.4, 'chitter'], [19.95, 'hop', 0.6], [20.35, 'thud', 0.8], [20.55, 'chitter'], [20.95, 'thud', 0.8],
       [21.45, 'whoosh', 0.6], [22.0, 'whoosh'], [22.1, 'deal', 0.5], [22.3, 'deal', 0.5],
     ],
     draw(t) {
@@ -593,8 +583,8 @@
         drawTrackerGlow(t);
         drawStory(t);
         drawProt(t);
-        if (t > 8.0 && t < 10.6) { // the black token on the first orange square
-          const sq = B.SQUARES[6].pos, k = RR.env(t, 8.1, 10.5, 0.3, 0.3);
+        if (t > 6.8 && t < 9.4) { // the black token on the first orange square
+          const sq = B.SQUARES[6].pos, k = RR.env(t, 6.9, 9.3, 0.3, 0.3);
           glow(sq[0], sq[1], 26, C.orange, k * (0.7 + 0.3 * Math.sin(t * 7)));
         }
         drawTokens(t);
@@ -602,21 +592,20 @@
         drawQueue(t);
         drawBurgers(t);
         drawMeter(t);
-        if (t > 8.0 && t < 10.6) ringOn(B.SQUARES[6].pos[0], B.SQUARES[6].pos[1] - 4, 36, seg(t, 8.15, 8.45), { col: C.red, w: 2.6 });
+        if (t > 6.8 && t < 9.4) ringOn(B.SQUARES[6].pos[0], B.SQUARES[6].pos[1] - 4, 36, seg(t, 6.95, 7.25), { col: C.red, w: 2.6 });
         drawSpread(t);
         drawCheer(t);
       });
 
       drawInset(t, cam);
-      RR.fadeScreen(0.3 * RR.env(t, 5.6, 7.55, 0.3, 0.3));
+      RR.fadeScreen(0.3 * RR.env(t, 4.4, 6.35, 0.3, 0.3));
       spreadRaccoon(t);
-      drawBanner(t, 5.55, 7.5);
-      RR.caption('A few turns later...', t, 0.12, 2.3, { x: 1010, y: 60, size: 50 });
-      RR.caption('Not enough votes?', t, 4.05, 5.85);
-      RR.caption('More spread, more cards', t, 8.65, 10.45);
-      RR.caption('Protection cancels a card', t, 13.45, 15.55);
-      RR.caption('New raccoons: impact up', t, 16.85, 19.35);
-      drawClock(t);
+      drawBanner(t, 4.35, 6.3);
+      RR.caption('Next turn...', t, 0.12, 2.2, { y: 60, size: 54 });
+      RR.caption('Not enough votes?', t, 2.85, 4.65);
+      RR.caption('More spread, more cards', t, 7.45, 9.25);
+      RR.caption('Protection cancels a card', t, 12.25, 14.35);
+      RR.caption('New raccoons: impact up', t, 15.85, 18.85);
     },
   });
 })();

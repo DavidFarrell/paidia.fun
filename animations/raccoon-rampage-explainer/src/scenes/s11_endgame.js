@@ -16,17 +16,12 @@
   const TCB = RR.cam(800, 880, 1.06);    // push towards the green end
 
   // ---------------------------------------------------------------- start state
-  const QUEUE = [
-    { id: 'pets', k: 1, votes: ['ar', 'fr', 'fr'] },
-    { id: 'wear', k: 2, votes: ['hu', 'corp', 'ar', 'ar'] },
-    { id: 'drones', k: 3, votes: ['fr', 'fr', 'fr', 'de', 'de', 'de', 'hu'] },
-    { id: 'protect', k: 4, votes: ['de', 'de'] },
-    { id: 'back:policy', k: 5 }, { id: 'back:policy', k: 6 }, { id: 'back:policy', k: 7 }, { id: 'back:policy', k: 8 },
-  ];
-  const S0 = Object.assign(B.clone(B.SETUP), {
-    story: ['corprelief', 'corpself', null, null, null],
-    queue: QUEUE, tokens: { de: 10, fr: 6, roe: 9 }, tracker: 4, prot: [],
-  });
+  // RR.board.STATES.END (after five rounds): Raccoonimation [FR] 1/5 fails, Rural
+  // Sterilisation 4/4 passes (one Rest-of-Europe raccoon), Raccoon Land 5/5 passes (Germany
+  // has the majority: one German and one Rest-of-Europe raccoon mitigated), Raccoon Helpline
+  // 1/3 fails. Tokens DE 9, FR 6, rest 9; tracker +4.
+  const S0 = B.clone(B.STATES.END);
+  const QUEUE = S0.queue;
 
   // ---------------------------------------------------------------- timings
   const FLIPS = { 2: ['bigfarm', 0.95], 3: ['freetrade', 1.4], 4: ['burns', 1.85] };
@@ -37,7 +32,9 @@
     { k: 4, t0: 5.1, pass: false },
   ];
   const VERDICT = 0.28, DISCARD = 0.46;
-  const REMOVE = { roe: { 8: 4.0, 7: 4.86 }, de: { 9: 4.64 } };        // token index -> time it leaves
+  // token index -> time it leaves: Sterilisation (k2) takes the last Rest-of-Europe raccoon,
+  // then Raccoon Land (k3) mitigates the last German raccoon and the next Rest-of-Europe one
+  const REMOVE = { roe: { [S0.tokens.roe - 1]: 4.0, [S0.tokens.roe - 2]: 4.86 }, de: { [S0.tokens.de - 1]: 4.64 } };
   const STEPS = [[4.12, 4, 3], [4.74, 3, 2], [4.97, 2, 1]];            // tracker steps [start, from, to]
   const STEPS_B = [[10.55, 1, 0], [10.75, 0, -1], [10.95, -1, -2], [11.15, -2, -3]];
   const SCR = 9.6, FRZ = 9.72, RWE = 10.15;                             // record scratch, freeze end, rewind end
@@ -145,7 +142,7 @@
 
   // ---------------------------------------------------------------- helpers
   const trackerAt = (t) => {
-    let v = 4;
+    let v = S0.tracker;
     for (const [ts, a, b] of t < 10.3 ? STEPS : STEPS.concat(STEPS_B)) if (t >= ts) v = RR.lerp(a, b, RR.seg(t, ts, ts + 0.2, 'inOutQuad'));
     return v;
   };
@@ -209,7 +206,9 @@
     if (k > 0 && a > 0) {
       const e = EV[3].t0 + VERDICT + 0.2;
       const pulse = 1 + 0.14 * Math.sin(Math.PI * RR.seg(t, e, e + 0.25));
-      RR.drawSprite(noSpr(), dx, dy, { w: 250 * k * pulse, h: 250 * k * pulse, alpha: a, rot: -0.05 });
+      // slow (p5 image) path: the fast blit of this sprite right after the deck card came out
+      // blank in every rendered frame, so the "no spread" sign was never seen
+      RR.drawSprite(noSpr(), dx, dy, { w: 250 * k * pulse, h: 250 * k * pulse, alpha: a, rot: -0.05, slow: true });
     }
   };
   const drawQueue = (t) => {
@@ -241,7 +240,7 @@
     }
   };
   const drawTokens = (t) => {
-    B.drawTokens(S0.tokens, { pop: { de: tokenPop(t, 'de', 10), fr: undefined, roe: tokenPop(t, 'roe', 9) } });
+    B.drawTokens(S0.tokens, { pop: { de: tokenPop(t, 'de', S0.tokens.de), fr: undefined, roe: tokenPop(t, 'roe', S0.tokens.roe) } });
     for (const kind in REMOVE) for (const i in REMOVE[kind]) {
       const [x, y] = tokenPos(kind, +i);
       RR.poof(x, y - 4, t, REMOVE[kind][i] + 0.12, { r: 46 });

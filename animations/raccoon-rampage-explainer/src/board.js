@@ -302,7 +302,9 @@ B.STATES.S10 = { ...B.STATES.S9,
 };
 B.STATES.END = { ...B.STATES.S8, prot: [],
   story: ['corprelief', 'corpself', null, null, null], // s11 flips bigfarm, freetrade, burns
-  queue: _q([['crows', 1, ['fr']], ['virus', 2, ['hu', 'hu', 'hu', 'hu', 'corp', 'ar', 'de']], ['protect', 3, ['de', 'de', 'de', 'ar', 'fr']], ['pets', 4, ['ar', 'ar']],
+  // Final round: cards not seen earlier. Raccoonimation 1/5 fails; Rural Sterilisation 4/4
+  // passes (mitigate 1); Raccoon Land 5/5 passes (mitigate 2, Germany majority); Helpline 1/3 fails.
+  queue: _q([['anim', 1, ['fr']], ['steril', 2, ['ar', 'ar', 'ar', 'fr']], ['land', 3, ['corp', 'de', 'de', 'de', 'hu']], ['helpline', 4, ['ar']],
     ['back:policy', 5], ['back:policy', 6], ['back:policy', 7], ['back:policy', 8]]),
 };
 B.clone = (st) => JSON.parse(JSON.stringify(st));

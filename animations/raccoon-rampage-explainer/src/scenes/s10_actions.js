@@ -1,6 +1,9 @@
-// Scene 10 (140-152 s): action cards. The French player flicks up BEHIND THE SCENES (anytime):
-// puppet strings lift two votes off WEAR THEM (3/3 becomes 1/3) and drop them on NO MORE PETS.
-// Then CELEBRITY ENDORSEMENT (your main phase) adds two pink votes and pets reaches its cost.
+// Scene 10 (140-152 s): action cards, still inside France's main phase (turn 6).
+// Starts on RR.board.STATES.S9 (QCAM), ends on STATES.S10 (FULL).
+// 1) The French player flicks up BEHIND THE SCENES (ANYTIME): puppet strings lift the grey
+//    and blue votes off WEAR THEM (3/3 becomes 1/3) and drop them on DRONE ZAPPERS (3/7 to 5/7).
+// 2) Timing rule: an Animal Rights hand tries to play CELEBRITY ENDORSEMENT, a YOUR MAIN
+//    PHASE card, during France's turn. NOT YOUR TURN: the hand pulls it back (no votes).
 // The Raccoon cheers the chaos as the camera pulls back to the whole board.
 
 (() => {
@@ -10,20 +13,15 @@
   const camAt = (t) => RR.drift(RR.camKf(t, CAMS), t, RR.env(t, 0, 11.6, 1.2, 1.2));
 
   // ---------------------------------------------------------------- board state S9 (from s09)
-  const S9 = BD.clone(BD.SETUP);
-  S9.story = ['corprelief', 'corpself', null, null, null];
-  S9.tokens = { de: 10, fr: 6, roe: 9 };
-  S9.tracker = 4;
-  S9.prot = [];
-  S9.queue = [
-    { id: 'pets', k: 1 }, { id: 'wear', k: 2 }, { id: 'drones', k: 3, votes: ['fr', 'fr'] }, { id: 'protect', k: 4, votes: [] },
-    { id: 'back:policy', k: 5 }, { id: 'back:policy', k: 6 }, { id: 'back:policy', k: 7 }, { id: 'back:policy', k: 8 },
-  ];
+  // Queue: Drone Zappers [fr fr fr] k1, Wear Them [hu corp fr] k2, Raccoon Virus k3, Bins k4, backs k5-8.
+  const S9 = BD.clone(BD.STATES.S9);
+  const COST = {};
+  for (const c of S9.queue) if (c.k <= 4) COST[c.k] = RR.CARDS[c.id].cost;
   // Animated vote lists (land: arrival time, -1 = already there; leave: lifted away at)
-  const LIFT = 4.0, L_CORP = 5.66, L_FR = 5.74, L_PINK = [8.3, 8.45];
+  const LIFT = 4.0, L_CORP = 5.66, L_FR = 5.74;
   const WEAR = [{ role: 'hu', land: -1 }, { role: 'corp', land: -1, leave: LIFT }, { role: 'fr', land: -1, leave: LIFT }];
-  const PETS = [{ role: 'ar', land: -1 }, { role: 'fr', land: -1 }, { role: 'fr', land: L_FR }, { role: 'corp', land: L_CORP }, { role: 'ar', land: L_PINK[0] }, { role: 'ar', land: L_PINK[1] }];
-  // End state: pets ['ar','fr','fr','corp','ar','ar'], wear ['hu'], drones ['fr','fr'], protect [].
+  const DRONES = [{ role: 'fr', land: -1 }, { role: 'fr', land: -1 }, { role: 'fr', land: -1 }, { role: 'corp', land: L_CORP }, { role: 'fr', land: L_FR }];
+  // End state = STATES.S10: drones ['fr','fr','fr','corp','fr'] (5/7), wear ['hu'] (1/3).
 
   // ---------------------------------------------------------------- helpers
   const cubeLayout = (x, y, i, n, size = 32) => {
@@ -31,8 +29,10 @@
     const inRow = Math.min(3, n - row * 3);
     return [x + (col - (inRow - 1) / 2) * size * 1.15 + (row % 2) * 6, y + 38 - row * size * 0.9];
   };
-  const cubesOn = (k, list, t) => {
+  // nFix: lay the cubes out for a fixed final count (arrivals in a new row never shift the others)
+  const cubesOn = (k, list, t, nFix) => {
     const [x, y] = BD.slot(k);
+    if (nFix) return list.map((c, i) => ({ ...c, gone: false, pos: cubeLayout(x, y, i, nFix) }));
     let nf = 0;
     for (const c of list) {
       nf += c.land < 0 ? 1 : RR.seg(t, c.land - 0.24, c.land - 0.02, 'inOutCubic');
@@ -102,32 +102,28 @@
     RR.inkLine([[40, 49], [160, 49]], { col: '#d6b48c', w: 0.6, brush: 'pencil' });
   }, { res: 1.8 });
 
-  // Turn chip: CELEBRITY ENDORSEMENT is a YOUR MAIN PHASE card, so the turn passes from
-  // France to Animal Rights before the pink hand plays it (flag -> arrow -> paw badge).
-  const TURN = [330, 100];
-  const chipSpr = () => RR.sprite('s10:turnchip', 250, 110, () => {
-    RR.flat(RR.rrectPts(19, 21, 220, 80, 22), RR.C.ink, 40);
-    RR.ink(RR.rrectPts(12, 13, 220, 80, 22), { fill: RR.C.white, stroke: RR.C.ink, w: 0.9, curve: 0.2 });
-    RR.inkLine([[98, 53], [150, 53]], { col: RR.C.inkSoft, w: 1.3 });
-    RR.ink([[164, 53], [148, 43], [148, 63]], { fill: RR.C.inkSoft, stroke: false, curve: 0 });
-  }, { res: 1.5 });
-  const turnChip = (t) => {
-    const a = RR.env(t, 6.35, 9.4, 0.2, 0.3);
-    if (a <= 0) return;
-    const k = RR.E.outBack(RR.seg(t, 6.35, 6.7));
-    push(); translate(TURN[0], TURN[1]); rotate(-0.02); scale(k * 1.4);
-    RR.drawSprite(chipSpr(), 0, 0, { alpha: a });
-    const dim = RR.seg(t, 6.75, 7.0);
-    RR.icon('role', -64, -8, 64 * (1 - 0.15 * dim), { role: 'fr' }, { alpha: a * (1 - 0.55 * dim) });
-    const pk = RR.pop(t, 6.8, 0.35);
-    if (pk > 0.01) RR.icon('role', 66, -8, 64 * pk, { role: 'ar', bg: RR.C.arDark }, { alpha: a });
-    pop();
+  // ---------------------------------------------------------------- CELEBRITY ENDORSEMENT
+  // An Animal Rights hand tries to play it during France's turn. It is a YOUR MAIN PHASE card,
+  // so only the active player may play it: the line lights up, NOT YOUR TURN, the hand pulls back.
+  const CE = { rise: 6.5, show: 7.0, hl: 7.4, stamp: 8.0, back: 8.6, gone: 9.1 };
+  const celebAt = (t) => {
+    const rise = RR.kf(t, [[CE.rise, 560], [CE.rise + 0.45, 0, 'outBack']]);
+    const u = RR.seg(t, CE.show, CE.show + 0.4, 'outBack');          // lifted up towards the queue
+    const v = RR.seg(t, CE.show, CE.show + 0.4, 'outCubic');
+    const flinch = RR.env(t, CE.stamp + 0.05, CE.back, 0.08, 0.3);   // recoils from the stamp
+    const back = RR.seg(t, CE.back, CE.gone, 'inCubic');               // ...and is pulled back down
+    const [kx, ky] = RR.shake(t, CE.stamp + 0.2, 0.35, 9);
+    const x = RR.lerp(1700, 1590, u) + kx + 26 * flinch + 90 * back;
+    const y = RR.lerp(830, 545, v) + rise + ky + 34 * flinch + 820 * back + Math.sin(t * 2.2) * 4;
+    const w = RR.lerp(200, 420, u) * (1 - 0.25 * back);
+    const rot = RR.lerp(0.15, -0.04, u) + 0.07 * flinch + 0.3 * back;
+    return { x, y, w, rot, flip: RR.seg(t, CE.show + 0.05, CE.show + 0.35, 'inOutCubic') };
   };
 
   // ---------------------------------------------------------------- the strings
   const [WX, WY] = BD.slot(2), [PX, PY] = BD.slot(1);
   const SRC = [cubeLayout(WX, WY, 1, 3), cubeLayout(WX, WY, 2, 3)];   // corp, fr on WEAR THEM
-  const DST = [cubeLayout(PX, PY, 3, 4), cubeLayout(PX, PY, 2, 4)];   // corp, fr on NO MORE PETS
+  const DST = [cubeLayout(PX, PY, 3, 5), cubeLayout(PX, PY, 4, 5)];   // corp, fr on DRONE ZAPPERS (second row)
   const LAND = [L_CORP, L_FR];
   const HIGH = 60, STR_L = 125;
   const uCarry = (t) => RR.seg(t, 4.5, 5.3, 'inOutCubic');
@@ -162,19 +158,19 @@
       [0.1, 'brush'], [0.45, 'whoosh'], [1.1, 'paper', 0.5], [1.35, 'pencil'], [2.5, 'slide'],
       [3.0, 'pop', 0.6], [3.1, 'pop', 0.6], [3.2, 'whoosh', 0.6], [3.3, 'paper'], [3.9, 'tick'], [3.95, 'tick'],
       [LIFT, 'whoosh'], [4.25, 'buzz', 0.6], [4.6, 'whoosh', 0.4], [L_CORP, 'tock'], [L_FR, 'tock'], [5.95, 'whoosh', 0.4],
-      [6.3, 'whoosh'], [6.4, 'pop', 0.5], [6.8, 'tick'], [6.5, 'slide', 0.6], [6.95, 'flip'], [6.9, 'paper', 0.6], [7.3, 'pencil'], [7.55, 'pop'], [7.7, 'pop'],
-      [L_PINK[0], 'tock'], [L_PINK[1], 'tock'], [8.45, 'sparkle'], [8.5, 'ding'],
+      [6.3, 'whoosh'], [CE.rise + 0.05, 'slide', 0.6], [CE.show, 'paper', 0.6], [CE.show + 0.1, 'flip'], [CE.hl, 'pencil'],
+      [CE.stamp + 0.2, 'stamp'], [CE.stamp + 0.24, 'buzz', 0.7], [CE.back + 0.2, 'whoosh', 0.5],
       [9.45, 'boing'], [9.7, 'chitter'], [10.2, 'whoosh', 0.6], [10.45, 'chitter'], [11.05, 'hop'],
     ],
     draw(t) {
       const cam = camAt(t);
-      const wear = cubesOn(2, WEAR, t), pets = cubesOn(1, PETS, t);
+      const wear = cubesOn(2, WEAR, t), drones = cubesOn(1, DRONES, t, DRONES.length);
 
       // ---- world
       RR.withCam(cam, () => {
         BD.drawState(S9, { skip: { queue: true } });
         const glows = {
-          2: [RR.C.green, RR.env(t, 3.0, 4.2, 0.3, 0.1)], 1: [RR.C.green, RR.env(t, 8.5, 9.5, 0.1, 0.4)],
+          2: [RR.C.green, RR.env(t, 3.0, 4.2, 0.3, 0.1)], 1: [RR.C.fr, RR.env(t, 5.55, 6.5, 0.1, 0.5)],
         };
         const redFlash = RR.env(t, 4.2, 5.0, 0.05, 0.6);
         for (const c of S9.queue) {
@@ -182,16 +178,16 @@
           if (glows[c.k]) glowRect(x, y, 190, 265, glows[c.k][0], glows[c.k][1]);
           if (c.k === 2) glowRect(x, y, 190, 265, RR.C.red, redFlash);
           RR.drawCard(c.id, x, y, { w: 190, flip: c.k <= 4.5 ? 1 : 0 });
-          if (c.k === 1) drawCubes(pets, t);
+          if (c.k === 1) drawCubes(drones, t);
           else if (c.k === 2) drawCubes(wear, t);
           else if (c.votes && c.votes.length) BD.cubesOnCard(x, y, c.votes, { size: 32 });
         }
-        // vote badges
+        // vote badges: WEAR THEM 3/3 -> 1/3 (fails), DRONE ZAPPERS 3/7 -> 5/7
         const bA = RR.pop(t, 3.0, 0.3) * (1 - RR.seg(t, 9.3, 9.55));
         const bB = RR.pop(t, 3.1, 0.3) * (1 - RR.seg(t, 9.3, 9.55));
         const bump = (tt) => 1 + 0.25 * Math.exp(-Math.abs(t - tt) * 12);
-        if (bA > 0.01) countBadge(t < 4.25 ? '3/3' : '1/3', t < 4.25, WX, 382, bA * bump(4.25));
-        if (bB > 0.01) countBadge(t < 5.75 ? '2/5' : t < 8.5 ? '4/5' : '6/5', t >= 8.5, PX, 382, bB * bump(t < 7 ? 5.75 : 8.5));
+        if (bA > 0.01) countBadge((t < 4.25 ? 3 : 1) + '/' + COST[2], t < 4.25, WX, 382, bA * bump(4.25));
+        if (bB > 0.01) countBadge((t < 5.75 ? 3 : 5) + '/' + COST[1], false, PX, 382, bB * bump(5.75));
 
         // puppet strings: a hand from above lowers the control, strings hook two votes
         if (t > 3.15 && t < 6.5) {
@@ -219,8 +215,6 @@
           RR.drawCube(p[0], p[1], 32, m ? 'fr' : 'corp', { rot: swingAt(t) * -0.008, sx: 1 - yank * 0.12, sy: 1 + yank * 0.2, shadow: false });
         }
       });
-      RR.sparkle(...RR.toScreen(cam, [PX, 382]), t, 8.48, { n: 10, r: 120, col: RR.C.gold });
-      RR.sparkle(...RR.toScreen(cam, [PX, 250]), t, 8.4, { n: 6, r: 110, col: RR.C.pink, seed: 5, size: 14 });
 
       // ---- BEHIND THE SCENES flies up from the French player's hand
       if (t < 1.0) {
@@ -242,42 +236,21 @@
         highlight(x, y, w, rot, lift, 20, 212, 34, RR.C.gold, RR.seg(t, 1.35, 1.7, 'inOutQuad'));
       }
 
-      // ---- CELEBRITY ENDORSEMENT: the Animal Rights player's card, two pink votes
-      if (t >= 6.45 && t < 7.6) {
-        const up = RR.kf(t, [[6.45, 520], [6.85, 0, 'outBack'], [7.2, 0], [7.6, 560, 'inCubic']]);
-        const hand = [1690, 930 + up];
-        if (t < 6.95) RR.drawCard('celeb', hand[0] - 10, hand[1] - 100, { w: 200, rot: 0.15, flip: 0 });
-        sleeve(hand, [0.1, 0.99], 400, RR.C.ar, RR.C.arDark, RR.PEOPLE.ar.skin, 36);
+      // ---- CELEBRITY ENDORSEMENT: an Animal Rights hand tries it during France's turn
+      if (t >= CE.rise && t < CE.gone) {
+        const c = celebAt(t);
+        const h = (c.w * RR.CARD_H) / RR.CARD_W;
+        RR.drawCard('celeb', c.x, c.y, { w: c.w, rot: c.rot, flip: c.flip, lift: 0.7 });
+        // 'YOUR MAIN PHASE:' lights up (gold), then turns red once stamped
+        highlight(c.x, c.y, c.w, c.rot, 0.7, 20, 212, 67, t < CE.stamp + 0.2 ? RR.C.gold : RR.C.red, RR.seg(t, CE.hl, CE.hl + 0.35, 'inOutQuad'));
+        // the pink hand grips the bottom of the card
+        const grip = [c.x - Math.sin(c.rot) * h * 0.44, c.y + Math.cos(c.rot) * h * 0.44];
+        sleeve(grip, [0.1 + c.rot * 0.3, 0.99], 480, RR.C.ar, RR.C.arDark, RR.PEOPLE.ar.skin, 42);
+        // NOT YOUR TURN slams onto the card and leaves with it (scaled with the card, one cached sprite)
+        push(); translate(c.x - Math.sin(c.rot) * h * -0.08, c.y - Math.cos(c.rot) * h * 0.08); scale(c.w / 420);
+        RR.stamp('NOT YOUR TURN', 0, 0, t, CE.stamp, { kind: 'fail', size: 58, rot: -0.2 + c.rot });
+        pop();
       }
-      if (t >= 6.95 && t < 9.6) {
-        const u = RR.seg(t, 6.95, 7.35, 'outBack');
-        const out = RR.seg(t, 9.1, 9.55, 'inCubic');
-        const x = RR.lerp(1680, 1640, u) + out * 600, y = RR.lerp(830, 560, RR.seg(t, 6.95, 7.35, 'outCubic')) + Math.sin(t * 2.2) * 4 - out * 60;
-        const w = RR.lerp(200, 440, u), rot = RR.lerp(0.15, -0.03, u) + out * 0.4;
-        RR.drawCard('celeb', x, y, { w, rot, flip: RR.seg(t, 6.95, 7.25, 'inOutCubic'), lift: 0.7 });
-        highlight(x, y, w, rot, 0.7, 20, 212, 67, RR.C.ar, RR.seg(t, 7.3, 7.65, 'inOutQuad'));
-      }
-      // two pink votes pop out of the card and hop onto NO MORE PETS
-      L_PINK.forEach((L, j) => {
-        const P0 = 7.55 + j * 0.15, F = L - 0.5;
-        if (t < P0 || t >= L) return;
-        const from = [1640 + (j ? 40 : -40), 600];
-        const hover = [from[0], 470 + Math.sin(t * 6 + j) * 4];
-        let pos, size = 44;
-        if (t < F) {
-          const u = RR.E.outBack(RR.seg(t, P0, P0 + 0.3));
-          pos = RR.lerp2(from, hover, u); size = 44 * RR.clamp(u * 1.2, 0, 1.1);
-        } else {
-          const q = cubesOn(1, PETS, L)[4 + j];
-          const target = RR.toScreen(cam, q.pos);
-          const u = RR.seg(t, F, L, 'inOutSine');
-          pos = RR.hop([from[0], 470 + Math.sin(F * 6 + j) * 4], target, u, 160);
-          size = RR.lerp(44, 32 * cam.z, u);
-        }
-        RR.drawCube(pos[0], pos[1], size, 'ar', { rot: t >= F ? Math.sin(Math.PI * RR.seg(t, F, L)) * -0.7 : 0, shadow: false });
-      });
-
-      turnChip(t);
 
       // ---- the Raccoon cheers the chaos from the corner
       if (t > 9.4 && t < 11.5) {
@@ -295,7 +268,7 @@
       // ---- words
       RR.banner('ACTION CARDS', t, 0.1, 2.4);
       RR.caption('Play them to twist the vote', t, 3.3, 6.3);
-      RR.caption('Anytime, or on your turn', t, 6.9, 9.35, { size: 52 });
+      RR.caption('Some only on your own turn', t, CE.hl + 0.05, 9.35, { size: 52 });
     },
   });
 })();

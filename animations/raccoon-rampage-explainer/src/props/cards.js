@@ -24,6 +24,13 @@ RR.CARDS = {
   crows: { kind: 'policy', title: 'SCARE CROWS!', text: 'Train flocks of crows to scare away raccoons. It will not be easy, but hopefully it works!', cost: 7, owner: 'fr', effects: [['d6', '1-4'], ['mitigate', 2]], art: 'crows' },
   // Hobbyist Hunting: text, effect and scoring star from the card photo; cost/owner illustrative.
   hobby: { kind: 'policy', title: 'HOBBYIST HUNTING', text: 'Hobby hunters head out to the countryside to kill some raccoons.', cost: 3, owner: 'hu', effects: [['hunterDie', 1]], score: 'hu', art: 'hobby' },
+  // Seen only in the final round (s11). Titles and flavour text from the card photo on
+  // raccoonrampage.ecologygames.eu (Raccoon Helpline: name and owner from the rulebook's
+  // tutorial setup); costs, owners and effects not legible there are illustrative.
+  anim: { kind: 'policy', title: 'RACCOONIMATION', text: 'Big budget animation is looking for partners. Good opportunity to use the raccoon in merchandise for awareness!', cost: 5, owner: 'fr', effects: [], art: 'anim' },
+  steril: { kind: 'policy', title: 'RURAL STERILISATION', text: 'Deploy a public programme to capture, sterilise and release raccoons in the countryside.', cost: 4, owner: 'ar', effects: [['mitigate', 1]], score: 'ar', art: 'steril' },
+  land: { kind: 'policy', title: 'RACCOON LAND', text: 'Trap raccoons in live traps and create a raccoon wonderland. Hopefully they do not escape!', cost: 5, owner: 'de', effects: [['mitigate', 2]], special: 'corp', art: 'land' },
+  helpline: { kind: 'policy', title: 'RACCOON HELPLINE', text: 'Advice for anyone with a raccoon in the attic.', cost: 3, owner: 'ar', effects: [['mitigate', 1]], score: 'ar', art: 'helpline' },
   // Stand-in face: the rulebook only says the Inaction card starts in queue space 1.
   inaction: { kind: 'policy', special: 'inaction', title: 'INACTION', text: '', art: 'inaction' },
   behind: { kind: 'action', title: 'BEHIND THE SCENES', text: 'Your lobbyists pull some strings and a vote goes in a surprising direction.', owner: 'fr', phase: 'ANYTIME:', effect: 'You can move up to 4 vote tokens from face-up Policy cards on the queue to Storyline Events or other face-up Policy cards.', art: 'puppet' },
@@ -138,6 +145,34 @@ ART.hobby = (x, y, w, h) => {
   RR.ink([[x + w * 0.44, y + h * 0.34], [x + w * 0.72, y + h * 0.34], [x + w * 0.64, y + h * 0.26], [x + w * 0.5, y + h * 0.26]], { fill: '#7c8f5a', w: 0.6 });
   RR.ink([[x + w * 0.46, y + h * 0.95], [x + w * 0.5, y + h * 0.55], [x + w * 0.68, y + h * 0.55], [x + w * 0.72, y + h * 0.95]], { fill: '#8a6a4a', w: 0.7 });
   RR.inkLine([[x + w * 0.3, y + h * 0.5], [x + w * 0.66, y + h * 0.62]], { col: '#3a2c24', w: 2 });
+};
+ART.anim = (x, y, w, h) => {
+  bg(x, y, w, h, '#f3c6d3');
+  const cols = ['#e0556f', '#6fb3a8', '#e9b52f', '#4f7fbd'];
+  for (let i = 0; i < 14; i++) RR.flatEllipse(x + w * RR.hrange(i + 40, 0.08, 0.92), y + h * RR.hrange(i + 50, 0.1, 0.9), 3, 3, cols[i % 4]);
+  face(x + w * 0.4, y + h * 0.5, 30);
+  for (let i = 0; i < 4; i++) RR.inkEllipse(x + w * 0.74 + i * 5, y + h * (0.78 - i * 0.14), 12, 8, { fill: i % 2 ? RR.C.tailDark : RR.C.tailLight, w: 0.5 });
+  RR.text('RACC', x + w * 0.5, y + h * 0.95, { font: 'title', size: 13, col: '#e0556f' });
+};
+ART.steril = (x, y, w, h) => {
+  bg(x, y, w, h, '#cfe3ea');
+  for (let i = 0; i < 3; i++) RR.ink(RR.rrectPts(x + w * (0.12 + i * 0.12), y + h * 0.15, w * 0.07, h * 0.3, 3), { fill: ['#e7e3ef', '#c9b3cf', '#b8d8c9'][i], w: 0.5 });
+  RR.inkLine([[x + 8, y + h * 0.5], [x + w - 8, y + h * 0.5]], { col: '#8aa0ab', w: 1 });
+  RR.ink(RR.rrectPts(x + w * 0.5, y + h * 0.58, w * 0.4, h * 0.3, 6), { stroke: '#6b7f8a', w: 0.9 });
+  face(x + w * 0.7, y + h * 0.75, 16, { w: 0.5 });
+};
+ART.land = (x, y, w, h) => {
+  bg(x, y, w, h, '#bcd9e8', '#d7c3a3');
+  for (let i = 0; i < 7; i++) RR.ink([[x + w * (0.1 + i * 0.12), y + h * 0.65], [x + w * (0.16 + i * 0.12), y + h * 0.1], [x + w * (0.22 + i * 0.12), y + h * 0.65]], { fill: i % 2 ? '#f4efe4' : '#e0556f', stroke: false, curve: 0 });
+  RR.ink(RR.rrectPts(x + w * 0.2, y + h * 0.35, w * 0.6, h * 0.2, 4), { fill: '#e9b52f', w: 0.7 });
+  RR.text('LAND', x + w * 0.5, y + h * 0.5, { font: 'title', size: 14, col: RR.C.plumDark });
+  RR.ink(RR.rrectPts(x + w * 0.3, y + h * 0.62, w * 0.4, h * 0.34, 3), { fill: '#b77a4f', w: 0.7 });
+};
+ART.helpline = (x, y, w, h) => {
+  bg(x, y, w, h, '#a9d6c4');
+  face(x + w * 0.42, y + h * 0.58, 30);
+  RR.ink(RR.rrectPts(x + w * 0.62, y + h * 0.22, 26, 44, 8), { fill: '#4f7fbd', w: 0.8 });
+  RR.inkLine([[x + w * 0.6, y + h * 0.35], [x + w * 0.52, y + h * 0.45]], { col: RR.C.ink, w: 0.8 });
 };
 ART.inaction = (x, y, w, h) => {
   bg(x, y, w, h, '#e8dcc8');

@@ -1,8 +1,9 @@
 // Scene 3 (22-36 s): the board and the goal.
 // The board assembles around the map while the camera pulls back, the setup pieces land,
-// then the Impact Tracker shows the stakes: every raccoon added pushes the marker towards
-// the skull (everyone loses), removing them drives it back to the green; then the top
-// score wins. Ends on the full board in the canonical SETUP state.
+// then the Impact Tracker shows the stakes: every raccoon added pushes the marker one space
+// towards the skull (everyone loses, game over); the film rewinds to neutral, then every
+// raccoon removed moves it one space into the green; then the top score wins. A second,
+// lighter rewind resets the demo, so the scene ends on the full board in the SETUP state.
 
 (() => {
   const B = RR.board;
@@ -19,8 +20,22 @@
   const MARKER_DROP = 4.95;
   const HOPS = [[6.45, 0.26], [6.8, 0.24], [7.12, 0.22], [7.4, 0.2], [7.63, 0.18], [7.84, 0.17], [8.04, 0.26]];
   const SKULL_T = 8.3;
-  const SLIDE = [9.25, 9.8];
+  // Skull = game over, so the film rewinds: record scratch, freeze, then the whole climb
+  // (marker, the pile of raccoons, the Raccoon's cackle) plays backwards to just before it.
+  const SCR = 9.3, FRZ = 9.4, RWE = 9.82, REW_TO = 6.3;
+  // Then raccoons leave the map one at a time; each removal moves the marker one space
+  // towards the green (7 removals: 0 to -7).
+  const REMOVED = [['fr', 4], ['fr', 3], ['fr', 2], ['de', 9], ['de', 8], ['de', 7], ['de', 6]];
+  const REM = [9.86, 9.99, 10.11, 10.22, 10.32, 10.42, 10.52];    // token j starts to lift off
+  const REM_LIFT = 0.09, STEP_D = 0.1;                            // lift before the poof; marker hop
+  const GREEN_T = REM[6] + REM_LIFT + STEP_D;                     // marker lands on -7
+  const STORM = [10.95, 11.35];                                   // the Raccoon storms off (gone before the scores)
+  // A second, lighter rewind resets the demo to SETUP (tokens back, marker to neutral).
   const HOME = [13.15, 13.55];
+  const HOME_FROM = GREEN_T + 0.08, HOME_TO = REM[0] - 0.04;
+  // Demo clocks: ta drives the climb (rewound once), tb the removals (rewound at HOME).
+  const ta = (t) => (t < SCR ? t : t < FRZ ? SCR : t < RWE ? RR.lerp(SCR, REW_TO, RR.E.inOutQuad(RR.seg(t, FRZ, RWE))) : REW_TO);
+  const tb = (t) => (t < HOME[0] ? t : t < HOME[1] ? RR.lerp(HOME_FROM, HOME_TO, RR.E.inOutQuad(RR.seg(t, HOME[0], HOME[1]))) : HOME_TO);
   const CROWN_T = 12.25;
   const END = 13.7;             // from here on the frame is exactly drawState(SETUP)
 
@@ -31,7 +46,7 @@
   const camAt = (t) => {
     if (t < 2.8) return RR.lerpCam(MAPCAM, FULL, pullEase(RR.clamp(t / 2.8)));
     return RR.camKf(t, [[2.8, FULL], [5.15, SETCAM, 'inOutSine'], [6.25, T1, 'inOutCubic'], [8.1, T2, 'inOutSine'],
-      [9.1, T2], [9.9, T3, 'inOutCubic'], [10.3, T3], [12.3, FULL, 'inOutCubic']]);
+      [9.8, T2], [10.35, T3, 'inOutCubic'], [10.8, T3], [12.3, FULL, 'inOutCubic']]);
   };
 
   // ---- board sections flying in (0-2.4 s)
@@ -136,11 +151,10 @@
   };
 
   // Queue: dealt left to right (slot 8 first), then the four front cards flip face up
-  // and the votes already on them pop in.
+  // (Inaction in space 1). No votes exist at setup.
   const QDEAL = (k) => 3.05 + (8 - k) * 0.075;
   const QFLY = 0.34;
   const QFLIP = (k) => 3.98 + (4 - k) * 0.08;
-  const VOTE_T = { 4: [4.42], 3: [4.5, 4.55], 1: [4.62, 4.67, 4.72, 4.77, 4.82] };
   const drawQueueAnim = (t) => {
     for (const c of B.SETUP.queue) {
       const t0 = QDEAL(c.k);
@@ -156,10 +170,6 @@
         lift = Math.max(lift, 0.6 * Math.sin(Math.PI * flip));
       }
       RR.drawCard(c.id, px, py, { w: 190 * (1 + 0.08 * (1 - e)), flip, lift, rot });
-      if (c.votes && c.votes.length && flip >= 0.5) {
-        const ts = VOTE_T[c.k] || [];
-        B.cubesOnCard(x, y, c.votes, { size: 32, pop: c.votes.map((_, i) => RR.pop(t, ts[i] ?? 4.5, 0.25)) });
-      }
     }
   };
   // Storyline: five face-down events slide up into their slots.
@@ -173,7 +183,7 @@
       RR.drawCard('corprelief', RR.lerp(x + 140, x, e), RR.lerp(y + 420, y, e), { w: 300, flip: 0, back: 'back:event', lift: 1 - e, rot: 0.32 * (1 - e) });
     }
   };
-  const DECK_T = 4.28, RULES_T = 4.42, PROT_T = 4.68;
+  const DECK_T = 4.28, RULES_T = 4.42;
   const drawDeckAnim = (t) => {
     if (t < DECK_T) return;
     const u = RR.seg(t, DECK_T, DECK_T + 0.26), e = RR.E.outCubic(u);
@@ -184,23 +194,40 @@
     const u = RR.seg(t, RULES_T, RULES_T + 0.36), e = RR.E.outBackSoft(u);
     RR.drawCard('rules', B.RULES[0] + 480 * (1 - e), B.RULES[1] + 60 * (1 - e), { w: 170, lift: 1 - u, rot: 0.5 * (1 - RR.E.outCubic(u)) });
   };
-  const drawProtAnim = (t) => {
-    const x = B.PROT[0] - 40, y = B.PROT[1] + 10;
-    const d = drop(t, PROT_T, 240);
-    if (!d) return;
-    if (d.rest) return RR.drawCube(x, y, 38, 'de');
-    const f = 1 - 0.55 * d.hk;
-    RR.shadow(x + 38 * 0.05, y + 38 * 0.42, 38 * 0.42 * f, 38 * 0.13 * f, 30 * d.a * f);
-    RR.drawCube(x, y - d.h + 38 * (1 - d.sy) * 0.5, 38, 'de', { shadow: false, sx: d.sx, sy: d.sy, alpha: d.a });
-  };
-
   // ---- the Impact Tracker marker
   const trackPt = (v) => RR.along(B.TRACK_PATH, (RR.clamp(v, -7, 7) + 7) / 14);
   const squashAfter = (t, tl, amt, dur = 0.16) => (t >= tl && t < tl + dur ? amt * Math.pow(1 - (t - tl) / dur, 2) : 0);
+  const poseOf = (v, lift, sq, st, rot = 0, a = 1) => {
+    const p = trackPt(v);
+    const rest = lift === 0 && sq === 0 && st === 0 && rot === 0;
+    return { x: p[0], y: p[1] - 6, lift, sx: 1 + sq * 0.8 - st * 0.5, sy: 1 - sq + st, a, rot, rest };
+  };
+  // After the rewind: the marker steps down one space per raccoon removed (u = tb(t)).
+  const stepPose = (u) => {
+    let v = 0, lift = 0, st = 0, sq = squashAfter(u, RWE, 0.24, 0.16);
+    for (let j = 0; j < REM.length; j++) {
+      const h = REM[j] + REM_LIFT;
+      if (u < h) break;
+      if (u < h + STEP_D) {
+        const f = (u - h) / STEP_D;
+        v = -j - f; lift = Math.sin(Math.PI * f) * (20 + 3 * j); st = Math.sin(Math.PI * f) * 0.14; sq = 0;
+        break;
+      }
+      v = -(j + 1);
+      sq = j === REM.length - 1 ? squashAfter(u, h + STEP_D, 0.34, 0.22) : squashAfter(u, h + STEP_D, 0.2, 0.12);
+    }
+    return poseOf(v, lift, sq, st);
+  };
   // Returns {x, y, lift, sx, sy, a, rest} (y = ground point like drawTracker) or null.
   const markerPose = (t) => {
+    if (t < RWE) return climbPose(ta(t));
+    if (t >= HOME[1]) return poseOf(0, 0, squashAfter(t, HOME[1], 0.3, 0.14), 0);
+    return stepPose(tb(t));
+  };
+  // The climb to the skull (t = demo time ta, so the rewind plays it backwards).
+  const climbPose = (t) => {
     if (t < MARKER_DROP) return null;
-    let v = 0, lift = 0, sq = 0, st = 0, a = 1, pos = null, rot = 0;
+    let v = 0, lift = 0, sq = 0, st = 0;
     if (t < MARKER_DROP + 0.45) {
       const d = drop(t, MARKER_DROP, 240);
       const p = trackPt(0);
@@ -222,31 +249,11 @@
           break;
         }
       }
-    } else if (t < SLIDE[0]) {
+    } else {
       v = 7;
       sq = squashAfter(t, SKULL_T, 0.36, 0.24);
-      if (t > SLIDE[0] - 0.2) {   // anticipation: rise and quiver
-        const u = RR.seg(t, SLIDE[0] - 0.2, SLIDE[0]);
-        lift = 14 * u; st = 0.1 * u; rot = 0.08 * Math.sin(t * 60) * u;
-      }
-    } else if (t < HOME[0]) {
-      const u = RR.seg(t, SLIDE[0], SLIDE[1], 'inOutQuad');
-      v = 7 - 14 * u;
-      lift = u < 1 ? 14 * (1 - u) : 0;
-      st = u < 1 ? 0.12 * Math.sin(Math.PI * u) : 0;
-      sq = squashAfter(t, SLIDE[1], 0.3, 0.2);
-    } else {
-      const u = RR.seg(t, HOME[0], HOME[1], 'inOutSine');
-      const p0 = trackPt(-7), p1 = trackPt(0);
-      pos = RR.lerp2(p0, p1, u);
-      lift = Math.sin(Math.PI * u) * 170;
-      st = Math.sin(Math.PI * u) * 0.14;
-      rot = -0.5 * Math.sin(Math.PI * u);
-      sq = squashAfter(t, HOME[1], 0.3, 0.14);
     }
-    const p = pos || trackPt(v);
-    const rest = lift === 0 && sq === 0 && st === 0 && rot === 0;
-    return { x: p[0], y: p[1] - 6, lift, sx: 1 + sq * 0.8 - st * 0.5, sy: 1 - sq + st, a, rot, rest };
+    return poseOf(v, lift, sq, st);
   };
   const drawMarkerPose = (m, ghost = 0) => {
     const size = 74;
@@ -263,18 +270,41 @@
     const st = B.SETUP;
     if (t >= END) return B.drawState(st);
     if (t < ASSEMBLED) drawSections(t); else B.drawStatic();
-    if (t >= SETTLED) B.drawState(st, { skip: { static: true, tracker: true } });
+    if (t >= SETTLED) B.drawState(st, { skip: { static: true, tracker: true }, tokenPop: removedPop(tb(t)) });
     else {
-      drawStoryAnim(t); drawDeckAnim(t); drawRulesAnim(t); drawProtAnim(t); drawTokensAnim(t); drawQueueAnim(t);
+      drawStoryAnim(t); drawDeckAnim(t); drawRulesAnim(t); drawTokensAnim(t); drawQueueAnim(t);
     }
     if (t < 3.2) drawDust(t);
     if (withMarker) drawMarkerAll(t);
   };
+  const rewinding = (t) => (t > FRZ && t < RWE + 0.05) || (t > HOME[0] && t < HOME[1] + 0.05);
   const drawMarkerAll = (t) => {
     const m = markerPose(t);
     if (!m) return;
-    if (t > SLIDE[0] && t < SLIDE[1] + 0.05) for (let j = 4; j >= 1; j--) drawMarkerPose(markerPose(t - 0.035 * j), 0.28 / j);
+    if (rewinding(t)) for (let j = 4; j >= 1; j--) { const g = markerPose(t - 0.035 * j); if (g) drawMarkerPose(g, 0.28 / j); }
     drawMarkerPose(m);
+  };
+
+  // ---- raccoons leaving the map (drawn above the spotlight dimmer), u = tb(t)
+  const removedPop = (u) => {
+    const pop = { de: [], fr: [] };
+    REMOVED.forEach(([k, i], j) => { if (u >= REM[j]) pop[k][i] = 0; });
+    return pop;
+  };
+  const drawRemovals = (t) => {
+    const u = tb(t);
+    REMOVED.forEach(([k, i], j) => {
+      const t0 = REM[j], tp = t0 + REM_LIFT;
+      if (u < t0 || u > tp + 0.6) return;
+      const [x, y] = B.SPOTS[k][i], gy = y - 4, H = 46;
+      if (u < tp) {   // hops up out of the dark map, then vanishes
+        const e = RR.E.outCubic(RR.seg(u, t0, tp));
+        RR.shadow(x, gy + 15, 17 * (1 - 0.4 * e), 5, 40 * (1 - e));
+        RR.drawToken(x, gy - H * e, 40 * (1 + 0.3 * e), k === 'de' ? 'yellow' : 'blue', { shadow: false, sx: 1 - 0.12 * e, sy: 1 + 0.12 * e });
+      }
+      puff(x, gy - H, u, tp, 36);
+      RR.sparkle(x, gy - H, u, tp, { n: 6, r: 62, size: 15, dur: 0.5, col: RR.C.greenLight, seed: j * 3 });
+    });
   };
 
   // ---- spotlight: dim everything except the tracker panel
@@ -303,8 +333,9 @@
     RR.inkCircle(100, 100, 70, { fill: RR.C.red, w: 1.2 });
     push(); translate(100, 100); RR.ICONS.skull(46, { col: RR.C.plumDark, bg: RR.C.red }); pop();
   }, { res: 1.5 });
-  const drawTrackerFx = (t) => {
-    // skull hit: shock rings and a throbbing skull that swallows the marker
+  const drawTrackerFx = (tr) => {
+    // skull hit: shock rings and a throbbing skull that swallows the marker (on the rewound clock)
+    const t = ta(tr);
     const sk = trackPt(7);
     for (let j = 0; j < 3; j++) {
       const u = RR.seg(t, SKULL_T + j * 0.13, SKULL_T + j * 0.13 + 0.65);
@@ -321,37 +352,78 @@
     // green end: happy rings and sparkles
     const g = trackPt(-7);
     for (let j = 0; j < 2; j++) {
-      const u = RR.seg(t, SLIDE[1] + j * 0.15, SLIDE[1] + j * 0.15 + 0.7);
+      const u = RR.seg(tr, GREEN_T + j * 0.15, GREEN_T + j * 0.15 + 0.7);
       if (u > 0 && u < 1) ring(g[0], g[1], 76 + 150 * RR.E.outCubic(u), 12 * (1 - u) + 3, RR.C.greenLight, 230 * (1 - u));
     }
-    RR.sparkle(g[0], g[1] - 10, t, SLIDE[1], { n: 12, r: 170, size: 26, dur: 1.0 });
-    RR.sparkle(g[0], g[1] - 10, t, SLIDE[1] + 0.12, { n: 8, r: 120, size: 20, dur: 0.9, col: RR.C.greenLight, seed: 5 });
+    RR.sparkle(g[0], g[1] - 10, tr, GREEN_T, { n: 12, r: 170, size: 26, dur: 1.0 });
+    RR.sparkle(g[0], g[1] - 10, tr, GREEN_T + 0.12, { n: 8, r: 120, size: 20, dur: 0.9, col: RR.C.greenLight, seed: 5 });
+  };
+
+  // ---- rewind: tape lines, a plum wash and a blinking rewind symbol (as in s11)
+  const drawRewindFx = (t, t0, t1, k) => {
+    const rw = RR.env(t, t0, t1 + 0.08, 0.04, 0.12) * k;
+    if (rw <= 0) return;
+    RR.fadeScreen(0.14 * rw, RR.C.plumDark);
+    for (let i = 0; i < 16; i++) {
+      const sp = RR.hrange(i + 3, 1400, 3200);
+      const y = ((RR.hr(i + 5) * 1180 + t * sp) % 1180) - 50;
+      const h = RR.hrange(i + 9, 4, 30);
+      RR.flat([[0, y], [1920, y + RR.hrange(i, -6, 6)], [1920, y + h], [0, y + h]], i % 3 ? '#ffffff' : RR.C.plumMid, RR.hrange(i + 2, 50, 130) * rw);
+    }
+    if (t > t0 + 0.04 && t < t1 && Math.floor((t - t0) * 6) % 2 === 0) {
+      for (const dx of [0, 64]) {
+        RR.flat([[210 + dx, 70], [210 + dx, 170], [140 + dx, 120]].map(([x, y]) => [x + 5, y + 6]), RR.C.ink, 90 * k);
+        RR.flat([[210 + dx, 70], [210 + dx, 170], [140 + dx, 120]], RR.C.white, 235 * k);
+      }
+    }
   };
 
   // ---- the Raccoon cheers the climb and sulks at the green
   const RAC = [735, 1100], RS = 1.05;
   const PILE = [[640, 1132, 'black'], [830, 1126, 'yellow'], [594, 1068, 'blue'], [884, 1064, 'black'], [700, 1178, 'yellow'], [794, 1182, 'blue'], [952, 1132, 'black']];
-  const POOF_T = (i) => SLIDE[0] + 0.03 + i * 0.05;
+  // one token per space climbed; the rewind sends them back up where they came from
   const drawPile = (t, behind) => {
+    const tp = ta(t);
     PILE.forEach(([x, y, kind], i) => {
       if ((y < RAC[1]) !== behind) return;
-      const pt = POOF_T(i);
-      if (t >= pt) { puff(x, y - 12, t, pt); if (t > pt + 0.1) return; }
-      const sc = t >= pt ? 1 - (t - pt) / 0.1 : 1;
-      if (sc <= 0) return;
-      dropToken(t, HOPS[i][0] - 0.12, [x, y], kind, 56 * sc, 130, 0.36);
+      dropToken(tp, HOPS[i][0] - 0.12, [x, y], kind, 56, 130, 0.36);
     });
   };
-  const drawRaccoonBeat = (t, cam, m) => {
-    if (t < 5.72 || t > 11.2) return;
+  const drawRaccoonBeat = (tr, cam, m) => {
+    // before the rewind ends the Raccoon runs on the rewound clock (its cackle plays backwards)
+    const t = tr < RWE ? ta(tr) : tr;
+    if (t < 5.72 || tr > STORM[1]) return;
     let x = RAC[0], y = RAC[1], face = -1;
     const P = RR.raccoonIdle(t, { mouth: 'smile', brow: 'neutral', tail: t * 2.6 });
-    if (m) {   // follow the marker with the eyes
+    const lookAt = (px, py) => {
       const hx = x - 4 * RS, hy = y - 132 * RS;
-      const dx = m.x - hx, dy = m.y - m.lift - hy, L = Math.hypot(dx, dy) || 1;
+      const dx = px - hx, dy = py - hy, L = Math.hypot(dx, dy) || 1;
       P.look = [(dx / L) * face, dy / L];
-    }
-    if (t < 6.02) {                       // drops in from above
+    };
+    if (m) lookAt(m.x, m.y - m.lift);   // follow the marker with the eyes
+    if (tr >= RWE) {                      // after the rewind: its raccoons leave the map
+      const jNow = REM.reduce((n, r) => (tr >= r ? n + 1 : n), 0) - 1;
+      if (tr < REM[0]) {                  // "wait, what?"
+        const u = RR.seg(tr, RWE, RWE + 0.14, 'outBack');
+        Object.assign(P, { mouth: 'flat', eyes: 'wide', brow: 'up', headTilt: -0.14 * u, armF: 0.55, armB: 0.4, ear: 1, squash: squashAfter(tr, RWE, 0.14, 0.18) });
+      } else if (tr < GREEN_T) {          // flinches at every raccoon that vanishes
+        const [k, i] = REMOVED[jNow], s = B.SPOTS[k][i];
+        lookAt(s[0], s[1] - 50);
+        const u = RR.seg(tr, REM[0], REM[0] + 0.14, 'outBack');
+        Object.assign(P, { mouth: 'o', eyes: 'wide', brow: 'worried', armF: RR.lerp(0.55, 1.9, u), armB: RR.lerp(0.4, 1.7, u), lean: -0.06, ear: -1, tailUp: 0.2, headTilt: 0.05 * Math.sin(tr * 13) });
+        for (const r of REM) P.squash += squashAfter(tr, r + REM_LIFT, 0.13, 0.12);
+      } else if (tr < STORM[0] - 0.07) {  // the marker is in the green: sulks
+        const u = RR.seg(tr, GREEN_T, GREEN_T + 0.2, 'outCubic');
+        Object.assign(P, { mouth: 'frown', brow: 'worried', armF: RR.lerp(1.9, 0.12, u), armB: RR.lerp(1.7, 0.05, u), squash: 0.1 * u, headTilt: 0.16 * u, ear: -1, tailUp: 0 });
+        if (tr > GREEN_T + 0.3) P.look = [0.4, 0.7];
+      } else {                            // storms off to the right
+        face = 1;
+        const u = RR.seg(tr, STORM[0], STORM[1], 'inQuad');
+        x += 2300 * u;
+        if (tr < STORM[0]) Object.assign(P, { squash: 0.18, mouth: 'frown', brow: 'angry', look: [1, 0], ear: -1 });
+        else Object.assign(P, { run: tr * 19, stride: 1, lean: 0.32, mouth: 'frown', brow: 'angry', tailUp: 1, tail: tr * 12, look: [1, 0], armF: 1.1, armB: 1.3 });
+      }
+    } else if (t < 6.02) {                // drops in from above
       const u = RR.seg(t, 5.72, 6.02);
       y -= 760 * (1 - u * u);
       Object.assign(P, { armF: 2.6, armB: 2.3, mouth: 'o', eyes: 'wide', brow: 'up', squash: -0.18, tailUp: 1, look: [0, 0.8] });
@@ -362,7 +434,7 @@
       const rub = t > 6.95 ? Math.sin(t * 24) * 0.2 : 0;
       Object.assign(P, { mouth: ex > 0.35 ? 'grin' : 'smile', brow: 'sly', armF: 1.25 + rub + ex * 0.25, armB: 1.05 - rub + ex * 0.25, lean: 0.06 + 0.1 * ex, tailUp: 0.5 + 0.4 * ex, tail: t * (3 + 5 * ex) });
       for (const [h, d] of HOPS) P.squash += squashAfter(t, h + d, 0.1, 0.14);
-    } else if (t < SLIDE[0] - 0.05) {     // skull: leaps and cackles
+    } else {                              // skull: leaps and cackles (freezes on the record scratch)
       const u = RR.seg(t, SKULL_T + 0.02, SKULL_T + 0.42);
       y -= Math.sin(Math.PI * u) * 80;
       Object.assign(P, {
@@ -370,18 +442,6 @@
         tailUp: 1, tail: t * 9, lean: -0.1, headTilt: 0.12 * Math.sin(t * 15),
         squash: u > 0 && u < 1 ? -0.16 : squashAfter(t, SKULL_T + 0.42, 0.24, 0.18) + 0.06 * Math.sin(t * 30),
       });
-    } else if (t < 9.9) {                 // jaw drops as the marker slides away
-      const u = RR.seg(t, SLIDE[0] - 0.05, SLIDE[0] + 0.15, 'outBack');
-      Object.assign(P, { mouth: 'o', eyes: 'wide', brow: 'worried', armF: RR.lerp(2.8, 1.9, u), armB: RR.lerp(2.6, 1.7, u), squash: -0.14 * u, lean: -0.06, ear: -1, tailUp: 0.2 });
-    } else if (t < 10.38) {               // sulks
-      const u = RR.seg(t, 9.9, 10.1, 'outCubic');
-      Object.assign(P, { mouth: 'frown', brow: 'worried', armF: RR.lerp(1.9, 0.12, u), armB: RR.lerp(1.7, 0.05, u), squash: 0.1 * u, headTilt: 0.16 * u, ear: -1, tailUp: 0, look: [0.4, 0.7] });
-    } else {                              // storms off to the right
-      face = 1;
-      const u = RR.seg(t, 10.45, 11.1, 'inQuad');
-      x += 2300 * u;
-      if (t < 10.45) Object.assign(P, { squash: 0.18, mouth: 'frown', brow: 'angry', look: [1, 0], ear: -1 });
-      else Object.assign(P, { run: t * 19, stride: 1, lean: 0.32, mouth: 'frown', brow: 'angry', tailUp: 1, tail: t * 12, look: [1, 0], armF: 1.1, armB: 1.3 });
     }
     P.face = face;
     const sx = RR.toScreen(cam, [x, y]);
@@ -389,14 +449,16 @@
     const air = RR.clamp((RAC[1] - y) / 400);
     RR.shadow(x + 6, RAC[1] + 4, 70 * (1 - air * 0.6), 16 * (1 - air * 0.6), 45 * (1 - air * 0.5));
     RR.drawRaccoon(x, y, RS, P);
-    puff(RAC[0] - 60, RAC[1] - 6, t, 6.02, 40);
-    puff(RAC[0] + 60, RAC[1] - 6, t, 6.04, 40);
-    puff(RAC[0] - 30, RAC[1] - 6, t, 10.47, 46);
+    if (tr < SCR) {
+      puff(RAC[0] - 60, RAC[1] - 6, t, 6.02, 40);
+      puff(RAC[0] + 60, RAC[1] - 6, t, 6.04, 40);
+    }
+    puff(RAC[0] - 30, RAC[1] - 6, tr, STORM[0] + 0.02, 46);
   };
 
   // ---- scores race (screen space)
   const SB = { x: 1440, y: 420, gap: 92 };
-  const RACE = { de: [9, 11.3, 12.05, 'outCubic'], fr: [11, 11.22, 11.75, 'outQuad'], ar: [13, 11.35, 12.2, 'inCubic'], hu: [7, 11.26, 11.8, 'outCubic'] };
+  const RACE = { de: [9, 11.42, 12.05, 'outCubic'], fr: [11, 11.36, 11.78, 'outQuad'], ar: [13, 11.46, 12.2, 'inCubic'], hu: [7, 11.39, 11.82, 'outCubic'] };
   const WIN_ROW = 2;   // Animal Rights ('ar') overtakes late and takes the crown
   // Score rows in the style of RR.scoreBoard, with the static parts (panel and role badge)
   // cached as sprites: painting them live cost more than a whole raccoon.
@@ -415,7 +477,7 @@
     });
   };
   const drawScores = (t) => {
-    const inU = RR.seg(t, 10.95, 11.4), outU = RR.seg(t, 13.2, 13.62);
+    const inU = RR.seg(t, 11.22, 11.64), outU = RR.seg(t, 13.2, 13.62);
     if (inU <= 0 || outU >= 1) return;
     const dx = 640 * (1 - RR.E.outBack(inU)) + 760 * RR.E.inBack(outU);
     const scores = {};
@@ -444,14 +506,17 @@
       [1.24, 'thud', 0.8], [1.54, 'thud', 0.8], [1.84, 'thud', 0.8], [2.14, 'thud', 0.9],
       [3.05, 'deal', 0.7], [3.17, 'pop', 0.7], [3.27, 'deal', 0.6], [3.42, 'pop', 0.6], [3.5, 'deal', 0.6], [3.66, 'pop', 0.6],
       [3.74, 'deal', 0.6], [3.9, 'pop', 0.5], [3.98, 'flip', 0.7], [4.14, 'flip', 0.6], [4.28, 'paper', 0.6], [4.42, 'slide', 0.6],
-      [4.47, 'tock', 0.5], [4.66, 'tock', 0.5], [4.68 + FIRST_CONTACT, 'tock', 0.7], [MARKER_DROP + FIRST_CONTACT, 'tock', 0.8],
+      [MARKER_DROP + FIRST_CONTACT, 'tock', 0.8],
       [5.3, 'whoosh', 0.5], [5.8, 'whoosh', 0.4], [6.02, 'boing', 0.8], [6.25, 'chitter', 0.5],
       ...HOPS.slice(0, -1).map(([h, d], i) => [h + d, 'tick', 0.5 + i * 0.07]),
       ...HOPS.map(([h], i) => [h + 0.01, 'pop', 0.3 + i * 0.03]),
       [SKULL_T, 'thud', 1], [SKULL_T + 0.02, 'buzz', 0.8], [SKULL_T + 0.15, 'chitter', 0.9],
-      [SLIDE[0], 'slide', 0.8], [SLIDE[0] + 0.05, 'poof', 0.6], [SLIDE[1], 'sparkle', 0.9], [SLIDE[1] + 0.03, 'ding', 0.8], [10.0, 'sad', 0.6],
-      [10.45, 'whoosh', 0.5], [10.95, 'slide', 0.6], [11.25, 'drumroll', 0.7], [CROWN_T, 'ding', 0.9], [CROWN_T + 0.05, 'cheer', 0.6],
-      [12.35, 'brush', 0.7], [13.15, 'pop', 0.6], [13.2, 'slide', 0.4], [HOME[1], 'tock', 0.7],
+      [SCR, 'scratch', 0.9], [FRZ + 0.02, 'whoosh', 0.55], [RWE, 'tock', 0.6],
+      ...REM.map((r, j) => [r + REM_LIFT, 'poof', 0.32 + j * 0.03]),
+      ...REM.map((r, j) => [r + REM_LIFT + STEP_D, 'tick', 0.5 + j * 0.05]),
+      [GREEN_T, 'sparkle', 0.9], [GREEN_T + 0.03, 'ding', 0.8], [GREEN_T + 0.15, 'sad', 0.6],
+      [STORM[0], 'whoosh', 0.5], [11.22, 'slide', 0.6], [11.36, 'drumroll', 0.7], [CROWN_T, 'ding', 0.9], [CROWN_T + 0.05, 'cheer', 0.6],
+      [12.35, 'brush', 0.7], [HOME[0] - 0.03, 'whoosh', 0.45], [13.2, 'slide', 0.4], [HOME[1], 'tock', 0.7],
     ],
     draw(t) {
       let cam = camAt(t);
@@ -460,26 +525,40 @@
       const sh = RR.shake(t, SKULL_T, 0.55, 16);
       if (sh[0] || sh[1]) cam = { ...cam, x: cam.x + sh[0] / cam.z, y: cam.y + sh[1] / cam.z };
       const m = markerPose(t);
+      // rewinds: a jolt on the record scratch, then the picture wobbles like a rewinding tape
+      const rw = Math.max(RR.env(t, SCR, RWE + 0.05, 0.03, 0.1), 0.5 * RR.env(t, HOME[0], HOME[1] + 0.05, 0.05, 0.1));
+      const jolt = RR.shake(t, SCR, 0.25, 22);
+      push();
+      if (rw > 0 || jolt[0] || jolt[1]) {
+        translate(RR.W / 2 + jolt[0] + Math.sin(t * 57) * 12 * rw, RR.H / 2 + jolt[1]);
+        rotate(Math.sin(t * 23) * 0.012 * rw);
+        scale(1 + 0.02 * rw);
+        translate(-RR.W / 2, -RR.H / 2);
+      }
       RR.withCam(cam, () => {
-        const dim = RR.env(t, 5.3, 10.95, 0.7, 0.6);
+        const dim = RR.env(t, 5.3, 11.55, 0.7, 0.6);
         drawBoard(t, dim <= 0);
         if (dim > 0) {
           dimAround(dim);
           drawMarkerAll(t);   // above the dimmer, so the marker stays bright when it leaps high
           drawTrackerFx(t);
+          drawRemovals(t);
           drawPile(t, true);
           drawRaccoonBeat(t, cam, m);
           drawPile(t, false);
-        }
+        } else if (t > HOME[0] - 0.1) drawRemovals(t);   // the reset rewind puts them back
       });
+      pop();
 
       // screen space
       if (t >= SKULL_T && t < SKULL_T + 0.5) RR.fadeScreen(0.26 * (1 - RR.seg(t, SKULL_T, SKULL_T + 0.5)), RR.C.red);
       RR.caption('Raccoon impact', t, 5.95, 7.55, CAP);
       // two short strips (setup, punchline): cheaper than one very wide strip, and a better beat
-      RR.caption('Hit the skull?', t, SKULL_T + 0.02, 10.0, { x: 1250, y: 205, size: 66, rot: -0.025 });
-      RR.caption('Everyone loses', t, SKULL_T + 0.2, 10.0, { x: 1500, y: 318, size: 66, rot: 0.02 });
-      RR.caption('Keep it green...', t, 10.0, 11.5, CAP);
+      RR.caption('Hit the skull?', t, SKULL_T + 0.02, 9.6, { x: 1250, y: 205, size: 66, rot: -0.025 });
+      RR.caption('Everyone loses', t, SKULL_T + 0.2, 9.6, { x: 1500, y: 318, size: 66, rot: 0.02 });
+      drawRewindFx(t, SCR, RWE, 1);
+      RR.caption('Keep it green...', t, 9.85, 11.5, CAP);
+      drawRewindFx(t, HOME[0], HOME[1], 0.55);
       drawScores(t);
       RR.caption('...then the top score wins', t, 11.5, 13.0, { x: 1500, y: 800, size: 60 });
       RR.banner('WORK TOGETHER. WIN ALONE.', t, 12.35, 13.88, { y: 150, size: 88 });

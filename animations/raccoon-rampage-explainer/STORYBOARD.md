@@ -29,13 +29,13 @@ Players are rounded "bean" people with dot eyes and expressive brows; they are d
 | 2 | 10-22 | **How it started** | Painted map of Europe. 1934: a crate opens at Lake Edersee, raccoons hop out. 1945: a fur-farm fence east of Berlin breaks. Dots multiply over Germany and drift into France. Camera pulls back; the map settles into the game board. | 1934 released in Germany / 1945 escaped from a fur farm / about 1.5 million today |
 | 3 | 22-36 | **The board and the goal** | Board assembles (queue, tracker, map, storyline). Tokens drop: 10 yellow on Germany, 5 blue on France, 5 black on green squares. Camera to the Impact Tracker: marker slides up to the skull (everyone loses), back down into the green. Four score tracks race; one gets a crown. | Raccoon impact / Hit the skull? Everyone loses / Keep it green... / ...then the top score wins / WORK TOGETHER. WIN ALONE. |
 | 4 | 36-56 | **Meet the roles** | Each player steps in with a mini-vignette, their cube colour and influence: DE shrugs at a Germany full of raccoons, moves one to their score track; FR sweeps raccoons out of France; Animal Rights hugs a raccoon beside a paw icon; Hunter peers through binoculars and rolls the hunter die. All four line up. | GERMAN ENVIRONMENTAL AGENCY / FRENCH ... / ANIMAL RIGHTS ACTIVIST / HUNTING LOBBYIST + one agenda line each + INFLUENCE 3/3/1/1 |
-| 5 | 56-66 | **Rounds and storyline** | Storyline row: 5 face-down events labelled Beginning, 5, 10, 15, 20 years. First flips: CORPORATE RELIEF (Big Tech Rules Europe). A grey corporate cube lands on a card with the corporate icon. A turn-order arrow circles the players. | 5 ROUNDS / 5 YEARS EACH / Each round starts with a Storyline Event / Then everyone takes a turn |
-| 6 | 66-80 | **Step 1: queue phase** | Close on the queue: slots 8..5 face down, 4..1 face up. Every card slides one step right; the card at 1 drops into the evaluation spot; the card entering slot 4 flips face up; slot 8 is now empty. | STEP 1: QUEUE PHASE / Everything moves up one / The front policy is evaluated |
+| 5 | 56-66 | **Rounds and storyline** | Storyline row: 5 face-down events labelled Beginning, 5, 10, 15, 20 years. First flips: CORPORATE RELIEF (Big Tech Rules Europe). A mini demo: a corporate policy flipping into space 4 gets a grey vote. A turn-order arrow circles the players. | 5 ROUNDS / 5 YEARS EACH / Each round starts with a Storyline Event / Then everyone takes a turn |
+| 6 | 66-80 | **Step 1: queue phase** | Calendar flurry: later in the game (turn 5, Germany). Every card slides one step right; Protect Breeding Sites drops onto the evaluation spot; Raccoon Virus flips face up entering slot 4; slot 8 is now empty. | STEP 1: QUEUE PHASE / Everything moves up one / The front policy is evaluated |
 | 7 | 80-96 | **Evaluation: pass** | PROTECT BREEDING SITES (cost 5, German, mitigate x2, paw). Cubes counted 1..5 against cost 5, PASSED stamp. Yellow has most votes so the German player chooses: two raccoons leave Germany onto the German score track, tracker ticks two spaces to green. Paw icon: Animal Rights puts a cube on their score track. | Enough votes? It passes! / Most votes decides where / Raccoons removed: impact down |
-| 8 | 96-120 | **Evaluation: fail, then spread** | RACCOON BURGERS (cost 3) has 1 vote: FAILED stamp. SPREAD! Raccoons have reached an orange square so the Spread Rules card says 2 cards per pile. Spread cards deal face down to France, Germany, Rest of Europe. Blue and yellow protection cubes each cancel one card. Reveal: France +0, Germany +1, Rest of Europe +0 and +2. Tokens pop onto the map (rest of Europe fills green, then orange, then red squares); the tracker climbs 3 spaces towards the skull. The Raccoon cackles. | Not enough? Raccoons SPREAD! / More spread, more cards / Protection cancels a card / New raccoons: impact up |
-| 9 | 120-140 | **Step 2: main phase** | French player's turn. Places a policy face down in the empty back slot, then 3 blue vote cubes (influence 3) on face-up policies. Other players lean in with offers; a handshake, a side-eye. Optional discard; draw back up to 5 cards. | STEP 2: MAIN PHASE / Add a policy to the queue / Vote with your influence / Make deals... or break them / Draw back up to 5 |
-| 10 | 140-152 | **Action cards** | BEHIND THE SCENES (anytime): puppet strings lift vote cubes off one policy onto another, turning a pass into a fail. CELEBRITY ENDORSEMENT adds 2 votes in the active player's main phase. The Raccoon applauds the chaos. | ACTION CARDS / Play them to twist the vote |
-| 11 | 152-168 | **End of the game** | Storyline complete (5 events). Final evaluation of face-up queue cards: passes resolve, fails are discarded with no spread. Tracker check: neutral or red, raccoons party, everyone loses (record scratch); rewind to green, score tracks count up, a winner is crowned. | AFTER 5 ROUNDS... / Last vote: no spread / Neutral or red? Everyone loses / Green? Highest score wins! |
+| 8 | 96-120 | **Evaluation: fail, then spread** | Next turn (France): the queue advances, Raccoon-Proof Bins flips; RACCOON BURGERS (cost 3) has 1 vote: FAILED stamp. SPREAD! Raccoons have reached an orange square so the Spread Rules card says 2 cards per pile. Spread cards deal face down to France, Germany, Rest of Europe. Blue and yellow protection cubes each cancel one card. Reveal: France +0, Germany +1, Rest of Europe +0 and +2. Tokens pop onto the map (rest of Europe fills green, then orange, then red squares); the tracker climbs 3 spaces towards the skull. The Raccoon cackles. | Not enough? Raccoons SPREAD! / More spread, more cards / Protection cancels a card / New raccoons: impact up |
+| 9 | 120-140 | **Step 2: main phase** | French player's turn. Places a policy face down in the empty back slot, then 3 blue vote cubes (influence 3): two on Drone Zappers, one on Wear Them (a deal with the Hunter). Germany asks for backing for Raccoon-Proof Bins; a handshake, a side-eye. Optional discard; draw back up to 5 cards. | STEP 2: MAIN PHASE / Add a policy to the queue / Vote with your influence / Make deals... or break them / Draw back up to 5 |
+| 10 | 140-152 | **Action cards** | BEHIND THE SCENES (anytime): puppet strings lift two votes off Wear Them onto Drone Zappers, turning a pass into a fail. Animal Rights tries CELEBRITY ENDORSEMENT, a YOUR MAIN PHASE card, on France's turn: not allowed. The Raccoon applauds the chaos. | ACTION CARDS / Play them to twist the vote |
+| 11 | 152-168 | **End of the game** | Storyline complete (5 events). Final evaluation of the face-up queue cards (Raccoonimation, Rural Sterilisation, Raccoon Land, Raccoon Helpline): passes resolve, fails are discarded with no spread. Tracker check: neutral or red, raccoons party, everyone loses (record scratch); rewind to green, score tracks count up, a winner is crowned. | AFTER 5 ROUNDS... / Last vote: no spread / Neutral or red? Everyone loses / Green? Highest score wins! |
 | 12 | 168-180 | **Finale** | The winner lifts a trophy; the Raccoon swipes it and dives into the bin. End card with the title logo and details; the bin lid clangs shut on the last beat. | RACCOON RAMPAGE / 3-4 players, 45-60 min, ages 12+ / Play free on Tabletopia or print & play / raccoonrampage.ecologygames.eu |
 
 Transitions: 1>2 whip-pan following the Raccoon; 2>3 map becomes the board's map (camera pull-back);
@@ -87,21 +87,20 @@ the tracker moves one space per token added or removed; reaching the skull ends 
 
 ## Continuity hand-offs (exact start/end states)
 
-Cameras: `FULL = RR.cam(1200, 750, 0.66)` whole board; `MAPCAM = RR.cam(1150, 860, 1.2)` map fills frame;
-`STORYCAM = RR.cam(1380, 1300, 1.0)`; `QCAM = RR.cam(1250, 330, 0.95)` queue row; `ECAM = RR.cam(1850, 680, 1.1)` evaluation spot.
-Board states build on `RR.board.SETUP` (see `src/board.js`).
+Cameras: `FULL = RR.cam(1200, 750, 0.66)` whole board; `STORYCAM = RR.cam(1380, 1300, 1.0)`;
+`QCAM = RR.cam(1250, 330, 0.95)` queue row; `ECAM = RR.cam(1850, 680, 1.1)` evaluation spot.
 
 | Scene | Starts with | Ends with |
 |---|---|---|
 | s01 title | paper, bin | whip-pan right: speed streaks over empty paper |
-| s02 history | streaks fading (first 0.5 s) onto the board's `map` section only, zoomed in near Germany | `MAPCAM`, only the `map` section, no dots or tokens |
-| s03 board | `MAPCAM`, only `map` | `FULL`, complete `SETUP` state, no overlays |
-| s04 roles | `FULL` + `SETUP` | camera easing to `STORYCAM`, `SETUP`, players gone |
-| s05 rounds | `STORYCAM`, `SETUP` | `QCAM`; state S5 = SETUP + story[0] 'corprelief' + a 'corp' vote added to burgers (slot 2) and wear (slot 4) |
-| s06 queue | `QCAM`, S5 | `ECAM`; S6 = queue advanced one space (burgers k1, pets k2, wear k3, drones k4 now face up, backs k5-7, k8 empty) and protect sitting on `EVAL` with its 5 votes |
-| s07 pass | `ECAM`, S6 | `FULL`; S7 = S6 with protect gone (discarded), tokens de 8, tracker -2 |
-| s08 spread | `FULL`, S7, then "a few turns later" morph to S8a: story[1] 'corpself', tokens de 9 fr 6 roe 7, tracker +1, prot ['de','fr'], burgers (1 corp vote) at k1 | `FULL`; S8 = burgers gone, tokens de 10 fr 6 roe 9, tracker +4, prot [] |
-| s09 main | `FULL`, S8 | `QCAM`, S8 + a French policy face down in k8 + 3 blue votes placed on face-up cards |
-| s10 actions | `QCAM`, S9 | `FULL`, S9 with votes rearranged |
-| s11 endgame | `FULL`, story all face up (corprelief corpself bigfarm freetrade burns) | full-screen plum ink wipe (covered) |
-| s12 finale | covered by the plum wipe, uncovering | end card; bin lid clangs shut on the last beat |
+| s02 history | streaks fading onto the board's `map` section, zoomed near Germany | `RR.cam(1150, 860, 1.2)`, only the `map` section |
+| s03 board | that camera, only `map` | `FULL`, `SETUP` |
+| s04 roles | `FULL`, `SETUP` | `STORYCAM`, `SETUP` |
+| s05 rounds | `STORYCAM`, `SETUP` | `QCAM`, `S5` |
+| s06 queue | `QCAM`, `S5`, then flurry to `MID` | `ECAM`, `S6` |
+| s07 pass | `ECAM`, `S6` | `FULL`, `S7` |
+| s08 spread | `FULL`, `S7` | `FULL`, `S8` |
+| s09 main | `FULL`, `S8` | `QCAM`, `S9` |
+| s10 actions | `QCAM`, `S9` | `FULL`, `S10` |
+| s11 endgame | `FULL`, `S10` under calendar pages, swapped to `END` | full-screen plum ink wipe |
+| s12 finale | plum wipe uncovering | end card; the bin lid clangs shut at 179.5 s |

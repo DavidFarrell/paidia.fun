@@ -15,14 +15,17 @@
   const STORY = RR.cam(1380, 1300, 1.0);
   const DECAM = RR.cam(1014, 756, 2.0);   // Germany, right of the player
   const FRCAM = RR.cam(967, 872, 1.8);    // France
-  const ARCAM = RR.cam(1353, 279, 1.3);   // queue: NO MORE PETS (paw)
-  const HUQ = RR.cam(1565, 279, 1.3);     // queue: RACCOON BURGERS (crosshair)
+  // Setup queue (RR.board.SETUP): the vignettes point at face-up policies with scoring stars.
+  const AR_K = 3, HU_K = 4;               // NO MORE PETS (paw), HOBBYIST HUNTING (crosshair, hunter die x1)
+  // Both queue shots put their card at screen x 1250, right of the player.
+  const ARCAM = RR.cam(B.slot(AR_K)[0] - 223, 279, 1.3);   // queue: NO MORE PETS
+  const HUQ = RR.cam(B.slot(HU_K)[0] - 223, 279, 1.3);     // queue: HOBBYIST HUNTING
   const HUM = RR.cam(940, 712, 1.5);      // map: Benelux and Germany
   const zin = (c, k) => ({ ...c, z: c.z * k });
   const CAM_KEYS = [
     [0, FULL], [1.15, zin(FULL, 1.02), 'inOutSine'], [2.3, DECAM], [5.45, zin(DECAM, 1.04), 'linear'],
     [6.4, FRCAM], [9.95, zin(FRCAM, 1.04), 'linear'], [11.0, ARCAM], [14.5, zin(ARCAM, 1.03), 'linear'],
-    [15.3, HUQ], [16.3, zin(HUQ, 1.02), 'linear'], [17.0, HUM], [19.0, zin(HUM, 1.03), 'linear'], [20.0, STORY],
+    [15.3, HUQ], [16.3, zin(HUQ, 1.02), 'linear'], [17.0, HUM], [19.0, zin(HUM, 1.03), 'linear'], [19.95, STORY],
   ];
 
   // ------------------------------------------------------------ layout (screen space)
@@ -190,8 +193,8 @@
   };
   const starOf = (k) => add(B.slot(k), [69, 106.5]); // scoring star on a policy card in slot k
   const highlight = (t) => {
-    if (t > 12.55 && t < 14.8) return { k: 3, role: 'ar', a: RR.env(t, 12.6, 14.8, 0.3, 0.3) };
-    if (t > 15.8 && t < 17.2) return { k: 2, role: 'hu', a: RR.env(t, 15.85, 17.2, 0.25, 0.35) };
+    if (t > 12.55 && t < 14.8) return { k: AR_K, role: 'ar', a: RR.env(t, 12.6, 14.8, 0.3, 0.3) };
+    if (t > 15.8 && t < 17.2) return { k: HU_K, role: 'hu', a: RR.env(t, 15.85, 17.2, 0.25, 0.35) };
     return null;
   };
   const drawBoard = (t) => {
@@ -563,7 +566,7 @@
           }
         }
         // paw star ring, then a pink cube hops to the strip
-        const star = S(starOf(3));
+        const star = S(starOf(AR_K));
         const rk = RR.pop(t, 12.7, 0.4) * (1 - RR.seg(t, 14.35, 14.6));
         if (rk > 0.02) RR.drawSprite(ring('ar'), star[0], star[1], { w: 120 * rk * (1 + 0.08 * Math.sin(t * 9)), h: 120 * rk * (1 + 0.08 * Math.sin(t * 9)) });
         RR.sparkle(star[0], star[1], t, 12.72, { r: 90, col: RR.C.pink });
@@ -582,11 +585,13 @@
         // binocular view sweeping the queue, locking on to the crosshair star
         const ba = RR.env(t, 15.0, 16.15, 0.2, 0.25);
         if (ba > 0) {
-          const w = RR.kf(t, [[15.0, [1450, 250]], [15.4, [1650, 320], 'inOutSine'], [15.5, [1650, 320]], [15.88, starOf(2), 'inOutSine']]);
+          // sweeps across the face-down cards, then locks on to Hobbyist Hunting's star
+          const hx = B.slot(HU_K)[0];
+          const w = RR.kf(t, [[15.0, [hx - 338, 250]], [15.4, [hx - 138, 320], 'inOutSine'], [15.5, [hx - 138, 320]], [15.88, starOf(HU_K), 'inOutSine']]);
           const c = S(w);
           RR.drawSprite(bino(), c[0], c[1], { w: 470 * (0.9 + 0.1 * ba), h: 270 * (0.9 + 0.1 * ba), alpha: ba });
         }
-        const star = S(starOf(2));
+        const star = S(starOf(HU_K));
         const rk = RR.pop(t, 15.9, 0.4) * (1 - RR.seg(t, 16.8, 17.1));
         if (rk > 0.02) RR.drawSprite(ring('hu'), star[0], star[1], { w: 120 * rk * (1 + 0.08 * Math.sin(t * 9)), h: 120 * rk * (1 + 0.08 * Math.sin(t * 9)) });
         RR.sparkle(star[0], star[1], t, 15.92, { r: 90, col: RR.C.gold });

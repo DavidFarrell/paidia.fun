@@ -2,8 +2,9 @@
 // lifts into a close-up, its five votes are counted against the cost of 5 and PASSED is
 // stamped. Yellow has the most votes, so the German agency decides where the effect
 // happens: two raccoons leave Germany for the German score track and the Impact Tracker
-// steps two spaces towards green. The paw icon scores Animal Rights a cube too. The card
-// is discarded and the camera pulls back to the whole board.
+// steps one space towards green per token (+3 to +2 to +1). The paw icon scores Animal
+// Rights a cube too. The card is discarded and the camera pulls back to the whole board.
+// Starts on RR.board.STATES.S6, ends on RR.board.STATES.S7.
 
 (() => {
   const B = RR.board;
@@ -11,17 +12,12 @@
   const MCAM = RR.cam(780, 850, 1.2);      // Germany + Impact Tracker
   const FULL = RR.cam(1200, 750, 0.66);    // hand-off to s08
 
-  // S6 without the evaluated card (it is drawn separately); S7 = the same with 2 fewer tokens.
-  const S6 = B.clone(B.SETUP);
-  S6.story[0] = 'corprelief';
-  S6.queue = [
-    { id: 'burgers', k: 1, votes: ['corp'] },
-    { id: 'pets', k: 2, votes: ['ar', 'fr'] },
-    { id: 'wear', k: 3, votes: ['hu', 'corp'] },
-    { id: 'drones', k: 4, votes: [] },
-    { id: 'back:policy', k: 5 }, { id: 'back:policy', k: 6 }, { id: 'back:policy', k: 7 },
-  ];
-  const VOTES = ['de', 'de', 'de', 'fr', 'ar'];
+  // S6 without the evaluated card (it is drawn separately); S7 = the same with 2 fewer
+  // German tokens and the tracker 2 spaces lower.
+  const S6 = B.clone(B.STATES.S6);
+  S6.eval = null;
+  const VOTES = B.STATES.S6.eval.votes;
+  const DE0 = S6.tokens.de, TR0 = S6.tracker;          // 10 tokens in Germany, tracker +3
 
   // ---------------------------------------------------------------- timing
   const LIFT0 = 0.25, LIFT1 = 1.35;
@@ -115,6 +111,12 @@
     }, { res: 1.5 });
     RR.drawSprite(spr, x, y, { w: S * sc, h: S * sc });
   };
+  // "-1" tag for each tracker step (world units, drawn on the board).
+  const MINUS_W = 96, MINUS_H = 66;
+  const minusSprite = () => RR.sprite('s07:minus1', MINUS_W, MINUS_H, () => {
+    RR.ink(RR.rrectPts(6, 6, MINUS_W - 12, MINUS_H - 12, 26), { fill: RR.C.greenLight, stroke: RR.C.ink, w: 0.9, curve: 0.2 });
+    RR.text('-1', MINUS_W / 2, MINUS_H / 2 + 15, { font: 'hand', size: 46, col: RR.C.plumDark });
+  }, { res: 2 });
   // Gold ring around the cost tab while the votes are counted.
   const costRing = () => RR.sprite('s07:costring', 170, 170, () => {
     RR.ink(RR.rrectPts(13, 13, 144, 144, 26), { stroke: RR.C.gold, w: 2.6, fill: false, curve: 0.25 });
@@ -278,7 +280,7 @@
 
   // Tokens flying from Germany to the German score strip (screen space).
   const tokenFlight = (t, i, cam) => {
-    const spot = B.SPOTS.de[9 - i];
+    const spot = B.SPOTS.de[DE0 - 1 - i];
     const t0 = TOK[i];
     const u = RR.seg(t, t0, t0 + FLY);
     const p0 = RR.toScreen(cam, [spot[0], spot[1] - 4]);
@@ -320,8 +322,8 @@
       // board state: tokens leave Germany, tracker steps towards green, evaluated card gone
       const st = B.clone(S6);
       const gone = TOK.filter((t0) => t >= t0).length;
-      st.tokens.de = 10 - gone;
-      st.tracker = RR.kf(t, [[TRK[0], 0], [TRK[0] + 0.32, -1, 'inOutQuad'], [TRK[1], -1], [TRK[1] + 0.32, -2, 'inOutQuad']]);
+      st.tokens.de = DE0 - gone;
+      st.tracker = RR.kf(t, [[TRK[0], TR0], [TRK[0] + 0.32, TR0 - 1, 'inOutQuad'], [TRK[1], TR0 - 1], [TRK[1] + 0.32, TR0 - 2, 'inOutQuad']]);
 
       RR.withCam(cam, () => {
         B.drawState(st);
@@ -333,12 +335,19 @@
           pop();
         }
         // poof where each token leaves; tracker sparkles
-        TOK.forEach((t0, i) => { const s = B.SPOTS.de[9 - i]; RR.poof(s[0], s[1], t, t0, { r: 34, dur: 0.5 }); });
+        TOK.forEach((t0, i) => { const s = B.SPOTS.de[DE0 - 1 - i]; RR.poof(s[0], s[1], t, t0, { r: 34, dur: 0.5 }); });
         TRK.forEach((t0, i) => {
-          const p = B.track(-1 - i);
+          const p = B.track(TR0 - 1 - i);
           RR.sparkle(p[0], p[1], t, t0 + 0.28, { r: 90, n: 9, size: 16, col: i ? RR.C.greenLight : RR.C.gold, seed: i * 5 });
           const g = RR.env(t, t0 + 0.25, t0 + 1.0, 0.1, 0.5);
           if (g > 0) RR.flatEllipse(p[0], p[1], 56, 56, RR.C.greenLight, 110 * g);
+          // "-1" tag floats up over the space the marker lands on: one space per token removed
+          const lu = RR.seg(t, t0 + 0.28, t0 + 1.3);
+          if (lu > 0 && lu < 1) {
+            const la = RR.clamp(lu * 6) * (1 - RR.seg(lu, 0.65, 1));
+            const ls = Math.max(0.05, RR.E.outBack(RR.clamp(lu * 3.5)));
+            RR.drawSprite(minusSprite(), p[0] - 6, p[1] - 80 - 20 * RR.E.outCubic(lu), { w: MINUS_W * ls, h: MINUS_H * ls, alpha: la });
+          }
         });
       });
 

@@ -1,6 +1,9 @@
-// Scene 9 (120-140 s): Step 2, the main phase. The French player adds a policy face down
-// at the back of the queue, spends influence 3 on three blue votes (one of them as a favour
-// to the Hunter), haggles with the German player, discards a card and draws back up to five.
+// Scene 9 (120-140 s): Step 2, the main phase of turn 6 (France is the active player).
+// Starts on RR.board.STATES.S8 (FULL), ends on STATES.S9 (QCAM). The French player adds a
+// secret policy face down in space 8, spends influence 3 on three blue votes (two on DRONE
+// ZAPPERS in space 1, one on WEAR THEM in space 2 as a favour to the Hunter), haggles with
+// the German player over RACCOON-PROOF BINS (space 4), discards one card and draws back up
+// to five. Only French cards are ever shown face up (BEHIND THE SCENES); the rest are backs.
 
 (() => {
   const BD = RR.board;
@@ -10,22 +13,13 @@
   const camAt = (t) => RR.drift(RR.camKf(t, CAMS), t, RR.env(t, 0, 19.7, 1.5, 1.5));
 
   // ---------------------------------------------------------------- board state S8 (from s08)
-  const S8 = BD.clone(BD.SETUP);
-  S8.story = ['corprelief', 'corpself', null, null, null];
-  S8.tokens = { de: 10, fr: 6, roe: 9 };
-  S8.tracker = 4;
-  S8.prot = [];
-  S8.queue = [
-    { id: 'pets', k: 1, votes: ['ar', 'fr'] },
-    { id: 'wear', k: 2, votes: ['hu', 'corp'] },
-    { id: 'drones', k: 3, votes: [] },
-    { id: 'protect', k: 4, votes: [] },
-    { id: 'back:policy', k: 5 }, { id: 'back:policy', k: 6 }, { id: 'back:policy', k: 7 },
-  ];
-  const COST = { 1: 5, 2: 3, 3: 7, 4: 5 };
+  // Queue: Drone Zappers [fr] k1, Wear Them [hu corp] k2, Raccoon Virus k3, Raccoon-Proof Bins k4.
+  const S8 = BD.clone(BD.STATES.S8);
+  const COST = {};
+  for (const c of S8.queue) if (c.k <= 4) COST[c.k] = RR.CARDS[c.id].cost;
 
-  // Blue votes: [queue space, landing time]. Ends as drones ['fr','fr'], wear ['hu','corp','fr'].
-  const VOTES = [[3, 7.95], [3, 8.55], [2, 9.9]];
+  // Blue votes: [queue space, landing time]. Ends as STATES.S9: drones ['fr','fr','fr'], wear ['hu','corp','fr'].
+  const VOTES = [[1, 7.95], [1, 8.55], [2, 9.9]];
   const LAND_K8 = 3.95;
 
   // ---------------------------------------------------------------- small helpers
@@ -108,13 +102,16 @@
   };
 
   // ---------------------------------------------------------------- the hand of cards
-  const CARD_OF = { wear: 'wear', drones1: 'drones', behind: 'behind', pets: 'pets', burgers: 'burgers', protect: 'protect', drones2: 'drones' };
+  // France's own deck: only BEHIND THE SCENES (French) is shown face up. The secret policy
+  // for space 8, the discard and the two draws stay backs. Keys are labels only.
+  const CARD_OF = { h1: 'back:policy', secret: 'back:policy', behind: 'behind', h2: 'back:policy', junk: 'back:policy', new1: 'back:policy', new2: 'back:policy' };
+  // BEHIND THE SCENES stays the front card of the fan (it is played in s10).
   const HAND = [
-    [0, ['wear', 'drones1', 'behind', 'pets', 'burgers']],
-    [3.05, ['wear', 'behind', 'pets', 'burgers']],
-    [16.0, ['wear', 'behind', 'pets']],
-    [17.1, ['wear', 'behind', 'pets', 'protect']],
-    [17.6, ['wear', 'behind', 'pets', 'protect', 'drones2']],
+    [0, ['h1', 'secret', 'h2', 'junk', 'behind']],
+    [3.05, ['h1', 'h2', 'junk', 'behind']],
+    [16.0, ['h1', 'h2', 'behind']],
+    [17.1, ['h1', 'h2', 'new1', 'behind']],
+    [17.6, ['h1', 'h2', 'new1', 'new2', 'behind']],
   ];
   const FAN_W = 100, FAN_D = 54, SPREAD = 0.2, FAN_TILT = 0.12;
   const fanAng = (list, key) => (list.indexOf(key) - (list.length - 1) / 2) * SPREAD + FAN_TILT;
@@ -135,8 +132,8 @@
     // a ripple as the thumb flicks through the cards while choosing
     const idx = HAND[0][1].indexOf(key);
     let l = idx >= 0 ? 16 * RR.env(t, 2.0 + idx * 0.1, 2.4 + idx * 0.1, 0.12, 0.2) : 0;
-    if (key === 'drones1') l += RR.kf(t, [[2.55, 0], [2.65, -8, 'inOutQuad'], [2.95, 76, 'outBack']]);
-    if (key === 'burgers') l += RR.kf(t, [[15.55, 0], [15.75, 30, 'outBack'], [15.95, 40]]);
+    if (key === 'secret') l += RR.kf(t, [[2.55, 0], [2.65, -8, 'inOutQuad'], [2.95, 76, 'outBack']]);
+    if (key === 'junk') l += RR.kf(t, [[15.55, 0], [15.75, 30, 'outBack'], [15.95, 40]]);
     return l;
   };
   const fanCardPos = (pivot, ang, lift) => {
@@ -280,19 +277,19 @@
   // ---------------------------------------------------------------- deck and discard (screen)
   const DECK = [720, 885], DISCARD = [905, 885], PILE_W = 118;
   const pilesDy = (t) => 320 * (1 - RR.seg(t, 15.35, 15.75, 'outBack')) + 360 * RR.seg(t, 18.6, 19.1, 'inCubic');
-  const DRAWS = [['protect', 16.7, 17.1], ['drones2', 17.2, 17.6]];
+  const DRAWS = [['new1', 16.7, 17.1], ['new2', 17.2, 17.6]];
 
   // ---------------------------------------------------------------- scene
   RR.scene({
     id: 's09_main', order: 9, dur: 20, music: 'main',
     cues: [
       [0.1, 'brush'], [0.4, 'hop', 0.4], [0.8, 'hop', 0.4], [1.25, 'hop', 0.6], [1.3, 'deal'],
-      [2.05, 'tick', 0.5], [2.65, 'pop'], [3.05, 'whoosh'], [3.3, 'flip'], [3.1, 'paper'], [3.95, 'slide'], [4.0, 'tock'],
+      [2.05, 'tick', 0.5], [2.65, 'pop'], [3.05, 'whoosh'], [3.1, 'paper'], [3.95, 'slide'], [4.0, 'tock'],
       [6.25, 'paper'], [6.62, 'tock'], [6.7, 'paper', 0.6], [6.9, 'pop'], [7.05, 'pop'], [7.2, 'pop'],
       [7.35, 'whoosh', 0.5], [7.95, 'tock'], [7.95, 'whoosh', 0.5], [8.55, 'tock'], [8.4, 'hop'], [9.3, 'whoosh', 0.5], [9.9, 'tock'], [9.95, 'ding'],
       [10.45, 'slide'], [11.1, 'pop', 0.6], [12.3, 'pop', 0.6], [12.9, 'paper'], [13.3, 'hop', 0.5], [13.75, 'pop'], [13.8, 'sparkle'],
       [15.0, 'whoosh', 0.6], [15.4, 'paper'], [16.0, 'whoosh', 0.6], [16.35, 'slide'], [16.45, 'paper', 0.6],
-      [16.7, 'deal'], [17.05, 'flip'], [17.2, 'deal'], [17.55, 'flip'], [17.65, 'ding'], [18.3, 'hop', 0.4], [18.8, 'whoosh'],
+      [16.7, 'deal'], [17.05, 'paper', 0.5], [17.2, 'deal'], [17.55, 'paper', 0.5], [17.65, 'ding'], [18.3, 'hop', 0.4], [18.8, 'whoosh'],
     ],
     draw(t) {
       const cam = camAt(t);
@@ -306,8 +303,10 @@
         glowRing(x8, y8, 206, 282, RR.C.gold, RR.env(t, 2.1, LAND_K8 - 0.05, 0.3, 0.1) * (0.6 + 0.4 * Math.sin(t * 9)));
         glowRect(x8, y8, 190, 265, RR.C.gold, RR.env(t, LAND_K8, 5.0, 0.05, 0.6));
         // glows on cards being voted on / talked about
+        // (1 Drone Zappers: French votes, then "back mine!"; 2 Wear Them reaches its cost;
+        //  4 Raccoon-Proof Bins: the German player's "Back my policy?")
         const glows = {
-          3: [RR.C.fr, RR.env(t, 7.9, 8.9, 0.1, 0.4) + RR.env(t, 12.4, 13.8, 0.2, 0.3)],
+          1: [RR.C.fr, RR.env(t, 7.9, 8.9, 0.1, 0.4) + RR.env(t, 12.4, 13.8, 0.2, 0.3)],
           2: [RR.C.green, RR.env(t, 9.85, 10.7, 0.1, 0.4)],
           4: [RR.C.de, RR.env(t, 11.2, 12.6, 0.2, 0.3)],
         };
@@ -329,8 +328,8 @@
         }
         // vote badges under the cards
         const pop = (a, b) => RR.pop(t, a, 0.3) * (1 - RR.seg(t, b, b + 0.25));
-        const [x3] = BD.slot(3), [x2] = BD.slot(2);
-        if (t > 7.9 && t < 10.7) countBadge((t < 8.55 ? 1 : 2) + '/' + COST[3], false, x3, 382, pop(7.95, 10.35) * (1 + 0.15 * Math.exp(-Math.abs(t - 8.6) * 14)));
+        const [x1] = BD.slot(1), [x2] = BD.slot(2);
+        if (t > 7.9 && t < 10.7) countBadge((t < 8.55 ? 2 : 3) + '/' + COST[1], false, x1, 382, pop(7.95, 10.35) * (1 + 0.15 * Math.exp(-Math.abs(t - 8.6) * 14)));
         if (t > 9.15 && t < 10.9) countBadge((t < 9.9 ? 2 : 3) + '/' + COST[2], t >= 9.9, x2, 382, pop(9.2, 10.55) * (1 + 0.2 * Math.exp(-Math.abs(t - 9.95) * 12)));
       });
       RR.sparkle(...RR.toScreen(cam, [BD.slot(2)[0], 382]), t, 9.92, { n: 9, r: 100, col: RR.C.gold });
@@ -388,15 +387,15 @@
       else if (de) RR.drawPerson('de', de.x, de.y, de.s, de.p);
       if (de) RR.sparkle(MEET[0], MEET[1], t, 13.78, { n: 7, r: 90, col: RR.C.gold });
 
-      // ---- the chosen policy flies face down to the back of the queue
+      // ---- the chosen policy flies face down (a secret) to the back of the queue
       if (t >= 3.05 && t < LAND_K8) {
         const f0 = frAt(3.05), pv = personPt(f0.x, f0.y, f0.s, f0.p, FAN_L);
-        const a0 = fanAng(HAND[0][1], 'drones1');
-        const start = fanCardPos(pv, a0, liftOf('drones1', 3.05));
+        const a0 = fanAng(HAND[0][1], 'secret');
+        const start = fanCardPos(pv, a0, liftOf('secret', 3.05));
         const target = RR.toScreen(cam, BD.slot(8));
         const u = RR.seg(t, 3.05, LAND_K8, 'inOutSine');
         const pos = RR.hop(start, target, u, 190);
-        RR.drawCard('drones', pos[0], pos[1], { w: RR.lerp(FAN_W, 190 * cam.z, u), rot: RR.lerp(a0, cam.r, u) + Math.sin(Math.PI * u) * 0.5, flip: 1 - RR.seg(t, 3.15, 3.6, 'inOutCubic'), lift: Math.sin(Math.PI * u) });
+        RR.drawCard(CARD_OF.secret, pos[0], pos[1], { w: RR.lerp(FAN_W, 190 * cam.z, u), rot: RR.lerp(a0, cam.r, u) + Math.sin(Math.PI * u) * 0.5, flip: 0, lift: Math.sin(Math.PI * u) });
       }
 
       // ---- end of turn: discard one, draw back up to five
@@ -405,17 +404,17 @@
         const [dx, dy] = DECK, [sx, sy] = DISCARD;
         for (let i = 0; i < 4; i++) RR.drawCard('back:policy', dx - i * 2.5, dy + pdy - i * 3.5, { w: PILE_W, flip: 0, rot: RR.hrange(i, -0.04, 0.04) });
         RR.flat(RR.rrectPts(sx - PILE_W / 2, sy + pdy - 82, PILE_W, 164, 12), RR.C.plumDark, 70);
-        if (t >= 16.35) RR.drawCard('burgers', sx, sy + pdy, { w: PILE_W, rot: 0.1 });
+        if (t >= 16.35) RR.drawCard(CARD_OF.junk, sx, sy + pdy, { w: PILE_W, rot: 0.1, flip: 0 });
         RR.text('deck', dx, sy + pdy + 128, { font: 'hand', size: 44, col: RR.C.white, outline: RR.C.plumDark, outlineW: 3 });
         RR.text('discard', sx, sy + pdy + 128, { font: 'hand', size: 44, col: RR.C.white, outline: RR.C.plumDark, outlineW: 3 });
       }
-      if (t >= 16.0 && t < 16.35) { // flick the burger card to the discard pile
+      if (t >= 16.0 && t < 16.35) { // flick the unwanted card (face down) to the discard pile
         const f0 = frAt(16.0), pv = personPt(f0.x, f0.y, f0.s, f0.p, FAN_L);
-        const a0 = fanAng(HAND[1][1], 'burgers');
-        const start = fanCardPos(pv, a0, liftOf('burgers', 16.0));
+        const a0 = fanAng(HAND[1][1], 'junk');
+        const start = fanCardPos(pv, a0, liftOf('junk', 16.0));
         const u = RR.seg(t, 16.0, 16.35, 'outQuad');
         const pos = RR.hop(start, [DISCARD[0], DISCARD[1] + pdy], u, 330);
-        RR.drawCard('burgers', pos[0], pos[1], { w: RR.lerp(FAN_W, PILE_W, u), rot: RR.lerp(a0, 0.1 + Math.PI * 2, u), lift: Math.sin(Math.PI * u) });
+        RR.drawCard(CARD_OF.junk, pos[0], pos[1], { w: RR.lerp(FAN_W, PILE_W, u), rot: RR.lerp(a0, 0.1 + Math.PI * 2, u), lift: Math.sin(Math.PI * u), flip: 0 });
       }
       for (const [key, a, b] of DRAWS) {
         if (t < a || t >= b) continue;
@@ -424,7 +423,7 @@
         const ang = fanAng(list, key);
         const u = RR.seg(t, a, b, 'inOutSine');
         const pos = RR.hop([DECK[0], DECK[1] + pdy], fanCardPos(pv, ang, 0), u, 330);
-        RR.drawCard(CARD_OF[key], pos[0], pos[1], { w: RR.lerp(PILE_W, FAN_W, u), rot: RR.lerp(0, ang, u) - Math.sin(Math.PI * u) * 0.4, flip: RR.seg(t, a + 0.1, b - 0.05, 'inOutCubic'), lift: Math.sin(Math.PI * u) });
+        RR.drawCard(CARD_OF[key], pos[0], pos[1], { w: RR.lerp(PILE_W, FAN_W, u), rot: RR.lerp(0, ang, u) - Math.sin(Math.PI * u) * 0.4, flip: 0, lift: Math.sin(Math.PI * u) });
       }
       // hand size counter
       if (t > 15.4 && t < 18.9) {

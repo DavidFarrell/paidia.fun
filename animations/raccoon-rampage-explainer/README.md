@@ -51,3 +51,8 @@ python3 audio/make_audio.py                                        # soundtrack 
 - Rendering uses Chromium's software WebGL (SwiftShader). Static art is painted once into cached
   sprites; only characters and effects are painted live each frame, with ink that "boils" at 12 fps.
 - Map outlines: Natural Earth 1:50m (public domain) via `world-atlas`.
+- Card faces are redrawn in the film's style from the published card images (site and box art).
+  Where a cost, owner or effect is not legible in any published image (Raccoon Burgers, Hobbyist
+  Hunting, Raccoonimation, Rural Sterilisation, Raccoon Land, Raccoon Helpline, and the Inaction
+  card face) the values are illustrative; see the comments in `src/props/cards.js`.
+- The board states follow one legal 4-player game; see "Game states" in `STORYBOARD.md`.

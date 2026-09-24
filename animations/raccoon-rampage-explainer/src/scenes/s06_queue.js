@@ -1,8 +1,10 @@
-// Scene 6 (66-80 s): Step 1, the queue phase. The Raccoon shoves the whole queue one
-// space to the right: the front policy (Protect Breeding Sites) tips off the end onto the
-// evaluation spot, the card entering space 4 (Drone Zappers) flips face up and space 8 is
-// left empty. The Raccoon hops along the row, reads the new card and flees in a panic;
-// the camera follows the front policy down to the evaluation spot.
+// Scene 6 (66-80 s): Step 1, the queue phase. A "time passes" flurry moves the game on
+// from S5 (round 1 about to start) to MID (turn 5: round 2, Germany's turn). Then the
+// Raccoon shoves the whole queue one space to the right: the front policy (Protect
+// Breeding Sites) tips off the end onto the evaluation spot, the card entering space 4
+// (Raccoon Virus, not corporate, so no grey vote) flips face up and space 8 is left empty.
+// The Raccoon hops along the row, reads the new card and flees in a panic; the camera
+// follows the front policy down to the evaluation spot. Ends on RR.board.STATES.S6.
 
 (() => {
   const B = RR.board;
@@ -11,20 +13,19 @@
   const K4CAM = RR.cam(1394, 170, 1.3);   // space 4 close-up
   const ECAM = RR.cam(1850, 680, 1.1);    // hand-off to s07
 
-  // S5 (start) board state, without the queue (the queue is animated below).
-  const S5 = B.clone(B.SETUP);
-  S5.story[0] = 'corprelief';
-  S5.queue = [];
+  // Board states: S5 (hand-off from s05) until the flurry swaps in MID halfway through;
+  // MID is drawn without its queue (the queue is animated below and ends as S6).
+  const FLURRY = 0.9, SWAP = FLURRY / 2;
+  const S5 = B.STATES.S5;
+  const MID = B.clone(B.STATES.MID);
+  MID.queue = [];
 
-  // Queue cards in S5. k0 = starting space; every card ends on k0 - 1.
-  const PROTECT_VOTES = ['de', 'de', 'de', 'fr', 'ar'];
-  const Q = [
-    { id: 'burgers', k0: 2, votes: ['corp'] },
-    { id: 'pets', k0: 3, votes: ['ar', 'fr'] },
-    { id: 'wear', k0: 4, votes: ['hu', 'corp'] },
-    { id: 'drones', k0: 5, votes: [] },
-    { id: 'back:policy', k0: 6 }, { id: 'back:policy', k0: 7 }, { id: 'back:policy', k0: 8 },
-  ];
+  // Queue cards in MID. k0 = starting space; every card ends on k0 - 1. The face-down card
+  // in space 5 is the one S6 shows face up in space 4 (Raccoon Virus).
+  const REVEAL = B.STATES.S6.queue.find((c) => c.k === 4).id;
+  const PROTECT_VOTES = B.STATES.MID.queue.find((c) => c.k === 1).votes;
+  const Q = B.STATES.MID.queue.filter((c) => c.k > 1)
+    .map((c) => ({ id: c.k === 5 ? REVEAL : c.id, k0: c.k, votes: c.votes || [] }));
 
   // ---------------------------------------------------------------- timing
   const PUSH = 2.2;                                  // hands meet the back card
@@ -75,11 +76,11 @@
       const t0 = slideStart(c.k0);
       const u = RR.clamp((t - t0) / SLIDE);
       const k = c.k0 - slideEase(u);
-      const arc = Math.sin(Math.PI * Math.min(1, u * 1.25));
+      const arc = u >= 0.8 ? 0 : Math.sin(Math.PI * u * 1.25);
       let dy = -8 * arc + cardDip(Math.round(k), t);
       let lift = 0.55 * arc, rot = 0.025 * arc;
       let flip = c.k0 <= 4 ? 1 : 0;
-      if (c.id === 'drones') {
+      if (c.k0 === 5) { // the card entering space 4 flips face up
         const f = RR.seg(t, FLIP0, FLIP1, 'inOutCubic');
         const fa = Math.sin(Math.PI * RR.seg(t, FLIP0 - 0.08, FLIP1 + 0.1));
         flip = f;
@@ -90,7 +91,7 @@
       const [x, y] = B.slot(k);
       const o = { w: 190, flip, lift };
       if (rot) o.rot = rot;
-      if (c.id === 'drones') glow(x, y + dy, RR.env(t, 7.45, 9.9, 0.3, 0.5));
+      if (c.k0 === 5) glow(x, y + dy, RR.env(t, 7.45, 9.9, 0.3, 0.5));
       RR.drawCard(c.id, x, y + dy, o);
       if (c.votes && c.votes.length && flip >= 0.5) drawCubes(x, y + dy, c.votes);
     }
@@ -211,7 +212,7 @@
       if (t < 8.0) { // peering down to read it
         const k = RR.seg(t, 7.4, 7.7, 'inOutCubic');
         p = { ...p, lean: 0.34 * k, look: [0.3, 1], headTilt: 0.18 * k, mouth: 'flat', brow: 'neutral', armF: 0.8, armB: 0.3, blink: 0 };
-      } else if (t < 8.75) { // DRONE ZAPPERS! jump in fright
+      } else if (t < 8.75) { // RACCOON VIRUS! jump in fright
         const u = RR.seg(t, 8.0, 8.34);
         y = 92 - Math.sin(Math.PI * u) * 46;
         const land = RR.seg(t, 8.34, 8.6);
@@ -267,7 +268,8 @@
   RR.scene({
     id: 's06_queue', order: 6, dur: 14, music: 'queue',
     cues: [
-      [0.12, 'brush'], [0.35, 'hop', 0.5], [1.0, 'scratch', 0.35], [1.4, 'chitter'],
+      [0.0, 'whoosh', 0.6], [0.06, 'paper', 0.7], [0.3, 'paper', 0.6], [0.55, 'paper', 0.5],
+      [0.35, 'hop', 0.5], [0.92, 'brush'], [1.0, 'scratch', 0.35], [1.4, 'chitter'],
       [2.18, 'whoosh'], [2.22, 'slide'], [2.6, 'chitter', 0.6], [3.0, 'slide', 0.6], [3.44, 'thud'], [3.5, 'tock', 0.7], [3.62, 'tock', 0.6],
       [3.62, 'flip'], [3.76, 'chitter', 0.7], [4.1, 'pop', 0.5], [4.55, 'pop', 0.4], [4.85, 'paper'],
       [4.98, 'hop'], [5.75, 'hop'], [6.3, 'hop'], [6.85, 'hop'], [7.45, 'paper'], [7.5, 'sparkle', 0.6],
@@ -282,9 +284,12 @@
       cam = { ...cam, x: cam.x + sh[0] / cam.z, y: cam.y + sh[1] / cam.z };
 
       RR.withCam(cam, () => {
-        B.drawState(S5, { skip: { queue: true } });
-        drawEmptyPulse(t);
-        drawQueue(t);
+        if (t < SWAP) B.drawState(S5);
+        else {
+          B.drawState(MID, { skip: { queue: true } });
+          drawEmptyPulse(t);
+          drawQueue(t);
+        }
         // highlight ring around the space 4 number
         const hl = RR.env(t, 7.45, 9.95, 0.3, 0.4);
         if (hl > 0) {
@@ -296,12 +301,14 @@
           pop();
           RR.sparkle(x, y, t, 7.5, { r: 185, n: 10, size: 15 });
         }
-        drawProtect(t);
+        if (t >= SWAP) drawProtect(t);
         drawRaccoon(t);
         RR.sparkle(2215, 640, t, 11.6, { r: 150, n: 9, size: 16 });
       });
 
-      RR.banner('STEP 1: QUEUE PHASE', t, 0.1, 2.0);
+      RR.flurry(t, 0, FLURRY);
+      RR.banner('STEP 1: QUEUE PHASE', t, 0.92, 2.95);
+      RR.caption("Round 2: Germany's turn", t, 1.3, 3.05);
       RR.caption('Everything moves up one', t, 4.85, 7.3);
       RR.caption('Space 4 flips face up', t, 7.45, 9.9);
       RR.caption('The front policy is evaluated', t, 10.3, 13.6);

@@ -10,7 +10,8 @@
   const BIN = { x: 1440 + PAN, rim: 650, base: 960 };  // same screen spot as the s01 bin after the pan
   const FLOOR = 965;
   const TX = 700;                                      // end-card text centre (screen)
-  const SPOT = { hu: [400, FLOOR], de: [670, 800], ar: [910, 720], fr: [1150, 850] };
+  // podium order follows the final scores shown in s11 (AR 9, FR 8, DE 7, HU 6)
+  const SPOT = { hu: [400, FLOOR], fr: [670, 800], ar: [910, 720], de: [1150, 850] };
   const RS = 1.2;                                      // raccoon scale on the stage
   const SNATCH = 2.55, LAND = 2.85, DASH = 3.1, LEAP = 3.62, IN = 3.86, SHUT = 11.5;
 
@@ -54,17 +55,22 @@
     pop();
   }, { res: 1 });
 
+  // The bin is split in two so the Raccoon is INSIDE it: the back (whole rim ring and the dark
+  // opening) is drawn behind the Raccoon, the front (wall + front lip of the rim) over it.
   const binBack = () => RR.sprite('s12:binBack', 380, 120, () => {
-    RR.ink(RR.ellipsePts(190, 60, 170, 42, 28), { fill: '#4a5058', w: 1.2 });
-    RR.ink(RR.ellipsePts(190, 64, 150, 30, 28), { fill: '#2a2d33', stroke: false });
+    RR.ink(RR.ellipsePts(190, 60, 172, 26, 28), { fill: '#9aa5ad', w: 1.2 });
+    RR.ink(RR.ellipsePts(190, 60, 150, 16, 28), { fill: '#2a2d33', stroke: false });
   }, { res: 1.5 });
+  // lower (front) half of the rim ellipse, right end to left end, in binFront coordinates
+  const lower = (rx, ry, ov = 0) => Array.from({ length: 15 }, (_, i) => { const a = -ov + ((Math.PI + 2 * ov) * i) / 14; return [190 + rx * Math.cos(a), 30 + ry * Math.sin(a)]; });
   const binFront = () => RR.sprite('s12:binFront', 380, 360, () => {
-    const body = [[20, 30], [360, 30], [336, 340], [44, 340]];
+    const body = [...lower(172, 26), [44, 340], [336, 340]];
     RR.water(body, '#7f8a93', { layers: 12, alpha: 45, spread: 0.01, edge: 0.5 });
     for (let i = 0; i < 6; i++) RR.inkLine([[70 + i * 48, 50], [78 + i * 45, 325]], { col: '#5d676f', w: 0.8, brush: 'pencil' });
     RR.ink(body, { stroke: C.ink, w: 1.3, curve: 0.08 });
-    RR.ink(RR.ellipsePts(190, 30, 172, 26, 28), { fill: '#9aa5ad', w: 1.2 });
-    RR.ink(RR.ellipsePts(190, 30, 150, 16, 28), { fill: '#2a2d33', stroke: false });
+    RR.ink([...lower(173, 26.5, 0.09), ...lower(149, 15.5, 0.09).reverse()], { fill: '#9aa5ad', stroke: false, curve: 0.15 }); // front lip (overlaps the back ring at its ends)
+    RR.inkLine(lower(172, 26), { col: C.ink, w: 1.2 });
+    RR.inkLine(lower(150, 16), { col: '#5d676f', w: 0.9 });
     RR.inkLine([[110, 150], [135, 175], [150, 150]], { col: '#5d676f', w: 0.8 });
     RR.ink(RR.rrectPts(160, 120, 60, 22, 8), { fill: '#6c757d', w: 0.8 });
   }, { res: 1.5 });
@@ -137,6 +143,11 @@
     return RR.personIdle(t, 2, { armR: Math.PI / 2 + 0.1 * Math.sin(t * 20), armL: 0.3, turn: 0.6, look: [1, 0.1], brow: 'angry', mouth: 'open', lean: 0.06 });
   };
 
+  // End card: how deep the Raccoon's feet are below the rim, and where it stands. Low in the bin
+  // (rising under the lid, ducking at the end) its tail would stick out through the left wall, so
+  // it sits a little right of centre there and slides back to the middle as it pops up.
+  const peekD = (t) => RR.kf(t, [[6.25, 420], [6.6, 185, 'outCubic'], [6.95, 185], [7.2, 96, 'outBack'], [11.0, 96], [11.14, 72, 'outQuad'], [11.42, 470, 'inQuad']]);
+  const peekX = (d) => BIN.x + 45 * RR.seg(d, 90, 135, 'inOutQuad');
   // Raccoon position and pose over the whole scene. Returns null while hidden in the bin.
   const raccoonAt = (t) => {
     const base = RR.raccoonIdle(t, { tailUp: 0.8 });
@@ -170,11 +181,12 @@
       const u = RR.seg(t, LEAP, IN);
       let [x, y] = RR.hop([2560, FLOOR], [BIN.x, BIN.rim + 40], u, 300);
       if (t > IN) y = RR.lerp(BIN.rim + 40, BIN.rim + 470, RR.E.inQuad(RR.seg(t, IN, 4.1)));
+      if (y > BIN.base - 12) return null; // fully hidden by the bin's front wall (never below the bin)
       return { x, y, s: RS, back: u > 0.55, pose: { ...base, face: 1, squash: -0.2, lean: RR.lerp(0.2, 0.45, u) * (1 - RR.seg(t, IN, 4.0)), armF: 2.8, armB: 2.8, eyes: 'happy', mouth: 'grin', hold: 'trophy', tailUp: 1 } };
     }
     // end card: peeks out under the lid with the trophy, then ducks at 11
     if (t < 6.25 || t > 11.45) return null;
-    let d = RR.kf(t, [[6.25, 420], [6.6, 185, 'outCubic'], [6.95, 185], [7.2, 96, 'outBack'], [11.0, 96], [11.14, 72, 'outQuad'], [11.42, 470, 'inQuad']]);
+    const d = peekD(t);
     const armUp = RR.seg(t, 6.95, 7.25, 'outBack') * (1 - RR.seg(t, 11.1, 11.3));
     let pose = RR.raccoonIdle(t, { face: 1, armF: RR.lerp(0.2, 1.72 + 0.07 * Math.sin(t * 3), armUp), armB: 0.2, hold: 'trophy', mouth: 'grin', brow: 'sly', tailUp: 0.5 });
     if (t < 7.1) pose = { ...pose, mouth: 'smile', look: [Math.sin(t * 5) > 0 ? 1 : -1, -0.2] };
@@ -184,7 +196,10 @@
     else if (t < 11.0) pose = { ...pose, look: [0, 0.3], eyes: 'happy', mouth: 'cackle' };
     else pose = { ...pose, eyes: 'wide', mouth: 'o', brow: 'up', squash: t < 11.14 ? 0.1 : -0.12 };
     if (t < 7.3 && t > 7.1) pose.squash = -0.12 * Math.sin(Math.PI * RR.seg(t, 7.1, 7.3));
-    return { x: BIN.x, y: BIN.rim + d, s: 1.7, back: true, pose };
+    // Deeper than this it is hidden by the lid and the front wall anyway; not drawing it stops the
+    // tail or the trophy poking out through the (narrower) lower wall, or showing below the bin.
+    if (d > 265) return null;
+    return { x: peekX(d), y: BIN.rim + d, s: 1.7, back: true, pose };
   };
   // Where the lid sits: on the bin, knocked into the air, perched on the Raccoon's head, falling shut.
   const lidAt = (t, r) => {
@@ -196,11 +211,12 @@
     }
     if (t >= 6.25 && t < SHUT) {
       const fall = RR.seg(t, 11.14, SHUT);
-      const onHead = (tt) => { const rr = raccoonAt(tt); return rr ? rr.y - 1.7 * 186 : rest[1]; };
+      const onHead = (tt) => BIN.rim + peekD(tt) - 1.7 * 186;
       if (fall <= 0) {
         const y = Math.min(rest[1], onHead(t));
         const tilt = RR.clamp((rest[1] - y) / 120);
-        return [BIN.x - 10 * tilt, y, -0.26 * tilt + 0.03 * Math.sin(t * 3) * tilt];
+        const dx = peekX(peekD(t)) - BIN.x; // follow the head when it sits right of centre
+        return [BIN.x + (dx - 10) * tilt, y, -0.26 * tilt + 0.03 * Math.sin(t * 3) * tilt];
       }
       const y0 = Math.min(rest[1], onHead(11.14));
       return [BIN.x - 10, RR.lerp(y0, rest[1], RR.E.inQuad(fall)), RR.lerp(-0.26, 0, fall)];

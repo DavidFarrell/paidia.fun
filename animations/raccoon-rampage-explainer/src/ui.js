@@ -208,8 +208,8 @@ RR.wipe = (u, o = {}) => {
   const bands = 6;
   RR.flush();
   for (let i = 0; i < bands; i++) {
-    const delay = RR.hr(i + 11) * 0.25;
-    const k = RR.E.inOutCubic(RR.clamp((u - delay) / (1 - 0.25)));
+    const delay = RR.hr(i + 11) * 0.12;
+    const k = RR.E.inOutCubic(RR.clamp((u - delay) / (1 - 0.12)));
     if (k <= 0 && !o.out) continue;
     const y0 = (i / bands) * RR.H - 40, y1 = ((i + 1) / bands) * RR.H + 40;
     // band spans [xa, xb] in "sweep" coordinates; both ends get a rounded brush-tip cap
