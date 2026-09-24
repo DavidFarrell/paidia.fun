@@ -102,29 +102,6 @@
     RR.inkLine([[40, 49], [160, 49]], { col: '#d6b48c', w: 0.6, brush: 'pencil' });
   }, { res: 1.8 });
 
-  // Cached caption: same look as RR.caption, but the paper strip is painted once into a sprite.
-  const capSpr = (text, size, font) => {
-    const w = RR.textWidth(text, { font, size }) + size * 1.4, h = size * 1.35, pad = 24;
-    return RR.sprite(`s10:cap:${font}:${size}:${text}`, w + pad * 2, h + pad * 2, () => {
-      const seed = RR.strHash(text), n = 10, strip = [];
-      for (let i = 0; i <= n; i++) strip.push([pad + (w * i) / n, pad + RR.hrange(seed + i, -3, 3)]);
-      for (let i = n; i >= 0; i--) strip.push([pad + (w * i) / n, pad + h + RR.hrange(seed + 50 + i, -3, 3)]);
-      RR.flat(strip.map(([px, py]) => [px + 6, py + 8]), RR.C.ink, 40);
-      RR.ink(strip, { fill: RR.C.white, stroke: RR.C.ink, w: 0.9, curve: 0.1 });
-      RR.text(text, pad + w / 2, pad + h / 2 + size * 0.33, { font, size, col: RR.C.ink });
-    }, { res: 1.5 });
-  };
-  const caption = (text, t, t0, t1, o = {}) => {
-    const a = RR.env(t, t0, t1, 0.35, 0.3);
-    if (a <= 0) return;
-    const k = RR.E.outBack(RR.seg(t, t0, t0 + 0.45));
-    const size = o.size ?? 58, font = o.font ?? 'hand';
-    const x = o.x ?? RR.W / 2, y = (o.y ?? 972) + (1 - k) * 40 + (t > t1 - 0.3 ? (1 - a) * 20 : 0);
-    push(); translate(x, y); rotate(o.rot ?? RR.hrange(RR.strHash(text), -0.018, 0.018)); scale(RR.lerp(0.85, 1, k));
-    RR.drawSprite(capSpr(text, size, font), 0, 0, { alpha: a });
-    pop();
-  };
-
   // Turn chip: CELEBRITY ENDORSEMENT is a YOUR MAIN PHASE card, so the turn passes from
   // France to Animal Rights before the pink hand plays it (flag -> arrow -> paw badge).
   const TURN = [330, 100];
@@ -317,8 +294,8 @@
 
       // ---- words
       RR.banner('ACTION CARDS', t, 0.1, 2.4);
-      caption('Play them to twist the vote', t, 3.3, 6.3);
-      caption('Anytime, or on your turn', t, 6.9, 9.35, { size: 52 });
+      RR.caption('Play them to twist the vote', t, 3.3, 6.3);
+      RR.caption('Anytime, or on your turn', t, 6.9, 9.35, { size: 52 });
     },
   });
 })();

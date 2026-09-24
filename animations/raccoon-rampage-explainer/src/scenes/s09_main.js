@@ -144,30 +144,8 @@
     return [pivot[0] + Math.sin(ang) * d, pivot[1] - Math.cos(ang) * d];
   };
 
-  // ---------------------------------------------------------------- cached words
-  // Same look as RR.caption / RR.bubble, but the paper strip and bubble are painted once into
-  // sprites (the live versions cost ~0.1-0.25 s per frame at this size).
-  const capSpr = (text, size, font) => {
-    const w = RR.textWidth(text, { font, size }) + size * 1.4, h = size * 1.35, pad = 24;
-    return RR.sprite(`s09:cap:${font}:${size}:${text}`, w + pad * 2, h + pad * 2, () => {
-      const seed = RR.strHash(text), n = 10, strip = [];
-      for (let i = 0; i <= n; i++) strip.push([pad + (w * i) / n, pad + RR.hrange(seed + i, -3, 3)]);
-      for (let i = n; i >= 0; i--) strip.push([pad + (w * i) / n, pad + h + RR.hrange(seed + 50 + i, -3, 3)]);
-      RR.flat(strip.map(([px, py]) => [px + 6, py + 8]), RR.C.ink, 40);
-      RR.ink(strip, { fill: RR.C.white, stroke: RR.C.ink, w: 0.9, curve: 0.1 });
-      RR.text(text, pad + w / 2, pad + h / 2 + size * 0.33, { font, size, col: RR.C.ink });
-    }, { res: 1.5 });
-  };
-  const caption = (text, t, t0, t1, o = {}) => {
-    const a = RR.env(t, t0, t1, 0.35, 0.3);
-    if (a <= 0) return;
-    const k = RR.E.outBack(RR.seg(t, t0, t0 + 0.45));
-    const size = o.size ?? 58, font = o.font ?? 'hand';
-    const x = o.x ?? RR.W / 2, y = (o.y ?? 972) + (1 - k) * 40 + (t > t1 - 0.3 ? (1 - a) * 20 : 0);
-    push(); translate(x, y); rotate(o.rot ?? RR.hrange(RR.strHash(text), -0.018, 0.018)); scale(RR.lerp(0.85, 1, k));
-    RR.drawSprite(capSpr(text, size, font), 0, 0, { alpha: a });
-    pop();
-  };
+  // ---------------------------------------------------------------- cached speech bubble
+  // Same look as RR.bubble, but painted once into a sprite (the live one costs ~0.25 s/frame).
   const bubSpr = (text, dx, dy, o) => {
     const size = o.size ?? 40;
     const lines = RR.wrap(text, o.w ?? 360, { font: 'hand', size });
@@ -256,8 +234,19 @@
     p.handL[1] += shake;
     p.handR = kfv(t, [[14.85, [62, -150]], [15.0, [100, -290], 'outBack']]);
     if (t < 14.85) p.handR = [62, -150];
+    // held poses (talking, worried) are cached sprites; breathing is kept as a squash
+    const held = t >= 11.4 && t < 12.3 ? (Math.sin((t + 0.3) * 18) > 0 ? 'talkA' : 'talkB') : t >= 12.55 && t < 13.0 ? 'worried' : null;
+    if (held) return { x, y: FY, s: PS, sprite: held, squash: p.squash };
     return { x, y: FY, s: PS, p };
   };
+  const DE_BASE = { turn: -0.6, prop: 'clipboard', propHand: 'R', handR: [62, -150], squash: 0, blink: 0 };
+  const DE_POSES = {
+    talkA: { ...DE_BASE, mouth: 'open', brow: 'up', look: [-0.8, -0.3], handL: [-150, -290] },
+    talkB: { ...DE_BASE, mouth: 'smile', brow: 'up', look: [-0.8, -0.3], handL: [-150, -290] },
+    worried: { ...DE_BASE, mouth: 'flat', brow: 'worried', look: [-1, -0.1], handL: REST_L },
+  };
+  const DE_SPR = { w: 520, h: 440, gx: 300, gy: 550 }; // ground point below the sprite (legs are off screen)
+  const deSprite = (name) => RR.sprite('s09:de:' + name, DE_SPR.w, DE_SPR.h, () => RR.drawPerson('de', DE_SPR.gx, DE_SPR.gy, PS, DE_POSES[name]), { res: 1, variants: 2 });
 
   const huAt = (t) => {
     let x, y;
@@ -395,7 +384,8 @@
         RR.drawCard(CARD_OF[c.key], pos[0], pos[1], { w: FAN_W, rot: c.ang, lift: lift > 20 ? 0.4 : 0 });
       }
       RR.inkCircle(pivot[0] + 3, pivot[1] - 2, 18, { fill: RR.PEOPLE.fr.skin, w: 1 });
-      if (de) RR.drawPerson('de', de.x, de.y, de.s, de.p);
+      if (de && de.sprite) RR.drawSprite(deSprite(de.sprite), de.x, de.y, { w: DE_SPR.w, h: DE_SPR.h, ax: DE_SPR.gx / DE_SPR.w, ay: DE_SPR.gy / DE_SPR.h, sx: 1 + de.squash * 0.5, sy: 1 - de.squash * 0.5 });
+      else if (de) RR.drawPerson('de', de.x, de.y, de.s, de.p);
       if (de) RR.sparkle(MEET[0], MEET[1], t, 13.78, { n: 7, r: 90, col: RR.C.gold });
 
       // ---- the chosen policy flies face down to the back of the queue
@@ -447,12 +437,12 @@
 
       // ---- words
       RR.banner('STEP 2: MAIN PHASE', t, 0.1, 2.3);
-      caption('Add a policy to the queue', t, 3.1, 5.9);
-      caption('Vote with your influence', t, 6.7, 10.2);
+      RR.caption('Add a policy to the queue', t, 3.1, 5.9);
+      RR.caption('Vote with your influence', t, 6.7, 10.2);
       if (de) bubble('Back my policy?', 1360, 580, 1440, 800, t, 11.1, 12.55, { size: 48, w: 520 });
       bubble('Only if you back mine!', 680, 580, 450, 800, t, 12.3, 13.95, { size: 48, w: 560 });
-      caption('Make deals... or break them', t, 12.9, 15.25, { y: 96 });
-      caption('Draw back up to 5', t, 16.45, 18.7, { x: 1330 });
+      RR.caption('Make deals... or break them', t, 12.9, 15.25, { y: 96 });
+      RR.caption('Draw back up to 5', t, 16.45, 18.7, { x: 1330 });
     },
   });
 })();
