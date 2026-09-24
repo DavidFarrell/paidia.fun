@@ -67,15 +67,17 @@ Shapes: `RR.ellipsePts`, `RR.rrectPts`, `RR.starPts`, `RR.xform`. Colours: `RR.C
 `RULES`, `PROT` (+`PROT_R`), `story(i)` storyline slots 0..4.
 Drawing: `drawStatic({sections: {base, queue, tracker, map, right, story: {alpha, scale, dy}}, only: [...]})`,
 `drawTokens({de, fr, roe}, {pop: {de: [scales]...}})`, `drawTracker(v)`, `drawQueue(cards)`, `cubesOnCard(x, y, roles, {pop})`,
-and **`drawState(state, {sections, skip})`** for a whole board. `RR.board.SETUP` is the canonical start state; copy with
-`RR.board.clone(...)` and modify. Full-board camera: `RR.cam(1200, 750, 0.66)`.
+and **`drawState(state, {sections, skip})`** for a whole board (draws `state.eval` on the evaluation spot too).
+`RR.board.SETUP` and `RR.board.STATES.{S5, MID, S6, S7, S8, S9, S10, END}` are the canonical game states (see STORYBOARD.md
+"Game states"); copy with `RR.board.clone(...)` and modify. Full-board camera: `RR.cam(1200, 750, 0.66)`.
 
 ## UI (`src/ui.js`)
 
 `RR.caption(text, t, t0, t1, {x, y, size})` paper-strip caption (default bottom centre); `RR.banner(text, t, t0, t1, {y, size, sub})`
 big step title; `RR.stamp(text, x, y, t, t0, {kind: 'pass'|'fail'})`; `RR.bubble(text, x, y, tx, ty, t, t0, t1)` speech bubble;
 `RR.badge(label, x, y, {r, scale})`; `RR.arrow(p, q, u, {col, w, bend})`; `RR.sparkle(x, y, t, t0)`; `RR.poof(x, y, t, t0)`;
-`RR.shake(t, t0, dur, amp)` -> [dx, dy]; `RR.fadeScreen(a)`; `RR.wipe(u, {dir, out})` ink wipe; `RR.scoreBoard(scores, {x, y, crown})`.
+`RR.shake(t, t0, dur, amp)` -> [dx, dy]; `RR.fadeScreen(a)`; `RR.wipe(u, {dir, out})` ink wipe;
+`RR.flurry(t, t0, dur)` calendar pages and cards tumbling through the frame to hide a time skip (swap state at t0 + dur/2); `RR.scoreBoard(scores, {x, y, crown})`.
 
 ## Sound cues
 

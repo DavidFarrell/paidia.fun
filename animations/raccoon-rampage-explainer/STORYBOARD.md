@@ -63,6 +63,28 @@ to the queue; 6>7>8 the evaluation spot stays centre frame; 8>9 camera pulls bac
 - Right column: spread deck (1950, 760), spread rules card (2215, 1010), spread protection circle (1985, 1120).
 - Storyline: y = 1395, five landscape cards 300 x 170 at x = 700, 1040, 1380, 1720, 2060.
 
+## Game states (one rules-consistent 4-player game)
+
+Turn order is Germany, France, Animal Rights, Hunter, so a round is 4 turns. All states are
+defined in `src/board.js` as `RR.board.SETUP` and `RR.board.STATES.*`; scenes must use them.
+
+| State | When | Summary |
+|---|---|---|
+| `SETUP` | s03, s04 | Inaction in space 1; Scare Crows!, No More Pets, Hobbyist Hunting face up in 2-4; Protect, Burgers, Drones, Wear face down in 5-8; no votes; tokens DE 10, FR 5, rest 5; tracker 0; no protection cubes |
+| `S5` | end of s05 | SETUP + Corporate Relief revealed (round 1) |
+| `MID` | start of s06 (after a "time passes" flurry) | turn 5 (round 2, Germany): Corporate Self Interest revealed; queue Protect [DE DE DE FR AR], Burgers [corp], Drones [FR], Wear [HU corp], 4 face-down (virus, bins, 2 more); tokens DE 10, FR 6, rest 7 (orange reached); tracker +3; protection DE + FR |
+| `S6` | end of s06 | queue advanced: Protect on EVALUATE; Burgers, Drones, Wear, Raccoon Virus (just flipped) in 1-4; space 8 empty |
+| `S7` | end of s07 | Protect passed: 2 German tokens mitigated (DE 8); tracker +1 |
+| `S8` | end of s08 | "Next turn" (turn 6, France): Burgers failed 1 of 3; spread FR +0, DE +1, rest +0 +2 after protection cancelled one French and one German card; tokens DE 9, FR 6, rest 9; tracker +4; queue Drones [FR], Wear [HU corp], Virus, Raccoon-Proof Bins (just flipped) |
+| `S9` | end of s09 | France placed a face-down policy in space 8 and 3 votes: Drones [FR FR FR], Wear [HU corp FR] |
+| `S10` | end of s10 | Behind the Scenes moved corp + FR votes from Wear to Drones: Drones 5/7, Wear [HU] |
+| `END` | start of s11 | after five rounds (Big Farm Corp, Free Trade, Europe Burns flip in s11): queue Scare Crows! [FR] fails, Raccoon Virus 7/7 passes, Protect 5/5 passes, No More Pets 2/5 fails; tokens DE 9, FR 6, rest 9; tracker +4 |
+
+Rule points the film must respect: the queue advances at the start of every turn; the card
+moving into space 4 flips, and under Corporate Relief a corporate (briefcase) policy gets a
+grey vote at that moment; only the active player may play YOUR MAIN PHASE action cards;
+the tracker moves one space per token added or removed; reaching the skull ends the game.
+
 ## Continuity hand-offs (exact start/end states)
 
 Cameras: `FULL = RR.cam(1200, 750, 0.66)` whole board; `MAPCAM = RR.cam(1150, 860, 1.2)` map fills frame;

@@ -1,5 +1,8 @@
 // Cards: data for the real cards shown in the film plus painters for faces and backs.
-// Card text follows the rulebook and published card images (paidia/ecologygames sites).
+// Titles, flavour text, costs, owners and effects follow the published card images
+// (paidia.fun / raccoonrampage.ecologygames.eu, box art) where they are legible. Values
+// that are not legible anywhere are marked "illustrative" below; the INACTION card face
+// is a stand-in, since only its name and position are given in the rulebook.
 //
 // RR.drawCard(id, x, y, opts) draws a card centred on (x, y).
 //   opts: w (width; portrait 190, landscape 300), rot, flip (0 = back up, 1 = face up;
@@ -11,15 +14,26 @@ RR.EVENT_W = 300; RR.EVENT_H = 170;
 
 RR.CARDS = {
   protect: { kind: 'policy', title: 'PROTECT BREEDING SITES', text: 'Electric fences around breeding sites of vulnerable birds and amphibians.', cost: 5, owner: 'de', effects: [['mitigate', 2]], score: 'ar', art: 'protect' },
+  // Raccoon Burgers: title and text from the card photo; cost/owner/effects illustrative.
   burgers: { kind: 'policy', title: 'RACCOON BURGERS', text: 'Restaurants put burgers with meat from hunted raccoons on their menus.', cost: 3, owner: 'hu', effects: [['hunterDie', 2]], score: 'hu', special: 'corp', art: 'burgers' },
   drones: { kind: 'policy', title: 'DRONE ZAPPERS', text: 'Drones patrol nature reserves and zap raccoons that get too close.', cost: 7, owner: 'fr', effects: [['mitigate', 1], ['hunterDie', 1]], score: 'hu', art: 'drones' },
   wear: { kind: 'policy', title: 'WEAR THEM', text: 'Government-funded rewards for raccoon pelts. Sponsored fashion shows featuring raccoon hats.', cost: 3, owner: 'hu', effects: [['hunterDie', 1]], score: 'hu', special: 'corp', art: 'wear' },
-  pets: { kind: 'policy', title: 'NO MORE PETS', text: 'Hard crackdown on the pet trade. They might be cute, but it is not worth it.', cost: 5, owner: 'ar', effects: [['shield', 2]], score: 'ar', art: 'pets' },
-  behind: { kind: 'action', title: 'BEHIND THE SCENES', text: 'Your lobbyists pull some strings and a vote goes in a surprising direction.', owner: 'fr', phase: 'ANYTIME:', effect: 'Move up to 4 vote tokens from face-up Policy cards to Storyline Events or other face-up Policy cards.', art: 'puppet' },
-  celeb: { kind: 'action', title: 'CELEBRITY ENDORSEMENT', text: 'Your cause is championed by a famous actor.', owner: 'ar', phase: 'YOUR MAIN PHASE:', effect: 'Place 2 votes.', art: 'celeb' },
+  pets: { kind: 'policy', title: 'NO MORE PETS', text: 'Hard crackdown on isolated pet trade. They might be cute, but it is not worth it.', cost: 5, owner: 'ar', effects: [['shield', 2]], score: 'ar', art: 'pets' },
+  bins: { kind: 'policy', title: 'RACCOON-PROOF BINS', text: 'If they cannot get to our food, they will stay away from our houses.', cost: 3, owner: 'de', effects: [['mitigate', 1], ['shield', 1]], art: 'bins' },
+  virus: { kind: 'policy', title: 'RACCOON VIRUS', text: 'Myxomatosis, but for raccoons. It is horrific, but it worked on rabbits.', cost: 7, owner: 'hu', effects: [['hunterDie', 3]], art: 'virus' },
+  crows: { kind: 'policy', title: 'SCARE CROWS!', text: 'Train flocks of crows to scare away raccoons. It will not be easy, but hopefully it works!', cost: 7, owner: 'fr', effects: [['d6', '1-4'], ['mitigate', 2]], art: 'crows' },
+  // Hobbyist Hunting: text, effect and scoring star from the card photo; cost/owner illustrative.
+  hobby: { kind: 'policy', title: 'HOBBYIST HUNTING', text: 'Hobby hunters head out to the countryside to kill some raccoons.', cost: 3, owner: 'hu', effects: [['hunterDie', 1]], score: 'hu', art: 'hobby' },
+  // Stand-in face: the rulebook only says the Inaction card starts in queue space 1.
+  inaction: { kind: 'policy', special: 'inaction', title: 'INACTION', text: '', art: 'inaction' },
+  behind: { kind: 'action', title: 'BEHIND THE SCENES', text: 'Your lobbyists pull some strings and a vote goes in a surprising direction.', owner: 'fr', phase: 'ANYTIME:', effect: 'You can move up to 4 vote tokens from face-up Policy cards on the queue to Storyline Events or other face-up Policy cards.', art: 'puppet' },
+  // Celebrity Endorsement: its effect line is not legible in any published image, so it is
+  // drawn as illegible pencil lines rather than invented.
+  celeb: { kind: 'action', title: 'CELEBRITY ENDORSEMENT', text: 'Your cause is championed by a famous actor.', owner: 'ar', phase: 'YOUR MAIN PHASE:', effect: null, art: 'celeb' },
   corprelief: { kind: 'event', title: 'CORPORATE RELIEF', text: 'Regulations and taxes on corporations cut! The rich get richer!', tag: 'ONGOING:', effect: 'Revealed corporate policies get a corporate vote.', art: 'corprelief' },
-  corpself: { kind: 'event', title: 'CORPORATE SELF INTEREST', text: 'Europe-wide Biodiversity Treaty rejected after intense corporate lobbying.', tag: 'ACTIVE:', effect: 'Env agencies have 1 fewer influence.', art: 'corpself' },
-  bigfarm: { kind: 'event', title: 'BIG FARM CORP', text: 'Small farms are taken over by industrial agriculture!', art: 'bigfarm' },
+  // Later events: titles from the rulebook; effect lines are not shown (not legible in any source).
+  corpself: { kind: 'event', title: 'CORPORATE SELF INTEREST', text: 'Europe-wide Biodiversity Treaty rejected after intense corporate lobbying!', art: 'corpself' },
+  bigfarm: { kind: 'event', title: 'BIG FARM CORP', text: 'Rural depopulation as small farms are taken over by industrial agriculture!', art: 'bigfarm' },
   freetrade: { kind: 'event', title: 'FREE TRADE', text: 'Goods, and stowaways, cross borders freely.', art: 'freetrade' },
   burns: { kind: 'event', title: 'EUROPE BURNS', text: 'Climate change out of control!', art: 'burns' },
   spread0: { kind: 'spread', n: 0, sub: 'a quiet year', col: 'teal' },
@@ -92,6 +106,50 @@ ART.pets = (x, y, w, h) => {
   RR.ink([[x + w * 0.5 - 30, y + h * 0.75], [x + w * 0.5 + 30, y + h * 0.75], [x + w * 0.5 + 22, y + h * 0.98], [x + w * 0.5 - 22, y + h * 0.98]], { fill: '#a9d6a8', w: 0.7, curve: 0.5 });
   RR.text('BABY', x + w * 0.5, y + h * 0.9, { font: 'title', size: 12, col: '#ffffff' });
 };
+ART.bins = (x, y, w, h) => {
+  bg(x, y, w, h, '#c9d6e4');
+  const cx = x + w * 0.5, cy = y + h * 0.62;
+  RR.ink([[cx - 50, cy - 14], [cx + 50, cy - 14], [cx + 44, cy + 34], [cx - 44, cy + 34]], { fill: '#4fa68f', w: 0.9, curve: 0.1 });
+  RR.ink(RR.rrectPts(cx - 56, cy - 26, 112, 16, 5), { fill: '#6cc0a8', w: 0.9 });
+  push(); translate(cx + 16, cy + 10); RR.ICONS.raccoonFace(9, { w: 0.4 }); pop();
+  RR.inkCircle(cx + 16, cy + 10, 13, { stroke: RR.C.red, w: 1.2 });
+  RR.inkLine([[cx + 7, cy + 1], [cx + 25, cy + 19]], { col: RR.C.red, w: 1.2 });
+  face(cx - 20, cy - 34, 16, { w: 0.5 });
+};
+ART.virus = (x, y, w, h) => {
+  bg(x, y, w, h, '#7a3b52');
+  for (let i = 0; i < 6; i++) {
+    const vx = x + w * RR.hrange(i + 3, 0.12, 0.88), vy = y + h * RR.hrange(i + 9, 0.15, 0.85), r = RR.hrange(i + 5, 7, 16);
+    RR.inkCircle(vx, vy, r, { fill: '#ef8a74', stroke: '#c9564a', w: 0.5 });
+    for (let k = 0; k < 8; k++) { const a = k * 0.785; RR.inkLine([[vx + Math.cos(a) * r, vy + Math.sin(a) * r], [vx + Math.cos(a) * r * 1.4, vy + Math.sin(a) * r * 1.4]], { col: '#ef8a74', w: 0.6 }); }
+  }
+  RR.ink(RR.rrectPts(x + w * 0.62, y + h * 0.6, 34, 16, 4), { fill: '#e7e3ef', w: 0.6 });
+};
+ART.crows = (x, y, w, h) => {
+  bg(x, y, w, h, '#e9d6bf', '#cfc6c9');
+  face(x + w * 0.42, y + h * 0.66, 26, { w: 0.6 });
+  const bird = (bx, by, s) => RR.ink([[bx - 26 * s, by], [bx - 8 * s, by - 10 * s], [bx, by - 2 * s], [bx + 8 * s, by - 10 * s], [bx + 26 * s, by], [bx + 6 * s, by + 4 * s], [bx, by + 10 * s], [bx - 6 * s, by + 4 * s]], { fill: '#2f2733', stroke: false, curve: 0.3 });
+  bird(x + w * 0.7, y + h * 0.28, 1.3); bird(x + w * 0.35, y + h * 0.2, 0.8); bird(x + w * 0.85, y + h * 0.55, 0.7);
+};
+ART.hobby = (x, y, w, h) => {
+  bg(x, y, w, h, '#3e5a74', '#6b4e3d');
+  for (let i = 0; i < 4; i++) RR.inkLine([[x + w * (0.1 + i * 0.25), y + h], [x + w * (0.2 + i * 0.22), y + 6]], { col: '#2e3f52', w: 2 });
+  RR.inkCircle(x + w * 0.58, y + h * 0.42, 12, { fill: '#e2b894', w: 0.7 });
+  RR.ink([[x + w * 0.44, y + h * 0.34], [x + w * 0.72, y + h * 0.34], [x + w * 0.64, y + h * 0.26], [x + w * 0.5, y + h * 0.26]], { fill: '#7c8f5a', w: 0.6 });
+  RR.ink([[x + w * 0.46, y + h * 0.95], [x + w * 0.5, y + h * 0.55], [x + w * 0.68, y + h * 0.55], [x + w * 0.72, y + h * 0.95]], { fill: '#8a6a4a', w: 0.7 });
+  RR.inkLine([[x + w * 0.3, y + h * 0.5], [x + w * 0.66, y + h * 0.62]], { col: '#3a2c24', w: 2 });
+};
+ART.inaction = (x, y, w, h) => {
+  bg(x, y, w, h, '#e8dcc8');
+  RR.ink(RR.rrectPts(x + w * 0.12, y + h * 0.55, w * 0.76, h * 0.3, 10), { fill: '#b98a8f', w: 0.8 });
+  RR.ink(RR.rrectPts(x + w * 0.08, y + h * 0.45, w * 0.16, h * 0.42, 8), { fill: '#a87a80', w: 0.8 });
+  RR.ink(RR.rrectPts(x + w * 0.76, y + h * 0.45, w * 0.16, h * 0.42, 8), { fill: '#a87a80', w: 0.8 });
+  push(); translate(x + w * 0.5, y + h * 0.44); RR.ICONS.raccoonFace(24, { noEyes: true, w: 0.6 }); pop();
+  RR.inkLine([[x + w * 0.5 - 14, y + h * 0.44], [x + w * 0.5 - 5, y + h * 0.455]], { w: 0.8 });
+  RR.inkLine([[x + w * 0.5 + 5, y + h * 0.455], [x + w * 0.5 + 14, y + h * 0.44]], { w: 0.8 });
+  RR.text('z', x + w * 0.72, y + h * 0.28, { font: 'bold', size: 16, col: RR.C.plumMid });
+  RR.text('z', x + w * 0.8, y + h * 0.18, { font: 'bold', size: 12, col: RR.C.plumMid });
+};
 ART.puppet = (x, y, w, h) => {
   RR.water(RR.ellipsePts(x + w / 2, y + h / 2, w * 0.46, h * 0.46), '#d8cfe0', { layers: 12, alpha: 40 });
   for (const dx of [-26, -8, 12, 30]) RR.inkLine([[x + w / 2 + dx, y + 4], [x + w / 2 + dx * 0.8, y + h * 0.42]], { col: RR.C.inkSoft, w: 0.4, brush: 'pencil' });
@@ -147,15 +205,29 @@ const cardFrame = (w, h, dark, light) => {
   RR.speckle(12, 12, w - 24, h - 24, '#b9a37d', 90, 30, 1.6);
 };
 const effectRow = (effects, cx, y, s) => {
-  const n = effects.length, gap = 58;
+  const n = effects.length, gap = 62;
   effects.forEach(([ic, k], i) => {
     const x = cx + (i - (n - 1) / 2) * gap;
+    if (ic === 'd6') { // conditional: roll a d6, apply the next effect on this range
+      push(); translate(x - 14, y); RR.ICONS.d6(s * 0.75, { n: 4 }); pop();
+      RR.text(k + ':', x + 12, y + 7, { font: 'hand', size: 15, col: RR.C.plumDark, align: 'left' });
+      return;
+    }
     push(); translate(x - 10, y); RR.ICONS[ic](s * (ic === 'hunterDie' ? 0.8 : 1), {}); pop();
     RR.text('x' + k, x + 16, y + 7, { font: 'title', size: 20, col: RR.C.plumDark });
   });
 };
 
+RR.paintInaction = (c, w, h) => {
+  cardFrame(w, h, RR.C.cardDark, RR.C.card);
+  RR.text('INACTION', w / 2, 44, { font: 'title', size: 28, col: RR.C.plumDark });
+  RR.CARD_ART.inaction(16, 64, w - 32, 150);
+  RR.inkRect(16, 64, w - 32, 150, 8, { stroke: RR.C.plumDark, w: 0.8 });
+  for (let i = 0; i < 3; i++) RR.inkLine([[40 + i * 10, 236 - i * 3], [w - 40 - i * 14, 236 - i * 3]], { col: RR.C.lilac, w: 0.6, brush: 'pencil' });
+};
+
 RR.paintPolicy = (c, w, h) => {
+  if (c.special === 'inaction') return RR.paintInaction(c, w, h);
   cardFrame(w, h, RR.C.cardDark, RR.C.card);
   // cost tab and owner badge
   RR.ink(RR.rrectPts(w - 48, 4, 42, 44, 6), { fill: RR.C.cardDark, stroke: false });
@@ -170,7 +242,7 @@ RR.paintPolicy = (c, w, h) => {
   RR.CARD_ART[c.art](16, 104, w - 32, 96);
   RR.inkRect(16, 104, w - 32, 96, 8, { stroke: RR.C.plumDark, w: 0.8 });
   effectRow(c.effects, w / 2 - 8, 225, 13);
-  push(); translate(w - 26, h - 26); RR.ICONS.scoreStar(18, { role: c.score }); pop();
+  if (c.score) { push(); translate(w - 26, h - 26); RR.ICONS.scoreStar(18, { role: c.score }); pop(); }
   if (c.special === 'corp') { push(); translate(26, h - 26); RR.ICONS.briefcase(14, {}); pop(); }
 };
 
@@ -185,7 +257,8 @@ RR.paintAction = (c, w, h) => {
   RR.textBlock(c.text.toUpperCase(), 20, 76, w - 64, { font: 'hand', size: 8, col: RR.C.inkSoft, align: 'left', lh: 1.1 });
   RR.CARD_ART[c.art](w / 2 - 50, 104, 100, 90);
   RR.text(c.phase, 20, 212, { font: 'hand', size: 9.5, col: RR.C.plumDark, align: 'left' });
-  RR.textBlock(c.effect.toUpperCase(), 20, 224, w - 40, { font: 'hand', size: 8, col: RR.C.ink, align: 'left', lh: 1.05 });
+  if (c.effect) RR.textBlock(c.effect.toUpperCase(), 20, 224, w - 40, { font: 'hand', size: 7.6, col: RR.C.ink, align: 'left', lh: 1.05 });
+  else for (let i = 0; i < 3; i++) RR.inkLine([[20, 222 + i * 9], [w - 30 - i * 22, 222 + i * 9]], { col: RR.C.lilac, w: 0.6, brush: 'pencil' });
 };
 
 RR.paintEvent = (c, w, h) => {

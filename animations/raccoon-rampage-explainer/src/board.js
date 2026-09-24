@@ -246,19 +246,64 @@ RR.INITS.push(B.init);
 //   deck, rules: booleans        show spread deck / spread rules card
 // o.sections forwards to drawStatic (assembly animations); o.skip: {tokens, queue, ...}
 B.SETUP = {
+  // Regular setup: Inaction in space 1, drafted policies in 2-8 (2-4 face up), no votes yet.
   tokens: { de: 10, fr: 5, roe: 5 },
   tracker: 0,
   queue: [
-    { id: 'protect', k: 1, votes: ['de', 'de', 'de', 'fr', 'ar'] },
-    { id: 'burgers', k: 2, votes: [] },
-    { id: 'pets', k: 3, votes: ['ar', 'fr'] },
-    { id: 'wear', k: 4, votes: ['hu'] },
-    { id: 'drones', k: 5 },
-    { id: 'back:policy', k: 6 }, { id: 'back:policy', k: 7 }, { id: 'back:policy', k: 8 },
+    { id: 'inaction', k: 1, votes: [] },
+    { id: 'crows', k: 2, votes: [] },
+    { id: 'pets', k: 3, votes: [] },
+    { id: 'hobby', k: 4, votes: [] },
+    { id: 'protect', k: 5 }, { id: 'burgers', k: 6 }, { id: 'drones', k: 7 }, { id: 'wear', k: 8 },
   ],
   story: [null, null, null, null, null],
-  prot: ['de'],
+  prot: [],
   deck: true, rules: true,
+};
+
+// The film follows one 4-player game (turn order DE, FR, AR, HU). Every state below is
+// reachable from SETUP under the rules; see STORYBOARD.md "Game states".
+//   S5   end of s05: round 1 begins, Corporate Relief revealed
+//   MID  start of s06: turn 5 (round 2, Germany), before the queue advances
+//   S6   end of s06: queue advanced, Protect Breeding Sites on the evaluation spot
+//   S7   end of s07: Protect passed (2 raccoons mitigated in Germany)
+//   S8   end of s08: turn 6 (France): Raccoon Burgers failed, spread resolved
+//   S9   end of s09: France added a policy and voted
+//   S10  end of s10: Behind the Scenes moved two votes from Wear Them to Drone Zappers
+//   END  start of s11: after five rounds
+const _q = (arr) => arr.map(([id, k, votes]) => (votes ? { id, k, votes } : { id, k }));
+B.STATES = {};
+B.STATES.S5 = { ...B.SETUP, story: ['corprelief', null, null, null, null] };
+B.STATES.MID = {
+  tokens: { de: 10, fr: 6, roe: 7 }, tracker: 3, prot: ['de', 'fr'], deck: true, rules: true,
+  story: ['corprelief', 'corpself', null, null, null],
+  queue: _q([['protect', 1, ['de', 'de', 'de', 'fr', 'ar']], ['burgers', 2, ['corp']], ['drones', 3, ['fr']], ['wear', 4, ['hu', 'corp']],
+    ['back:policy', 5], ['back:policy', 6], ['back:policy', 7], ['back:policy', 8]]),
+};
+// Face-down cards keep a hidden identity where it matters: MID k5 is 'virus' (revealed in s06),
+// MID k6 is 'bins' (revealed in s08).
+B.STATES.S6 = { ...B.STATES.MID,
+  queue: _q([['burgers', 1, ['corp']], ['drones', 2, ['fr']], ['wear', 3, ['hu', 'corp']], ['virus', 4, []],
+    ['back:policy', 5], ['back:policy', 6], ['back:policy', 7]]),
+  eval: { id: 'protect', votes: ['de', 'de', 'de', 'fr', 'ar'] },
+};
+B.STATES.S7 = { ...B.STATES.S6, eval: null, tokens: { de: 8, fr: 6, roe: 7 }, tracker: 1 };
+B.STATES.S8 = { ...B.STATES.S7, tokens: { de: 9, fr: 6, roe: 9 }, tracker: 4, prot: [],
+  queue: _q([['drones', 1, ['fr']], ['wear', 2, ['hu', 'corp']], ['virus', 3, []], ['bins', 4, []],
+    ['back:policy', 5], ['back:policy', 6], ['back:policy', 7]]),
+};
+B.STATES.S9 = { ...B.STATES.S8,
+  queue: _q([['drones', 1, ['fr', 'fr', 'fr']], ['wear', 2, ['hu', 'corp', 'fr']], ['virus', 3, []], ['bins', 4, []],
+    ['back:policy', 5], ['back:policy', 6], ['back:policy', 7], ['back:policy', 8]]),
+};
+B.STATES.S10 = { ...B.STATES.S9,
+  queue: _q([['drones', 1, ['fr', 'fr', 'fr', 'corp', 'fr']], ['wear', 2, ['hu']], ['virus', 3, []], ['bins', 4, []],
+    ['back:policy', 5], ['back:policy', 6], ['back:policy', 7], ['back:policy', 8]]),
+};
+B.STATES.END = { ...B.STATES.S8, prot: [],
+  story: ['corprelief', 'corpself', null, null, null], // s11 flips bigfarm, freetrade, burns
+  queue: _q([['crows', 1, ['fr']], ['virus', 2, ['hu', 'hu', 'hu', 'hu', 'corp', 'ar', 'de']], ['protect', 3, ['de', 'de', 'de', 'ar', 'fr']], ['pets', 4, ['ar', 'ar']],
+    ['back:policy', 5], ['back:policy', 6], ['back:policy', 7], ['back:policy', 8]]),
 };
 B.clone = (st) => JSON.parse(JSON.stringify(st));
 B.drawState = (st, o = {}) => {
@@ -273,6 +318,10 @@ B.drawState = (st, o = {}) => {
   if (!skip.prot) (st.prot || []).forEach((r, i) => RR.drawCube(B.PROT[0] - 40 + (i % 3) * 40, B.PROT[1] + 10 + Math.floor(i / 3) * 34, 38, r));
   if (!skip.tokens) B.drawTokens(st.tokens || {}, { pop: o.tokenPop });
   if (!skip.tracker) B.drawTracker(st.tracker ?? 0);
+  if (!skip.eval && st.eval) {
+    RR.drawCard(st.eval.id, ...B.EVAL, { w: 190 });
+    if (st.eval.votes && st.eval.votes.length) B.cubesOnCard(...B.EVAL, st.eval.votes, { size: 32 });
+  }
   if (!skip.queue) for (const c of st.queue || []) {
     const [x, y] = B.slot(c.k);
     const flip = c.flip ?? (c.k <= 4.5 ? 1 : 0);

@@ -212,15 +212,44 @@ RR.wipe = (u, o = {}) => {
     const k = RR.E.inOutCubic(RR.clamp((u - delay) / (1 - 0.25)));
     if (k <= 0 && !o.out) continue;
     const y0 = (i / bands) * RR.H - 40, y1 = ((i + 1) / bands) * RR.H + 40;
+    // band spans [xa, xb] in "sweep" coordinates; both ends get a rounded brush-tip cap
     let xa, xb;
-    if (!o.out) { xa = -200; xb = -200 + k * (RR.W + 400); } else { xa = -200 + k * (RR.W + 400); xb = RR.W + 200; }
-    if (dir < 0) { const na = RR.W - xb, nb = RR.W - xa; xa = na; xb = nb; }
+    if (!o.out) { xa = -260; xb = -260 + k * (RR.W + 520); } else { xa = -260 + k * (RR.W + 520); xb = RR.W + 260; }
     const pts = [];
-    const N = 8;
+    const N = 8, M = 12;
+    const capW = RR.hrange(i * 50, 60, 85);
+    const cap = (s) => capW * RR.hrange(i * 50 + s, 0.92, 1.05);
     for (let j = 0; j <= N; j++) pts.push([xa + (xb - xa) * (j / N), y0 + RR.hrange(i * 30 + j, -18, 18)]);
-    pts.push([xb + 60 * dir * (o.out ? -1 : 1) * 0, (y0 + y1) / 2]);
+    for (let j = 1; j < M; j++) pts.push([xb + cap(j) * Math.sin((Math.PI * j) / M), y0 + ((y1 - y0) * j) / M]);
     for (let j = N; j >= 0; j--) pts.push([xa + (xb - xa) * (j / N), y1 + RR.hrange(i * 30 + j + 15, -18, 18)]);
-    RR.flat(pts, col, 255);
+    for (let j = 1; j < M; j++) pts.push([xa - cap(j + 20) * Math.sin((Math.PI * j) / M), y1 - ((y1 - y0) * j) / M]);
+    RR.flat(dir < 0 ? pts.map(([x, y]) => [RR.W - x, y]) : pts, col, 255);
+  }
+};
+
+// "Time passes" flurry: calendar pages and card backs tumble through the frame between t0
+// and t0 + dur, dense enough in the middle to hide a change of board state (swap the state
+// at t0 + dur / 2). Screen space.
+RR.flurry = (t, t0, dur = 0.9, o = {}) => {
+  const u0 = (t - t0) / dur;
+  if (u0 <= 0 || u0 >= 1) return;
+  const pageSpr = (v) => RR.sprite('flurry:page:' + v, 200, 240, () => {
+    const cols = [RR.C.red, RR.C.teal, RR.C.gold, RR.C.mauve];
+    RR.ink(RR.rrectPts(8, 8, 184, 224, 12), { fill: RR.C.white, w: 1 });
+    RR.ink(RR.rrectPts(8, 8, 184, 52, 10), { fill: cols[v % 4], stroke: false });
+    for (const x of [50, 150]) RR.inkCircle(x, 12, 7, { fill: RR.C.inkSoft, stroke: false });
+    RR.text(String([7, 12, 24, 31][v % 4]), 100, 180, { font: 'title', size: 96, col: RR.C.plumDark });
+  }, { res: 1 });
+  const n = o.n ?? 26;
+  for (let i = 0; i < n; i++) {
+    const st = RR.hr(i + 70) * 0.45, u = (u0 - st) / 0.55;
+    if (u <= 0 || u >= 1) continue;
+    const x = ((i * 0.618 + 0.13) % 1) * 2200 - 140 + Math.sin(u * 5 + i) * 60;
+    const y = -320 + u * 1760;
+    const rot = RR.hrange(i + 80, -0.6, 0.6) + u * RR.hrange(i + 90, -3, 3);
+    const s = RR.hrange(i + 60, 0.9, 1.35);
+    if (i % 3 === 0) RR.drawCard('back:policy', x, y, { w: 190 * s, rot, lod: 'lo', screenScale: 1 });
+    else RR.drawSprite(pageSpr(i), x, y, { w: 200 * s, h: 240 * s * (0.7 + 0.3 * Math.abs(Math.cos(u * 8 + i))), rot });
   }
 };
 
