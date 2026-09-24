@@ -241,11 +241,10 @@ RR.paintPolicyBack = (w, h) => {
   RR.water(RR.rrectPts(8, 8, w - 16, h - 16, 12), RR.C.lilac, { layers: 10, alpha: 45, spread: 0.015, edge: 0.3 });
   RR.text('RACCOON', w / 2, 52, { font: 'title', size: 34, col: RR.C.plumDark });
   RR.text('RAMPAGE', w / 2, 84, { font: 'title', size: 34, col: RR.C.plumDark });
-  // raccoon waving, peeking from the bottom
-  RR.ink([[w * 0.18, h - 10], [w * 0.22, h * 0.62], [w * 0.5, h * 0.55], [w * 0.78, h * 0.62], [w * 0.82, h - 10]], { fill: RR.C.fur, w: 0.8, curve: 0.5 });
-  RR.ink([[w * 0.36, h - 10], [w * 0.4, h * 0.72], [w * 0.6, h * 0.72], [w * 0.64, h - 10]], { fill: RR.C.muzzle, stroke: false, curve: 0.5 });
-  push(); translate(w / 2, h * 0.5); RR.ICONS.raccoonFace(46, {}); pop();
-  for (let i = 0; i < 4; i++) RR.inkEllipse(w * 0.84 - i * 4, h * 0.6 - i * 20, 14, 10, { fill: i % 2 ? RR.C.tailDark : RR.C.tailLight, w: 0.5 });
+  // the Raccoon waving from the bottom of the card
+  push();
+  RR.drawRaccoon(w * 0.52, h + 30, 0.78, { armF: 2.6, armB: 0.4, mouth: 'grin', tailUp: 0.8, tail: 0.6, look: [0.3, 0.2] });
+  pop();
 };
 
 RR.paintEventBack = (w, h) => {

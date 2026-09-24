@@ -62,3 +62,24 @@ to the queue; 6>7>8 the evaluation spot stays centre frame; 8>9 camera pulls bac
 - Map: x 520-1780, y 440-1280 (Natural Earth outlines, Lambert azimuthal equal-area at 10E 50N).
 - Right column: spread deck (1950, 760), spread rules card (2215, 1010), spread protection circle (1985, 1120).
 - Storyline: y = 1395, five landscape cards 300 x 170 at x = 700, 1040, 1380, 1720, 2060.
+
+## Continuity hand-offs (exact start/end states)
+
+Cameras: `FULL = RR.cam(1200, 750, 0.66)` whole board; `MAPCAM = RR.cam(1150, 860, 1.2)` map fills frame;
+`STORYCAM = RR.cam(1380, 1300, 1.0)`; `QCAM = RR.cam(1250, 330, 0.95)` queue row; `ECAM = RR.cam(1850, 680, 1.1)` evaluation spot.
+Board states build on `RR.board.SETUP` (see `src/board.js`).
+
+| Scene | Starts with | Ends with |
+|---|---|---|
+| s01 title | paper, bin | whip-pan right: speed streaks over empty paper |
+| s02 history | streaks fading (first 0.5 s) onto the board's `map` section only, zoomed in near Germany | `MAPCAM`, only the `map` section, no dots or tokens |
+| s03 board | `MAPCAM`, only `map` | `FULL`, complete `SETUP` state, no overlays |
+| s04 roles | `FULL` + `SETUP` | camera easing to `STORYCAM`, `SETUP`, players gone |
+| s05 rounds | `STORYCAM`, `SETUP` | `QCAM`; state S5 = SETUP + story[0] 'corprelief' + a 'corp' vote added to burgers (slot 2) and wear (slot 4) |
+| s06 queue | `QCAM`, S5 | `ECAM`; S6 = queue advanced one space (burgers k1, pets k2, wear k3, drones k4 now face up, backs k5-7, k8 empty) and protect sitting on `EVAL` with its 5 votes |
+| s07 pass | `ECAM`, S6 | `FULL`; S7 = S6 with protect gone (discarded), tokens de 8, tracker -2 |
+| s08 spread | `FULL`, S7, then "a few turns later" morph to S8a: story[1] 'corpself', tokens de 9 fr 6 roe 7, tracker +1, prot ['de','fr'], burgers (1 corp vote) at k1 | `FULL`; S8 = burgers gone, tokens de 10 fr 6 roe 9, tracker +4, prot [] |
+| s09 main | `FULL`, S8 | `QCAM`, S8 + a French policy face down in k8 + 3 blue votes placed on face-up cards |
+| s10 actions | `QCAM`, S9 | `FULL`, S9 with votes rearranged |
+| s11 endgame | `FULL`, story all face up (corprelief corpself bigfarm freetrade burns) | full-screen plum ink wipe (covered) |
+| s12 finale | covered by the plum wipe, uncovering | end card; bin lid clangs shut on the last beat |

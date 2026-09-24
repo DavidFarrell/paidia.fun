@@ -222,13 +222,60 @@ B.drawQueue = (cards) => {
   }
 };
 // Vote cubes stacked on a card at (x, y): list of roles, e.g. ['de','de','ar']
+// Cubes sit over the card's art window, in rows of three from the bottom up.
 B.cubesOnCard = (x, y, roles, o = {}) => {
   const n = roles.length, size = o.size ?? 34;
   roles.forEach((r, i) => {
     const col = i % 3, row = Math.floor(i / 3);
-    const px = x - 40 + col * 40 + (row % 2) * 8, py = y + 60 - row * 30;
+    const inRow = Math.min(3, n - row * 3);
+    const px = x + (col - (inRow - 1) / 2) * size * 1.15 + (row % 2) * 6, py = y + 38 - row * size * 0.9;
     const sc = o.pop?.[i] ?? 1;
     if (sc > 0.01) RR.drawCube(px, py, size * sc, r);
   });
 };
 RR.INITS.push(B.init);
+
+// ---------------------------------------------------------------- whole-board state
+// A plain object describing everything on the board, so scenes can share start/end states.
+//   tokens: {de, fr, roe}        raccoon tokens (roe fills B.SQUARES in order)
+//   tracker: number              impact tracker space (-7..7, fractional while moving)
+//   queue: [{id, k, flip?, votes?: [roles], dx?, dy?, lift?, glow?, alpha?}]
+//   story: [cardId | null] x5    null = face-down event back; ids are face up
+//   prot: [roles]                spread-protection cubes
+//   deck, rules: booleans        show spread deck / spread rules card
+// o.sections forwards to drawStatic (assembly animations); o.skip: {tokens, queue, ...}
+B.SETUP = {
+  tokens: { de: 10, fr: 5, roe: 5 },
+  tracker: 0,
+  queue: [
+    { id: 'protect', k: 1, votes: ['de', 'de', 'de', 'fr', 'ar'] },
+    { id: 'burgers', k: 2, votes: [] },
+    { id: 'pets', k: 3, votes: ['ar', 'fr'] },
+    { id: 'wear', k: 4, votes: ['hu'] },
+    { id: 'drones', k: 5 },
+    { id: 'back:policy', k: 6 }, { id: 'back:policy', k: 7 }, { id: 'back:policy', k: 8 },
+  ],
+  story: [null, null, null, null, null],
+  prot: ['de'],
+  deck: true, rules: true,
+};
+B.clone = (st) => JSON.parse(JSON.stringify(st));
+B.drawState = (st, o = {}) => {
+  const skip = o.skip || {};
+  if (!skip.static) B.drawStatic({ sections: o.sections, lod: o.lod });
+  if (!skip.story) (st.story || []).forEach((id, i) => {
+    if (id === undefined) return;
+    RR.drawCard(id || 'corprelief', ...B.story(i), { w: 300, flip: id ? 1 : 0, back: 'back:event' });
+  });
+  if (!skip.deck && st.deck) RR.drawCard('back:spread', ...B.DECK, { w: 190 });
+  if (!skip.rules && st.rules) RR.drawCard('rules', ...B.RULES, { w: 170 });
+  if (!skip.prot) (st.prot || []).forEach((r, i) => RR.drawCube(B.PROT[0] - 40 + (i % 3) * 40, B.PROT[1] + 10 + Math.floor(i / 3) * 34, 38, r));
+  if (!skip.tokens) B.drawTokens(st.tokens || {}, { pop: o.tokenPop });
+  if (!skip.tracker) B.drawTracker(st.tracker ?? 0);
+  if (!skip.queue) for (const c of st.queue || []) {
+    const [x, y] = B.slot(c.k);
+    const flip = c.flip ?? (c.k <= 4.5 ? 1 : 0);
+    RR.drawCard(c.id, x + (c.dx || 0), y + (c.dy || 0), { w: 190, flip, lift: c.lift ?? 0, glow: c.glow, alpha: c.alpha, rot: c.rot });
+    if (c.votes && c.votes.length && flip >= 0.5) B.cubesOnCard(x + (c.dx || 0), y + (c.dy || 0), c.votes, { size: 32 });
+  }
+};
