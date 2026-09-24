@@ -146,15 +146,17 @@
   };
 
   // ---------------------------------------------------------------- people
+  const FEET = 1058, PS = 1.22;
   const person = (t) => {
     // German agency: pops up beside the close-up, walks to the corner, cheers, ducks away
     if (t >= DEUP && t < DEDOWN + 0.4) {
-      const up = RR.E.outBack(RR.seg(t, DEUP, DEUP + 0.4));
-      const down = RR.E.inBack(RR.seg(t, DEDOWN, DEDOWN + 0.35));
+      // pops in and out by scale, always fully on the canvas (p5.brush is very slow for
+      // shapes that cross the canvas edge)
+      const sc = RR.E.outBack(RR.seg(t, DEUP, DEUP + 0.4)) * (1 - RR.E.inBack(RR.seg(t, DEDOWN, DEDOWN + 0.35)));
+      if (sc < 0.04) return drawAR(t);
       const x = RR.tw(t, MOVE0, MOVE1, 1480, 1740, 'inOutCubic');
-      const y = 1150 + (1 - up) * 420 + down * 440;
       let p = RR.personIdle(t, 1, { mouth: 'smile', turn: -0.4, look: [-1, -0.2], armL: 0.15, armR: 0.2 });
-      p.squash = -0.12 * Math.sin(Math.PI * RR.seg(t, DEUP, DEUP + 0.3)) + 0.1 * Math.sin(Math.PI * RR.seg(t, DEUP + 0.3, DEUP + 0.55)) + p.squash;
+      p.squash = -0.14 * Math.sin(Math.PI * RR.seg(t, DEUP, DEUP + 0.3)) + 0.1 * Math.sin(Math.PI * RR.seg(t, DEUP + 0.3, DEUP + 0.55)) + p.squash;
       if (t < 7.15) p = { ...p, mouth: 'o', brow: 'up', look: [-1, 0.1] };
       else if (t < MOVE0) { // proud: "that's me!"
         const k = RR.E.outBack(RR.seg(t, 7.15, 7.45));
@@ -174,13 +176,17 @@
       }
       if (t > 11.2 && t < DEDOWN) p = { ...p, handL: undefined, armL: 0.2, turn: 0, look: [0.2, 0.3], mouth: 'grin' };
       if (t >= DEDOWN) p = { ...p, eyes: 'happy', mouth: 'smile', armL: 0.2, handL: undefined };
-      RR.drawPerson('de', x, y, 1.4, { prop: 'clipboard', ...p });
+      RR.poof(x, FEET, t, DEUP, { r: 60, dur: 0.5 });
+      RR.shadow(x, FEET, 70 * sc, 14 * sc, 50);
+      RR.drawPerson('de', x, FEET, PS * sc, { prop: 'clipboard', ...p });
     }
-    // Animal Rights: pops up in the corner when the paw scores and cheers
+    drawAR(t);
+  };
+  // Animal Rights: pops up in the corner when the paw scores and cheers
+  const drawAR = (t) => {
     if (t >= ARUP && t < OUT0 + 0.45) {
-      const up = RR.E.outBack(RR.seg(t, ARUP, ARUP + 0.4));
-      const down = RR.E.inBack(RR.seg(t, OUT0, OUT0 + 0.4));
-      const y = 1150 + (1 - up) * 420 + down * 440;
+      const sc = RR.E.outBack(RR.seg(t, ARUP, ARUP + 0.4)) * (1 - RR.E.inBack(RR.seg(t, OUT0, OUT0 + 0.4)));
+      if (sc < 0.04) return;
       let p = RR.personIdle(t, 3, { mouth: 'o', brow: 'up', turn: -0.3, look: [-0.5, -1], armL: 0.15, armR: 0.2 });
       p.squash += -0.12 * Math.sin(Math.PI * RR.seg(t, ARUP, ARUP + 0.3));
       const c = RR.seg(t, CUBE1, CUBE1 + 0.55);
@@ -189,7 +195,9 @@
         p = { ...p, hop: 30 * h, squash: -0.08 * h, eyes: 'happy', mouth: 'grin', brow: 'neutral', armL: 2.7, armR: 2.7, look: [0, 0], turn: 0 };
         if (c >= 1) p = { ...p, hop: 0, squash: p.squash, armL: 2.2 + 0.2 * Math.sin(t * 9), armR: 2.2 - 0.2 * Math.sin(t * 9), eyes: 'happy', mouth: 'grin' };
       } else if (t > CUBE0) p = { ...p, look: [-1, -1], mouth: 'o', turn: -0.5 };
-      RR.drawPerson('ar', INSET[0], y, 1.4, p);
+      RR.poof(INSET[0], FEET, t, ARUP, { r: 60, dur: 0.5 });
+      RR.shadow(INSET[0], FEET, 70 * sc, 14 * sc, 50);
+      RR.drawPerson('ar', INSET[0], FEET, PS * sc, p);
     }
   };
 

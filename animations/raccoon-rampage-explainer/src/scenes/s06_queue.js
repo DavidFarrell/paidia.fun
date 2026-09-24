@@ -34,7 +34,7 @@
   const slideEase = backOut(1.3);                    // ~6% overshoot
   const FALL0 = 2.9, FALL1 = 3.44;                   // protect tips off and lands on EVAL
   const FLIP0 = 3.6, FLIP1 = 4.06;                   // drones flips face up in space 4
-  const HOPS = [[4.98, 5.48, [360, 330], [728, 92], 170], [5.75, 6.15, [728, 92], [940, 92], 80],
+  const HOPS = [[4.98, 5.48, [372, 330], [728, 92], 170], [5.75, 6.15, [728, 92], [940, 92], 80],
     [6.3, 6.7, [940, 92], [1152, 92], 80], [6.85, 7.28, [1152, 92], [1364, 92], 90]];
   const RS = 1.0; // raccoon scale
 
@@ -153,10 +153,10 @@
     let x, y = 330, face = 1;
     let p = RR.raccoonIdle(t, { mouth: 'smile', armF: 0.35, armB: 0.25 });
     if (t < 1.0) { // scamper in
-      x = RR.tw(t, 0.25, 1.0, 20, 300, 'outQuad');
+      x = RR.tw(t, 0.25, 1.0, 50, 330, 'outQuad');
       p = { ...p, run: t * 19, stride: 1, lean: 0.22, tail: t * 9, tailUp: 0.9, mouth: 'grin', armF: 1.0 + 0.5 * Math.sin(t * 19), armB: 1.0 - 0.5 * Math.sin(t * 19) };
     } else if (t < 2.06) {
-      x = 300;
+      x = 330;
       const skid = Math.exp(-(t - 1.0) * 7);
       p = { ...p, lean: -0.2 * skid, squash: 0.14 * skid * Math.cos((t - 1.0) * 18) };
       if (t < 1.28) p = { ...p, mouth: 'o', brow: 'up', look: [1, 0] };
@@ -170,12 +170,12 @@
       }
     } else if (t < 2.5) { // lunge: the paws meet the back card at PUSH, then follow through
       const k = RR.seg(t, 2.06, PUSH, 'inOutQuad');
-      x = t < PUSH ? RR.lerp(300, 322, k) : RR.tw(t, PUSH, 2.5, 322, 360, 'outQuad');
-      p = { ...p, lean: RR.lerp(-0.22, 0.42, k), squash: RR.lerp(0.2, -0.12, k), armF: RR.lerp(0.6, 1.55, k), armB: RR.lerp(0.5, 1.45, k), eyes: t < PUSH ? 'open' : 'closed', mouth: t < PUSH ? 'flat' : 'open', brow: 'angry', look: [1, 0] };
+      x = t < PUSH ? RR.lerp(330, 335, k) : RR.tw(t, PUSH, 2.5, 335, 372, 'outQuad');
+      p = { ...p, lean: RR.lerp(-0.22, 0.34, k), squash: RR.lerp(0.2, -0.12, k), armF: RR.lerp(0.6, 1.55, k), armB: RR.lerp(0.5, 1.45, k), eyes: t < PUSH ? 'open' : 'closed', mouth: t < PUSH ? 'flat' : 'open', brow: 'angry', look: [1, 0] };
     } else if (t < 4.98) {
-      x = 360;
+      x = 372;
       const rec = RR.seg(t, 2.5, 2.95, 'inOutCubic');
-      p = { ...p, lean: RR.lerp(0.42, 0.06, rec), squash: RR.lerp(-0.12, 0, rec), armF: RR.lerp(1.55, 0.9, rec), armB: RR.lerp(1.45, 0.5, rec), mouth: 'o', brow: 'up', look: [1, RR.tw(t, 2.9, 3.4, -0.1, 0.7)], blink: 0 };
+      p = { ...p, lean: RR.lerp(0.34, 0.06, rec), squash: RR.lerp(-0.12, 0, rec), armF: RR.lerp(1.55, 0.9, rec), armB: RR.lerp(1.45, 0.5, rec), mouth: 'o', brow: 'up', look: [1, RR.tw(t, 2.9, 3.4, -0.1, 0.7)], blink: 0 };
       if (t >= FALL1 && t < 3.72) p = { ...p, eyes: 'closed', squash: 0.12, mouth: 'frown', brow: 'worried', armF: 2.3, armB: 2.1, headTilt: 0.1 };
       else if (t >= 3.72 && t < 4.12) p = { ...p, mouth: 'cackle', eyes: 'happy', brow: 'neutral', armF: 2.25, armB: 0.4, squash: 0.05 * Math.sin(t * 34), headTilt: -0.08, look: [0, 0] };
       else if (t >= 4.12 && t < 4.45) p = { ...p, look: [1, 0.4], mouth: 'o', brow: 'up', armF: 0.5, armB: 0.3, headTilt: 0.08 };
@@ -232,9 +232,12 @@
   const drawRaccoon = (t) => {
     const r = raccoon(t);
     if (!r) return;
+    // skip it entirely once it is off screen (p5.brush is very slow for off-canvas shapes)
+    const c = RR.curCam, a = RR.toScreen(c, [r.x - 115, r.y - 215]), b = RR.toScreen(c, [r.x + 115, r.y + 10]);
+    if (b[0] < 0 || a[0] > RR.W || b[1] < 0 || a[1] > RR.H) return;
     // skid dust, landing dust
-    RR.poof(335, 334, t, PUSH, { r: 26, dur: 0.45 });
-    RR.poof(270, 334, t, 1.0, { r: 22, dur: 0.4 });
+    RR.poof(350, 334, t, PUSH, { r: 26, dur: 0.45 });
+    RR.poof(300, 334, t, 1.0, { r: 22, dur: 0.4 });
     for (const [, t1, , q] of HOPS) RR.poof(q[0], q[1] + 4, t, t1, { r: 20, dur: 0.35, col: '#efe3cc' });
     // dotted trail of each hop, pointing the way the queue moves
     for (const [a, b, P, Qp, H] of HOPS) {
@@ -272,7 +275,7 @@
       [10.05, 'whoosh', 0.4], [10.3, 'paper'], [11.6, 'sparkle', 0.6],
     ],
     draw(t) {
-      let cam = RR.camKf(t, [[0, QCAM], [0.5, QCAM], [1.95, WIDE], [5.7, WIDE], [7.35, K4CAM], [10.0, K4CAM], [13.7, ECAM]]);
+      let cam = RR.camKf(t, [[0, QCAM], [0.3, QCAM], [1.8, WIDE], [5.7, WIDE], [7.35, K4CAM], [10.0, K4CAM], [13.7, ECAM]]);
       const d = RR.env(t, 0, 13.6, 1.5, 1.5);
       if (d > 0) { const dr = RR.drift(cam, t, d); cam = dr; }
       const sh = RR.shake(t, FALL1, 0.3, 5);

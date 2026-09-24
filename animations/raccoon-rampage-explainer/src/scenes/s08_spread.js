@@ -42,6 +42,10 @@
     }
     if (pts.length > 1) RR.inkLine(pts, { col: o.col ?? C.red, w: o.w ?? 2.2, curve: 0.5 });
   };
+  // View culling: skip pieces that are off screen (set per frame from the camera).
+  let VIEW = null;
+  const setView = (cam) => { const hw = 960 / cam.z, hh = 540 / cam.z; VIEW = [cam.x - hw, cam.y - hh, cam.x + hw, cam.y + hh]; };
+  const vis = (x, y, r) => !VIEW || (x + r > VIEW[0] && x - r < VIEW[2] && y + r > VIEW[1] && y - r < VIEW[3]);
   // Soft light: stacked translucent discs.
   const glow = (x, y, r, col, a) => {
     if (a <= 0.01) return;
@@ -140,6 +144,7 @@
         if (a <= 0) continue;
         x -= (1 - a) * 900; lift = Math.max(lift, (1 - a) * 0.9); rot -= (1 - a) * 0.15;
       }
+      if (!vis(x, y, 180)) continue;
       RR.drawCard(c.id, x, y, { w: 190, flip, lift, rot });
       if (c.votes && c.votes.length && flip >= 0.5) B.cubesOnCard(x, y, c.votes, { size: 32 });
     }
@@ -201,6 +206,7 @@
     const n = tokensAt(t);
     const party = RR.env(t, 19.55, 21.75, 0.2, 0.25);
     const one = (pos, kind, role, i) => {
+      if (!vis(pos[0], pos[1], 60)) return;
       let sc = 1;
       const add = ADD[role][i];
       if (add) sc = add[1] === 'pop' ? RR.pop(t, add[0], 0.35) : 1 + 0.3 * Math.sin(Math.PI * seg(t, add[0], add[0] + 0.25));
@@ -243,13 +249,14 @@
     for (const t0 of TICKS) hop += Math.sin(Math.PI * seg(t, t0, t0 + TICK_DUR)) * 24;
     const g = RR.env(t, 18.95, 22.4, 0.5, 0.5);
     if (g > 0) glow(p[0], p[1] - 6, 44, C.red, g * (0.6 + 0.3 * Math.sin(t * 8)));
-    RR.drawMarker(p[0], p[1] - hop - 6, 74);
+    if (vis(p[0], p[1], 80)) RR.drawMarker(p[0], p[1] - hop - 6, 74);
   };
 
   // ---------------------------------------------------------------- storyline and protection
   const drawStory = (t) => {
     for (let i = 0; i < 5; i++) {
       const [x, y] = B.story(i);
+      if (!vis(x, y, 200)) continue;
       if (i === 1) {
         const f = seg(t, 1.5, 1.85, 'inOutQuad'), l = Math.sin(Math.PI * f);
         RR.drawCard('corpself', x, y - l * 24, { w: 300 * (1 + 0.06 * l), flip: f, back: 'back:event', lift: l });
@@ -269,7 +276,7 @@
         y -= (1 - E.outBounce(seg(t, 1.85, 2.2))) * 320;
       }
       const an = RR.env(t, h.t0 - 0.16, h.t0, 0.1, 0.02); // anticipation squash
-      RR.drawCube(x, y + an * 3, 38, role, { sx: 1 + 0.15 * an, sy: 1 - 0.2 * an });
+      if (vis(x, y, 60)) RR.drawCube(x, y + an * 3, 38, role, { sx: 1 + 0.15 * an, sy: 1 - 0.2 * an });
     }
   };
 
@@ -518,7 +525,7 @@
       [1.0, 'pop', 0.7], [1.05, 'tick', 0.6], [1.25, 'pop', 0.8], [1.3, 'tick', 0.6], [1.5, 'flip'], [2.0, 'tock'],
       [2.25, 'whoosh', 0.4], [2.82, 'slide'], [3.15, 'flip', 0.7], [3.36, 'thud', 0.7],
       [3.95, 'pop'], [4.15, 'pencil'], [4.3, 'tick', 0.4], [4.72, 'tock'], [4.97, 'stamp'], [5.0, 'buzz'],
-      [5.55, 'whoosh'], [5.62, 'drumroll', 0.5], [5.95, 'boing'], [6.45, 'slide', 0.4], [6.86, 'pop', 0.5], [6.95, 'chitter'], [7.34, 'hop'],
+      [5.55, 'whoosh'], [5.62, 'drumroll', 0.5], [5.95, 'boing'], [6.5, 'slide', 0.4], [6.86, 'pop', 0.5], [6.95, 'chitter'], [7.34, 'hop'],
       [7.45, 'whoosh', 0.6], [8.15, 'pencil'], [8.5, 'whoosh', 0.7], [9.15, 'sparkle'], [9.3, 'pencil'], [10.2, 'whoosh', 0.5],
       [10.9, 'deal'], [11.12, 'deal'], [11.34, 'deal'], [11.56, 'deal'], [11.78, 'deal'], [12.0, 'deal'],
       [13.0, 'hop'], [13.22, 'hop'], [13.5, 'tock'], [13.72, 'tock'], [14.05, 'slide'], [14.2, 'slide'],
@@ -533,8 +540,12 @@
       cam = RR.drift(cam, t, amt);
       for (const [t0, d, a] of SHAKES) { const s = RR.shake(t, t0, d, a); cam.x += s[0] / cam.z; cam.y += s[1] / cam.z; }
 
+      setView(cam);
       RR.withCam(cam, () => {
-        B.drawState({ deck: true, rules: insetK(t) <= 0 }, { skip: { story: 1, prot: 1, tokens: 1, tracker: 1, queue: 1 } });
+        // static board (only the sections in view) + spread deck and rules card, as B.drawState draws them
+        B.drawStatic({ only: Object.keys(B.SECTIONS).filter((n) => { const S = B.SECTIONS[n]; return !(S.x > VIEW[2] || S.x + S.w < VIEW[0] || S.y > VIEW[3] || S.y + S.h < VIEW[1]); }) });
+        if (vis(B.DECK[0], B.DECK[1], 200)) RR.drawCard('back:spread', ...B.DECK, { w: 190 });
+        if (insetK(t) <= 0 && vis(B.RULES[0], B.RULES[1], 200)) RR.drawCard('rules', ...B.RULES, { w: 170 });
         drawTrackerGlow(t);
         drawStory(t);
         drawProt(t);

@@ -41,9 +41,27 @@ const _recentre = (pts) => {
   return [cx, cy, pts.map((p) => (p.length > 2 ? [p[0] - cx, p[1] - cy, p[2]] : [p[0] - cx, p[1] - cy]))];
 };
 
+// True when the points, under the current transform, lie entirely outside the canvas.
+// A fully off-canvas shape leaves p5.brush with an empty dirty rect, and it then falls
+// back to compositing the WHOLE canvas (hundreds of ms), so such shapes are skipped.
+// The model matrix maps to pixels offset by
+// the canvas centre (the WEBGL default camera looks at z = 0).
+RR.offscreen = (pts, margin = 4) => {
+  const st = p5.instance && p5.instance._renderer && p5.instance._renderer.states;
+  const m = st && st.uModelMatrix && st.uModelMatrix.mat4;
+  if (!m) return false;
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const p of pts) {
+    const x = m[0] * p[0] + m[4] * p[1] + m[12] + RR.W / 2, y = m[1] * p[0] + m[5] * p[1] + m[13] + RR.H / 2;
+    if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y;
+  }
+  return x1 < -margin || y1 < -margin || x0 > RR.W + margin || y0 > RR.H + margin;
+};
+
 // Closed shape with an optional wash fill, hatching and ink outline.
 // opts: fill, alpha (0-255), stroke (colour or false), w, brush, curve (0-1), hatch {d, a, col, w}
 RR.ink = (pts0, o = {}) => {
+  if (RR.offscreen(pts0)) return;
   const curve = o.curve ?? 0.35;
   const [cx, cy, pts] = _recentre(pts0);
   push();
@@ -84,7 +102,7 @@ RR.ink = (pts0, o = {}) => {
 
 // Open ink line through points (spline). opts: col, w, brush, curve
 RR.inkLine = (pts0, o = {}) => {
-  if (pts0.length < 2) return;
+  if (pts0.length < 2 || RR.offscreen(pts0)) return;
   const [cx, cy, pts] = _recentre(pts0);
   push();
   translate(cx, cy);
