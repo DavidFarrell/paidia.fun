@@ -1,16 +1,16 @@
 // Scene 5 (56-66 s): rounds and the storyline. The five face-down Storyline Events get
 // little calendar pages 1-5 (five rounds of five years). The first event lifts up to the
 // camera and flips: CORPORATE RELIEF, its ONGOING rule ringed in pencil. It settles back
-// into its slot and sends a briefcase badge up to the queue, where it perches between
-// spaces 5 and 4 (where cards are revealed) with a little flip arrow: the rule waits for
-// corporate policies to be revealed there (s06 shows one get its grey vote). No votes are
-// placed: the board ends on S5. Then the four players take their turns around the table.
+// into its slot and a small screen-space inset springs out of it to demo the rule (the
+// rulebook's own example): a face-down Raccoon Burgers slides from a mini space 5 into
+// space 4, flips face up, its briefcase icon glows and a grey corporate vote cube drops
+// onto it. The inset is only an illustration: no votes are placed on the real board, which
+// ends on S5. Then the four players take their turns while the camera rises to the queue.
 
 (() => {
   const BD = RR.board;
   const STORYCAM = RR.cam(1380, 1300, 1.0);   // hand-off from s04
   const STORY2 = RR.cam(1368, 1296, 1.03);    // slow push-in on the storyline row
-  const QCAM3 = RR.cam(1300, 345, 1.2);     // the reveal point, spaces 5 and 4 (cards stay lo-LOD below 1.21)
   const QCAM = RR.cam(1250, 330, 0.95);       // hand-off to s06
 
   // ---------------------------------------------------------------- timing (local s)
@@ -19,12 +19,18 @@
   const T_ANT = 2.5, T_UP = 2.65, T_AT = 3.2;            // event card: crouch, lift, arrive
   const T_RING = 3.55;                                   // pencil loop round the rule
   const T_BACK = 4.95, T_LAND = 5.4;                     // fly home, land in slot 0
-  const T_FIRE = 5.46;                                   // a briefcase badge pops out of the card
-  const T_TILT0 = 5.55, T_TILT1 = 6.55;                  // camera tilts up to the queue
-  const T_BRLAND = 6.62, T_ARROW = 6.72, T_BROUT = 7.3;  // badge perches, flip arrow, badge leaves
-  const REVEAL = [(BD.slot(5)[0] + BD.slot(4)[0]) / 2, 382]; // between the 5 and 4 labels
-  const T_Q0 = 7.3, T_Q1 = 9.5;                          // glide to QCAM
-  const T_FIG = 7.25, T_TURN = [7.6, 8.1, 8.6, 9.1], T_FOUT = 9.3;
+  const T_FIRE = 5.46;                                   // the card glows as the rule demo springs out
+  // Rule demo inset (screen space; the board itself does not change)
+  const IN0 = 5.45, IN1 = 5.75;                          // inset springs out of the event card
+  const SL0 = 5.82, SL1 = 6.12;                          // face-down policy slides from space 5 to 4
+  const FL0 = 6.14, FL1 = 6.42;                          // ... and flips face up
+  const GLOW = 6.44;                                     // its briefcase icon glows
+  const CUBE = 6.74, CUBE_D = 0.34;                      // a grey vote cube drops onto it
+  const CUBE_HIT = CUBE + CUBE_D / 2.75;                 // first contact (outBounce)
+  const OUT0 = 7.5, OUT1 = 7.74;                         // inset pops away
+  const T_ROUT = 7.3;                                    // the Raccoon ducks out of frame
+  const T_Q0 = 7.35, T_Q1 = 9.5;                         // glide up to QCAM
+  const T_FIG = 7.5, T_TURN = [7.85, 8.28, 8.7, 9.1], T_FOUT = 9.3;
   const HOVER = [880, 430], HOVER_W = 840;               // event card close-up (screen)
 
   // ---------------------------------------------------------------- camera
@@ -32,12 +38,12 @@
     if (t <= 0) return STORYCAM;
     if (t >= T_Q1) return QCAM;
     let c;
-    if (t < T_TILT0) c = RR.lerpCam(STORYCAM, STORY2, RR.seg(t, 0.2, 3.6, 'inOutSine'));
-    else if (t < T_Q0) {
-      const u = RR.seg(t, T_TILT0, T_TILT1, 'inOutCubic');
-      c = RR.lerpCam(STORY2, QCAM3, u);
-      c.z *= 1 - 0.16 * Math.sin(Math.PI * u);   // breathe out during the tilt
-    } else c = RR.lerpCam(QCAM3, QCAM, RR.seg(t, T_Q0, T_Q1, 'inOutCubic'));
+    if (t < T_Q0) c = RR.lerpCam(STORYCAM, STORY2, RR.seg(t, 0.2, 3.6, 'inOutSine'));
+    else {
+      const u = RR.seg(t, T_Q0, T_Q1, 'inOutCubic');
+      c = RR.lerpCam(STORY2, QCAM, u);
+      c.z *= 1 - 0.1 * Math.sin(Math.PI * u);    // breathe out during the tilt up
+    }
     return RR.drift(c, t, RR.clamp(t / 1.2) * RR.clamp((T_Q1 - t) / 1.2));
   };
 
@@ -106,7 +112,7 @@
       if (i === 0 && t >= T_LAND) {
         const v = RR.seg(t, T_LAND, T_LAND + 0.22);
         if (v < 1) { sy = 1 - 0.08 * Math.sin(Math.PI * v); sx = 1 + 0.05 * Math.sin(Math.PI * v); }
-        // it glows and swells as it sends the briefcase badge up to the queue
+        // it glows and swells as the rule demo inset springs out of it
         const p = RR.seg(t, T_FIRE - 0.08, T_FIRE + 0.3);
         if (p > 0 && p < 1) { const b = Math.sin(Math.PI * p); sx *= 1 + 0.06 * b; sy *= 1 + 0.06 * b; }
         halo(x, y, 300, 170, RR.C.gold, RR.env(t, T_FIRE - 0.12, T_FIRE + 0.55, 0.1, 0.3));
@@ -175,24 +181,29 @@
     }
   };
 
-  // ---------------------------------------------------------------- the briefcase hint
-  // No votes are placed here: the rule acts later, when a corporate policy is revealed in
-  // space 4. A briefcase badge flies from the event up to the reveal point between the
-  // spaces 5 and 4 labels and perches there with a little flip arrow, then leaves.
-  const badgeSpr = () => RR.sprite('s05:badge', 140, 140, () => {
-    RR.flat(RR.ellipsePts(75, 77, 58, 58, 30), RR.C.ink, 50);
-    RR.inkCircle(70, 70, 58, { fill: RR.C.white, w: 1.2 });
-    push(); translate(70, 70); RR.ICONS.briefcase(50, {}); pop();
-  }, { res: 1.5 });
-  const AR_W = 220, AR_H = 100, AR_P = [22, 18], AR_M = [110, 96], AR_Q = [198, 18];
-  const flipArrowSpr = () => RR.sprite('s05:fliparrow', AR_W, AR_H, () => {
-    const pts = [];
-    for (let i = 0; i <= 16; i++) pts.push(quad(AR_P, AR_M, AR_Q, (i / 16) * 0.94));
-    RR.inkLine(pts, { col: RR.C.ink, w: 4.2, curve: 0.5 });
-    RR.inkLine(pts, { col: RR.C.teal, w: 2.8, curve: 0.5 });
-    const e = AR_Q, d = quad(AR_P, AR_M, AR_Q, 0.9), a = Math.atan2(e[1] - d[1], e[0] - d[0]), L = 26;
-    RR.ink([[e[0] + Math.cos(a) * 6, e[1] + Math.sin(a) * 6], [e[0] - Math.cos(a - 0.5) * L, e[1] - Math.sin(a - 0.5) * L], [e[0] - Math.cos(a) * L * 0.6, e[1] - Math.sin(a) * L * 0.6], [e[0] - Math.cos(a + 0.5) * L, e[1] - Math.sin(a + 0.5) * L]], { fill: RR.C.teal, stroke: RR.C.ink, w: 0.9, curve: 0.05 });
-  }, { res: 1.5 });
+  // ---------------------------------------------------------------- rule demo inset (screen)
+  // The rulebook's example: with Corporate Relief in play, when Raccoon Burgers moves into
+  // space 4 and flips face up, a grey corporate vote cube goes on it at once. Drawn as a
+  // little two-space strip of queue in screen space; the real board does not change.
+  const IW = 640, IH = 416;                          // panel size (panel-local units = px)
+  const IPOS = [700, 246];                           // panel centre on screen (clear of the calendar pages)
+  const S5X = 170, S4X = 470, SY = 186, LY = 380;    // mini spaces 5 and 4, label row
+  const ICW = 220, ICK = ICW / 190;                  // card width in the inset, scale vs board
+  const insetSpr = () => RR.sprite('s05:inset', IW + 40, IH + 40, () => {
+    const o = 20;
+    RR.flat(RR.rrectPts(o + 8, o + 10, IW, IH, 28), RR.C.ink, 60);
+    RR.ink(RR.rrectPts(o, o, IW, IH, 28), { fill: RR.C.plum, stroke: RR.C.ink, w: 1.1, curve: 0.15 });
+    for (const [k, x] of [[5, S5X], [4, S4X]]) {
+      RR.ink(RR.rrectPts(o + x - 120, o + SY - 159, 240, 318, 16), { fill: k === 4 ? '#6d5a70' : '#5d4b60', stroke: RR.C.lilac, w: 0.7, curve: 0.2 });
+      RR.inkCircle(o + x, o + LY, 20, { fill: RR.C.lilac, stroke: false });
+      RR.text(String(k), o + x, o + LY + 11, { font: 'title', size: 32, col: RR.C.plumDark });
+    }
+    // the queue advances: space 5 moves up into space 4
+    RR.inkLine([[o + S5X + 44, o + LY], [o + S4X - 56, o + LY]], { col: RR.C.lilac, w: 1.2 });
+    RR.ink([[o + S4X - 36, o + LY], [o + S4X - 58, o + LY - 12], [o + S4X - 58, o + LY + 12]], { fill: RR.C.lilac, stroke: false, curve: 0 });
+  }, { res: 1.25 });
+  // the card's own briefcase icon, enlarged while it glows
+  const caseSpr = () => RR.sprite('s05:case', 120, 120, () => { push(); translate(60, 60); RR.ICONS.briefcase(50, {}); pop(); }, { res: 1.5 });
   const ringAt = (x, y, r, w, col, alpha) => {
     if (alpha <= 0 || r <= 0) return;
     const n = 40, pts = [];
@@ -200,32 +211,46 @@
     for (let i = n; i >= 0; i--) { const a = (i / n) * Math.PI * 2; pts.push([x + Math.cos(a) * (r - w / 2), y + Math.sin(a) * (r - w / 2)]); }
     RR.flat(pts, col, alpha);
   };
-  const BADGE = 124, FROM =[BD.story(0)[0], BD.story(0)[1] - 40], VIA = [820, 520];
-  const drawBriefcase = (t) => {
-    if (t < T_FIRE || t > T_BROUT + 0.3) return;
-    const [rx, ry] = REVEAL;
-    // flip arrow under the badge, from the space 5 label to the space 4 label
-    const ak = RR.seg(t, T_ARROW, T_ARROW + 0.22) * (1 - RR.seg(t, T_BROUT, T_BROUT + 0.2));
-    if (ak > 0) {
-      const k = RR.lerp(0.8, 1, RR.E.outBack(RR.seg(t, T_ARROW, T_ARROW + 0.22)));
-      RR.drawSprite(flipArrowSpr(), rx, ry + 24 - AR_P[1] + AR_H / 2, { w: AR_W * k, h: AR_H * k, alpha: ak });
-    }
-    const u = RR.seg(t, T_FIRE + 0.08, T_BRLAND, 'inOutCubic');
-    let [x, y] = quad(FROM, VIA, REVEAL, u);
-    let s = RR.pop(t, T_FIRE, 0.22), sx = 1, sy = 1, rot = 0.5 * Math.sin(Math.PI * u);
-    if (t >= T_BRLAND) {
-      const v = t - T_BRLAND;
-      const sq = v < 0.45 ? 0.28 * Math.exp(-v * 10) * Math.cos(v * 26) : 0;
-      sx = 1 + sq * 0.6; sy = 1 - sq;
-      y += 4 * Math.sin(v * 7) * RR.seg(v, 0.2, 0.4);
-      s *= 1 - RR.E.inBack(RR.seg(t, T_BROUT, T_BROUT + 0.26));
+  const drawInset = (t, cam) => {
+    if (t < IN0 || t > OUT1) return;
+    // springs out of the Corporate Relief card, pops away at the end
+    const ui = RR.seg(t, IN0, IN1), pe = RR.E.outCubic(ui), home = cardHome(cam);
+    const s = RR.lerp(0.12, 1, RR.E.outBack(ui)) * (1 - RR.E.inBack(RR.seg(t, OUT0, OUT1)));
+    if (s <= 0.01) return;
+    const a = RR.seg(t, IN0, IN0 + 0.08);
+    const cx = RR.lerp(home.x, IPOS[0], pe), cy = RR.lerp(home.y, IPOS[1], pe);
+    const P = (x, y) => [cx + (x - IW / 2) * s, cy + (y - IH / 2) * s];
+    RR.drawSprite(insetSpr(), cx, cy, { w: (IW + 40) * s, h: (IH + 40) * s, alpha: a });
+    // face-down Raccoon Burgers slides from space 5 into space 4, then flips face up
+    const us = RR.seg(t, SL0, SL1, 'inOutCubic'), fl = RR.seg(t, FL0, FL1, 'inOutSine');
+    const [kx, ky] = P(RR.lerp(S5X, S4X, us), SY - 18 * Math.sin(Math.PI * us));
+    const lift = Math.max(0.5 * Math.sin(Math.PI * us), 0.6 * Math.sin(Math.PI * fl));
+    RR.drawCard('burgers', kx, ky, { w: ICW * s, flip: fl, lift, lod: 'hi', alpha: a });
+    const k = ICK * s;
+    // its briefcase icon (bottom-left corner) glows
+    if (t >= GLOW) {
+      const bx = kx - 69 * k, by = ky + 106.5 * k;
+      const g = RR.env(t, GLOW, OUT1, 0.12, 0.2), pulse = 1 + 0.08 * Math.sin((t - GLOW) * 14);
+      for (let i = 3; i >= 1; i--) RR.flatEllipse(bx, by, (18 + i * 14) * k * pulse, (18 + i * 14) * k * pulse, RR.C.teal, 65 * g);
       for (let j = 0; j < 2; j++) {
-        const r = RR.seg(t, T_BRLAND + j * 0.14, T_BRLAND + j * 0.14 + 0.6);
-        if (r > 0 && r < 1) ringAt(rx, ry, 62 + 120 * RR.E.outCubic(r), 10 * (1 - r) + 3, RR.C.teal, 210 * (1 - r));
+        const r = RR.seg(t, GLOW + j * 0.14, GLOW + j * 0.14 + 0.55);
+        if (r > 0 && r < 1) ringAt(bx, by, (18 + 70 * RR.E.outCubic(r)) * k, (8 * (1 - r) + 2) * k, RR.C.teal, 220 * (1 - r));
       }
+      const grow = 1 + 1.6 * RR.E.outBack(RR.seg(t, GLOW, GLOW + 0.25));
+      const d = 33.6 * k * grow * pulse;   // at grow 1 the sprite's teal disc matches the icon
+      RR.drawSprite(caseSpr(), bx, by, { w: d, h: d });
+      RR.sparkle(bx, by, t, GLOW, { col: RR.C.teal, r: 80 * k, n: 7, size: 14, seed: 4, dur: 0.6 });
     }
-    if (s > 0.02) RR.drawSprite(badgeSpr(), x, y, { w: BADGE * s, h: BADGE * s, sx, sy, rot });
-    RR.sparkle(rx, ry, t, T_BRLAND, { col: RR.C.teal, r: 90, n: 8, size: 16, seed: 4 });
+    // a grey corporate vote cube drops onto it (where board votes sit, over the art window)
+    if (t >= CUBE) {
+      const u = RR.clamp((t - CUBE) / CUBE_D), H = 330;
+      const h = H * (1 - RR.E.outBounce(u)), hk = RR.clamp(h / H);
+      const c = u < 1 ? RR.clamp(1 - h / 12) * (1 - u) : 0;   // squash on contact
+      const [qx, qy] = P(S4X, SY + 38 * ICK), size = 60 * s;
+      RR.shadow(qx + size * 0.05, qy + size * 0.42, size * 0.42 * (1 - 0.5 * hk), size * 0.13 * (1 - 0.5 * hk), 30 * (1 - 0.6 * hk));
+      RR.drawCube(qx, qy - h * s + size * 0.2 * c, size, 'corp', { shadow: false, sx: 1 + 0.35 * c, sy: 1 - 0.35 * c, alpha: RR.seg(t, CUBE, CUBE + 0.06) });
+      RR.poof(qx, qy + size * 0.35, t, CUBE_HIT, { r: 26 * s, dur: 0.4 });
+    }
   };
 
   // ---------------------------------------------------------------- the Raccoon (world)
@@ -251,18 +276,22 @@
       if (t > 4.3 && t < 4.62) p.eyes = 'happy';
     }
     if (t >= T_BACK && t < T_FIRE) Object.assign(p, { look: [1, 0.2], mouth: 'o', brow: 'up', headTilt: -0.05 });
-    if (t >= T_FIRE) {
+    if (t >= T_FIRE) { // watches the rule demo up-left
       const k = RR.seg(t, T_FIRE, T_FIRE + 0.2, 'outBack');
-      Object.assign(p, { look: [0.6, -1], eyes: 'wide', mouth: 'open', brow: 'up', headTilt: 0.18 * k, armF: RR.lerp(0.35, 2.2, k), armB: RR.lerp(0.25, 2.0, k), ear: -1, squash: -0.1 * k, blink: 0 });
+      Object.assign(p, { look: [0.9, -0.45], eyes: 'wide', mouth: 'o', brow: 'up', headTilt: 0.12 * k, armF: RR.lerp(0.35, 1.5, k), armB: RR.lerp(0.25, 1.2, k), ear: 1, squash: -0.06 * k, blink: 0 });
+      if (t >= CUBE_HIT) { // a vote for Raccoon Burgers: uh-oh
+        const v = RR.seg(t, CUBE_HIT, CUBE_HIT + 0.2, 'outBack');
+        Object.assign(p, { mouth: 'frown', brow: 'worried', ear: -1, headTilt: -0.08, armF: RR.lerp(1.5, 0.3, v), armB: RR.lerp(1.2, 0.2, v), squash: 0.12 * Math.sin(Math.PI * RR.seg(t, CUBE_HIT, CUBE_HIT + 0.25)) });
+      }
     }
     return p;
   };
   const drawRac = (t, cam) => {
-    if (t < T_RAC || t > 6.6) return;
+    if (t < T_RAC || t > T_ROUT + 0.3) return;
     if (RR.toScreen(cam, [RAC[0], RAC[1] - 260])[1] > RR.H + 20) return;
-    const up = RR.seg(t, T_RAC, T_RAC + 0.36);
-    const y = RAC[1] + (1 - RR.E.outBack(up)) * 330;
-    if (up >= 1) RR.shadow(RAC[0], RAC[1] + 4, 66, 13, 45);
+    const up = RR.seg(t, T_RAC, T_RAC + 0.36), down = RR.E.inBack(RR.seg(t, T_ROUT, T_ROUT + 0.26));
+    const y = RAC[1] + (1 - RR.E.outBack(up)) * 330 + down * 360;   // pops up, later ducks out
+    if (up >= 1 && t < T_ROUT) RR.shadow(RAC[0], RAC[1] + 4, 66, 13, 45);
     RR.drawRaccoon(RAC[0], y, RS, racPose(t));
   };
 
@@ -326,10 +355,10 @@
       [1.72, 'boing', 0.7], [1.95, 'chitter', 0.6],
       [2.5, 'rattle', 0.35], [2.65, 'whoosh', 0.7], [2.85, 'flip'], [3.2, 'ding', 0.5],
       [3.55, 'pencil'], [3.95, 'chitter', 0.7],
-      [4.95, 'whoosh', 0.5], [5.4, 'deal'], [5.46, 'pop'], [5.48, 'sparkle', 0.5], [5.6, 'whoosh', 0.8],
-      [T_BRLAND, 'tock', 0.8], [T_BRLAND + 0.02, 'sparkle', 0.5], [T_ARROW, 'brush', 0.45],
-      [7.25, 'pop', 0.6], [7.6, 'hop'], [7.75, 'brush', 0.5], [8.1, 'hop'], [8.25, 'brush', 0.5],
-      [8.6, 'hop'], [8.75, 'brush', 0.5], [9.1, 'hop'], [9.3, 'whoosh', 0.4],
+      [4.95, 'whoosh', 0.5], [5.4, 'deal'], [IN0 + 0.01, 'pop'], [5.48, 'sparkle', 0.5], [IN0 + 0.05, 'whoosh', 0.6],
+      [SL0, 'slide', 0.6], [FL0 + 0.04, 'flip'], [GLOW, 'ding', 0.5], [GLOW + 0.02, 'sparkle', 0.5], [CUBE_HIT, 'tock', 0.9],
+      [T_FIG, 'pop', 0.6], [T_TURN[0], 'hop'], [T_TURN[0] + 0.15, 'brush', 0.5], [T_TURN[1], 'hop'], [T_TURN[1] + 0.15, 'brush', 0.5],
+      [T_TURN[2], 'hop'], [T_TURN[2] + 0.15, 'brush', 0.5], [T_TURN[3], 'hop'], [9.3, 'whoosh', 0.4],
     ],
     draw(t) {
       const cam = camAt(t);
@@ -338,24 +367,26 @@
         BD.drawState(st, { skip: { story: true } });
         drawCalendars(t);
         drawStory(t, st);
-        drawBriefcase(t);
       });
 
       // Beat 1: five rounds
       RR.banner('5 ROUNDS', t, 0.45, 2.55, { y: 862, size: 100, sub: '5 years each' });
 
-      // Beat 2: the Storyline Event close-up
-      const dim = RR.env(t, T_UP, T_LAND - 0.05, 0.4, 0.45);
-      if (dim > 0) RR.fadeScreen(dim * 0.5);
+      // Beat 2: the Storyline Event close-up; beat 3: the rule demo inset (both dim the board)
+      const dim = Math.max(0.5 * RR.env(t, T_UP, T_LAND - 0.05, 0.4, 0.45), 0.3 * RR.env(t, IN0, OUT1, 0.25, 0.22));
+      if (dim > 0) RR.fadeScreen(dim);
       RR.withCam(cam, () => drawRac(t, cam));
       const fc = flyCard(t, cam);
       if (fc) drawFlyCard(t, fc);
       RR.caption('Each round starts with a Storyline Event', t, 3.0, 5.0);
       RR.caption('It changes the rules', t, 3.6, 5.2, { x: 1655, y: 665, size: 50 });
+      drawInset(t, cam);
+      RR.caption('Corporate policy revealed?', t, FL0 + 0.04, OUT0 + 0.2, { x: 1420, y: 250, size: 56 });
+      RR.caption('+1 grey vote', t, CUBE_HIT, OUT0 + 0.2, { x: 1420, y: 376, size: 60 });
 
       // Beat 4: turn order
       drawTurns(t);
-      RR.caption('Then everyone takes a turn', t, 7.5, 9.45, { y: 985 });
+      RR.caption('Then everyone takes a turn', t, 7.75, 9.45, { y: 985 });
     },
   });
 })();

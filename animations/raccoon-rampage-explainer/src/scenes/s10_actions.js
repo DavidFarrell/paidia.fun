@@ -106,13 +106,14 @@
   // An Animal Rights hand tries to play it during France's turn. It is a YOUR MAIN PHASE card,
   // so only the active player may play it: the line lights up, NOT YOUR TURN, the hand pulls back.
   const CE = { rise: 6.5, show: 7.0, hl: 7.4, stamp: 8.0, back: 8.6, gone: 9.1 };
+  const HIT = CE.stamp + 0.2;   // the stamp hits the card (RR.stamp's slam takes 0.22 s)
   const celebAt = (t) => {
     const rise = RR.kf(t, [[CE.rise, 560], [CE.rise + 0.45, 0, 'outBack']]);
     const u = RR.seg(t, CE.show, CE.show + 0.4, 'outBack');          // lifted up towards the queue
     const v = RR.seg(t, CE.show, CE.show + 0.4, 'outCubic');
-    const flinch = RR.env(t, CE.stamp + 0.05, CE.back, 0.08, 0.3);   // recoils from the stamp
+    const flinch = RR.env(t, HIT, CE.back, 0.08, 0.3);               // recoils from the stamp's impact
     const back = RR.seg(t, CE.back, CE.gone, 'inCubic');               // ...and is pulled back down
-    const [kx, ky] = RR.shake(t, CE.stamp + 0.2, 0.35, 9);
+    const [kx, ky] = RR.shake(t, HIT, 0.35, 9);
     const x = RR.lerp(1700, 1590, u) + kx + 26 * flinch + 90 * back;
     const y = RR.lerp(830, 545, v) + rise + ky + 34 * flinch + 820 * back + Math.sin(t * 2.2) * 4;
     const w = RR.lerp(200, 420, u) * (1 - 0.25 * back);
@@ -159,7 +160,7 @@
       [3.0, 'pop', 0.6], [3.1, 'pop', 0.6], [3.2, 'whoosh', 0.6], [3.3, 'paper'], [3.9, 'tick'], [3.95, 'tick'],
       [LIFT, 'whoosh'], [4.25, 'buzz', 0.6], [4.6, 'whoosh', 0.4], [L_CORP, 'tock'], [L_FR, 'tock'], [5.95, 'whoosh', 0.4],
       [6.3, 'whoosh'], [CE.rise + 0.05, 'slide', 0.6], [CE.show, 'paper', 0.6], [CE.show + 0.1, 'flip'], [CE.hl, 'pencil'],
-      [CE.stamp + 0.2, 'stamp'], [CE.stamp + 0.24, 'buzz', 0.7], [CE.back + 0.2, 'whoosh', 0.5],
+      [HIT, 'stamp'], [HIT + 0.04, 'buzz', 0.7], [CE.back + 0.2, 'whoosh', 0.5],
       [9.45, 'boing'], [9.7, 'chitter'], [10.2, 'whoosh', 0.6], [10.45, 'chitter'], [11.05, 'hop'],
     ],
     draw(t) {
@@ -242,12 +243,15 @@
         const h = (c.w * RR.CARD_H) / RR.CARD_W;
         RR.drawCard('celeb', c.x, c.y, { w: c.w, rot: c.rot, flip: c.flip, lift: 0.7 });
         // 'YOUR MAIN PHASE:' lights up (gold), then turns red once stamped
-        highlight(c.x, c.y, c.w, c.rot, 0.7, 20, 212, 67, t < CE.stamp + 0.2 ? RR.C.gold : RR.C.red, RR.seg(t, CE.hl, CE.hl + 0.35, 'inOutQuad'));
+        highlight(c.x, c.y, c.w, c.rot, 0.7, 20, 212, 67, t < HIT ? RR.C.gold : RR.C.red, RR.seg(t, CE.hl, CE.hl + 0.35, 'inOutQuad'));
         // the pink hand grips the bottom of the card
         const grip = [c.x - Math.sin(c.rot) * h * 0.44, c.y + Math.cos(c.rot) * h * 0.44];
         sleeve(grip, [0.1 + c.rot * 0.3, 0.99], 480, RR.C.ar, RR.C.arDark, RR.PEOPLE.ar.skin, 42);
-        // NOT YOUR TURN slams onto the card and leaves with it (scaled with the card, one cached sprite)
-        push(); translate(c.x - Math.sin(c.rot) * h * -0.08, c.y - Math.cos(c.rot) * h * 0.08); scale(c.w / 420);
+        // NOT YOUR TURN slams onto the card and leaves with it (scaled with the card, one cached sprite).
+        // RR.stamp starts the slam at 2.4x, which would overhang the right edge of the frame here,
+        // so the same eased progress trims the start to 1.6x (still exactly 1x on impact).
+        const sk = RR.seg(t, CE.stamp, CE.stamp + 0.22, 'inQuad');
+        push(); translate(c.x - Math.sin(c.rot) * h * -0.08, c.y - Math.cos(c.rot) * h * 0.08); scale((c.w / 420) * RR.lerp(1.6 / 2.4, 1, sk));
         RR.stamp('NOT YOUR TURN', 0, 0, t, CE.stamp, { kind: 'fail', size: 58, rot: -0.2 + c.rot });
         pop();
       }

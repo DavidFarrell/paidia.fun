@@ -24,12 +24,15 @@
   // (marker, the pile of raccoons, the Raccoon's cackle) plays backwards to just before it.
   const SCR = 9.3, FRZ = 9.4, RWE = 9.82, REW_TO = 6.3;
   // Then raccoons leave the map one at a time; each removal moves the marker one space
-  // towards the green (7 removals: 0 to -7).
+  // towards the green (7 removals: 0 to -7). About 0.2 s per step (easing slightly faster),
+  // so each token visibly hops off and poofs, then the marker steps right after it.
   const REMOVED = [['fr', 4], ['fr', 3], ['fr', 2], ['de', 9], ['de', 8], ['de', 7], ['de', 6]];
-  const REM = [9.86, 9.99, 10.11, 10.22, 10.32, 10.42, 10.52];    // token j starts to lift off
-  const REM_LIFT = 0.09, STEP_D = 0.1;                            // lift before the poof; marker hop
-  const GREEN_T = REM[6] + REM_LIFT + STEP_D;                     // marker lands on -7
-  const STORM = [10.95, 11.35];                                   // the Raccoon storms off (gone before the scores)
+  const REM = [9.86, 10.07, 10.27, 10.47, 10.66, 10.85, 11.03];   // token j starts to lift off
+  const REM_LIFT = 0.09, STEP_D = 0.11;                           // lift before the poof; marker hop
+  const GREEN_T = REM[6] + REM_LIFT + STEP_D;                     // marker lands on -7 (11.23)
+  // The Raccoon gives up after the fifth raccoon goes, sulks, then storms off while the last
+  // two leave (off screen by ~11.2, before the scores slide in).
+  const SULK = REM[4] + REM_LIFT, STORM = [11.0, 11.32];
   // A second, lighter rewind resets the demo to SETUP (tokens back, marker to neutral).
   const HOME = [13.15, 13.55];
   const HOME_FROM = GREEN_T + 0.08, HOME_TO = REM[0] - 0.04;
@@ -46,7 +49,7 @@
   const camAt = (t) => {
     if (t < 2.8) return RR.lerpCam(MAPCAM, FULL, pullEase(RR.clamp(t / 2.8)));
     return RR.camKf(t, [[2.8, FULL], [5.15, SETCAM, 'inOutSine'], [6.25, T1, 'inOutCubic'], [8.1, T2, 'inOutSine'],
-      [9.8, T2], [10.35, T3, 'inOutCubic'], [10.8, T3], [12.3, FULL, 'inOutCubic']]);
+      [9.8, T2], [10.75, T3, 'inOutCubic'], [11.2, T3], [12.3, FULL, 'inOutCubic']]);
   };
 
   // ---- board sections flying in (0-2.4 s)
@@ -406,16 +409,15 @@
       if (tr < REM[0]) {                  // "wait, what?"
         const u = RR.seg(tr, RWE, RWE + 0.14, 'outBack');
         Object.assign(P, { mouth: 'flat', eyes: 'wide', brow: 'up', headTilt: -0.14 * u, armF: 0.55, armB: 0.4, ear: 1, squash: squashAfter(tr, RWE, 0.14, 0.18) });
-      } else if (tr < GREEN_T) {          // flinches at every raccoon that vanishes
+      } else if (tr < SULK) {             // flinches at every raccoon that vanishes
         const [k, i] = REMOVED[jNow], s = B.SPOTS[k][i];
         lookAt(s[0], s[1] - 50);
         const u = RR.seg(tr, REM[0], REM[0] + 0.14, 'outBack');
         Object.assign(P, { mouth: 'o', eyes: 'wide', brow: 'worried', armF: RR.lerp(0.55, 1.9, u), armB: RR.lerp(0.4, 1.7, u), lean: -0.06, ear: -1, tailUp: 0.2, headTilt: 0.05 * Math.sin(tr * 13) });
         for (const r of REM) P.squash += squashAfter(tr, r + REM_LIFT, 0.13, 0.12);
-      } else if (tr < STORM[0] - 0.07) {  // the marker is in the green: sulks
-        const u = RR.seg(tr, GREEN_T, GREEN_T + 0.2, 'outCubic');
+      } else if (tr < STORM[0] - 0.07) {  // the marker is heading for the green: sulks
+        const u = RR.seg(tr, SULK, SULK + 0.16, 'outCubic');
         Object.assign(P, { mouth: 'frown', brow: 'worried', armF: RR.lerp(1.9, 0.12, u), armB: RR.lerp(1.7, 0.05, u), squash: 0.1 * u, headTilt: 0.16 * u, ear: -1, tailUp: 0 });
-        if (tr > GREEN_T + 0.3) P.look = [0.4, 0.7];
       } else {                            // storms off to the right
         face = 1;
         const u = RR.seg(tr, STORM[0], STORM[1], 'inQuad');
@@ -514,7 +516,7 @@
       [SCR, 'scratch', 0.9], [FRZ + 0.02, 'whoosh', 0.55], [RWE, 'tock', 0.6],
       ...REM.map((r, j) => [r + REM_LIFT, 'poof', 0.32 + j * 0.03]),
       ...REM.map((r, j) => [r + REM_LIFT + STEP_D, 'tick', 0.5 + j * 0.05]),
-      [GREEN_T, 'sparkle', 0.9], [GREEN_T + 0.03, 'ding', 0.8], [GREEN_T + 0.15, 'sad', 0.6],
+      [SULK + 0.02, 'sad', 0.6], [GREEN_T, 'sparkle', 0.9], [GREEN_T + 0.03, 'ding', 0.8],
       [STORM[0], 'whoosh', 0.5], [11.22, 'slide', 0.6], [11.36, 'drumroll', 0.7], [CROWN_T, 'ding', 0.9], [CROWN_T + 0.05, 'cheer', 0.6],
       [12.35, 'brush', 0.7], [HOME[0] - 0.03, 'whoosh', 0.45], [13.2, 'slide', 0.4], [HOME[1], 'tock', 0.7],
     ],
@@ -536,7 +538,7 @@
         translate(-RR.W / 2, -RR.H / 2);
       }
       RR.withCam(cam, () => {
-        const dim = RR.env(t, 5.3, 11.55, 0.7, 0.6);
+        const dim = RR.env(t, 5.3, 12.0, 0.7, 0.6);   // lifts as the Raccoon storms off
         drawBoard(t, dim <= 0);
         if (dim > 0) {
           dimAround(dim);

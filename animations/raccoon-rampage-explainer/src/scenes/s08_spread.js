@@ -71,7 +71,7 @@
     const pts = RR.rrectPts(12, 12, 76, 76, 14, 3);
     for (let i = 0; i < pts.length; i += 2) RR.inkLine([pts[i], pts[(i + 1) % pts.length]], { col: C.plumMid, w: 1.3 });
   }, { res: 2 });
-  const LABEL_SIZE = 44;
+  const LABEL_SIZE = 56;   // ~52 px on screen at the DEAL zoom (0.93)
   // SPREAD! ribbon and FAILED stamp, painted once (same look as RR.banner / RR.stamp).
   const BAN = { text: 'SPREAD!', size: 120, y: 150 };
   const bannerSpr = () => {
@@ -118,9 +118,9 @@
   };
   const labelSpr = (txt) => {
     const tw = RR.textWidth(txt, { font: 'title', size: LABEL_SIZE });
-    const w = Math.ceil(tw + 44), h = 70;
-    return RR.sprite('s08:label:' + txt, w, h, () => {
-      RR.ink(RR.rrectPts(4, 6, w - 8, h - 12, 12), { fill: C.white, w: 0.9, curve: 0.15 });
+    const w = Math.ceil(tw + LABEL_SIZE), h = Math.ceil(LABEL_SIZE * 1.6);
+    return RR.sprite('s08:label:' + LABEL_SIZE + ':' + txt, w, h, () => {
+      RR.ink(RR.rrectPts(4, 7, w - 8, h - 14, 14), { fill: C.white, w: 0.9, curve: 0.15 });
       RR.text(txt, w / 2, h / 2 + LABEL_SIZE * 0.36, { font: 'title', size: LABEL_SIZE, col: C.plumDark });
     }, { res: 2 });
   };
@@ -314,7 +314,8 @@
   // ---------------------------------------------------------------- spread cards
   const PILE = { fr: [690, 882], de: [1012, 560], roe: [1622, 790] };
   // GERMANY's label sits on the map (Skagerrak, just off Germany's north coast), clear of the queue rail.
-  const LABELS = [['fr', 'FRANCE', [690, 726], 10.12], ['de', 'GERMANY', [1200, 488], 10.34], ['roe', 'REST OF EUROPE', [1622, 630], 10.56]];
+  // Positions keep the bigger labels clear of the piles (also mid-flip) and of the map's squares.
+  const LABELS = [['fr', 'FRANCE', [690, 708], 10.12], ['de', 'GERMANY', [1232, 488], 10.34], ['roe', 'REST OF EUROPE', [1606, 540], 10.56]];
   const LABELS_OUT = 18.35;
   const CW = 140, DEAL_DUR = 0.42;
   const DEALT = [
@@ -372,6 +373,13 @@
 
   const drawSpread = (t) => {
     if (t < 9.65 || t > 22.9) return;
+    // labels (under the cards, so dealt or flipping cards are never covered)
+    for (const [, txt, pos, t0] of LABELS) {
+      const sc = RR.pop(t, t0, 0.35), a = 1 - seg(t, LABELS_OUT, LABELS_OUT + 0.3);
+      if (sc <= 0.01 || a <= 0) continue;
+      const spr = labelSpr(txt);
+      RR.drawSprite(spr, pos[0], pos[1], { w: spr.w * sc, h: spr.h * sc, alpha: a, rot: RR.hrange(txt.length, -0.03, 0.03) });
+    }
     // cards
     for (const c of DEALT) {
       if (!cardVisible(c, t)) continue;
@@ -408,13 +416,6 @@
     for (let i = 0; i < 3; i++) {
       const z0 = 14.8 + i * 0.18, k = seg(t, z0, z0 + 0.8);
       if (k > 0 && k < 1) RR.text('z', 712 + k * 50 + i * 8 + Math.sin(k * 6) * 5, 918 - k * 80 - i * 6, { font: 'bold', size: 26 + i * 8, col: C.plumDark, alpha: Math.sin(Math.PI * k) });
-    }
-    // labels
-    for (const [, txt, pos, t0] of LABELS) {
-      const sc = RR.pop(t, t0, 0.35), a = 1 - seg(t, LABELS_OUT, LABELS_OUT + 0.3);
-      if (sc <= 0.01 || a <= 0) continue;
-      const spr = labelSpr(txt);
-      RR.drawSprite(spr, pos[0], pos[1], { w: spr.w * sc, h: spr.h * sc, alpha: a, rot: RR.hrange(txt.length, -0.03, 0.03) });
     }
     // new tokens fly from the cards onto the map
     for (const f of FLY) {

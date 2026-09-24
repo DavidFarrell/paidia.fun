@@ -1,5 +1,6 @@
 // Scene 11 (152-168 s): end of the game.
-// Calendar pages flutter past (time passes), the last three storyline events flip,
+// Opens on s10's closing board (STATES.S10, FULL); calendar pages flutter past (time passes)
+// and hide the jump to STATES.END, the last three storyline events flip,
 // the four face-up policies get one last vote (passes resolve, fails are simply
 // discarded: no spread), then the tracker check. Red: the raccoons party and everyone
 // loses... record scratch, rewind. Green: the scores count up and the Animal Rights
@@ -22,6 +23,9 @@
   // 1/3 fails. Tokens DE 9, FR 6, rest 9; tracker +4.
   const S0 = B.clone(B.STATES.END);
   const QUEUE = S0.queue;
+  // The scene opens on s10's closing board (STATES.S10 at FULL, pixel for pixel) and jumps to
+  // END only once the falling calendar pages cover the queue row (the only part that changes).
+  const S10 = B.STATES.S10, SWAP = 0.3;
 
   // ---------------------------------------------------------------- timings
   const FLIPS = { 2: ['bigfarm', 0.95], 3: ['freetrade', 1.4], 4: ['burns', 1.85] };
@@ -33,8 +37,14 @@
   ];
   const VERDICT = 0.28, DISCARD = 0.46;
   // token index -> time it leaves: Sterilisation (k2) takes the last Rest-of-Europe raccoon,
-  // then Raccoon Land (k3) mitigates the last German raccoon and the next Rest-of-Europe one
-  const REMOVE = { roe: { [S0.tokens.roe - 1]: 4.0, [S0.tokens.roe - 2]: 4.86 }, de: { [S0.tokens.de - 1]: 4.64 } };
+  // then Raccoon Land (k3) mitigates the last German raccoon and the next Rest-of-Europe one.
+  // Outcome B (after the rewind): four more raccoons leave, one per tracker step (+1 to -3).
+  const { de: DE0, fr: FR0, roe: ROE0 } = S0.tokens;
+  const REMOVE = {
+    roe: { [ROE0 - 1]: 4.0, [ROE0 - 2]: 4.86, [ROE0 - 3]: 10.44, [ROE0 - 4]: 11.04 },
+    de: { [DE0 - 1]: 4.64, [DE0 - 2]: 10.84 },
+    fr: { [FR0 - 1]: 10.64 },
+  };
   const STEPS = [[4.12, 4, 3], [4.74, 3, 2], [4.97, 2, 1]];            // tracker steps [start, from, to]
   const STEPS_B = [[10.55, 1, 0], [10.75, 0, -1], [10.95, -1, -2], [11.15, -2, -3]];
   const SCR = 9.6, FRZ = 9.72, RWE = 10.15;                             // record scratch, freeze end, rewind end
@@ -173,6 +183,14 @@
     return u < 0.35 ? 1 + 0.5 * RR.E.outQuad(u / 0.35) : 1.5 * (1 - RR.E.inQuad((u - 0.35) / 0.65));
   });
   const tokenPos = (kind, i) => (kind === 'roe' ? B.SQUARES[i].pos : B.SPOTS[kind][i]);
+  // Dark tray under a card's vote cubes (same layout as B.cubesOnCard at size 32), so the
+  // cubes read against the busy card art (Raccoon Land's yellow sign under three German votes).
+  const voteTray = (n, a = 1) => {
+    const rows = Math.ceil(n / 3), cols = Math.min(3, n);
+    const hw = (cols - 1) * 18.4 + 25 + (rows > 1 ? 3 : 0);
+    const top = 38 - (rows - 1) * 28.8 - 25;
+    RR.flat(RR.rrectPts(-hw, top, 2 * hw, 62 - top, 14), C.plumDark, 125 * a);
+  };
 
   // ---------------------------------------------------------------- board pieces
   const drawStory = (t) => {
@@ -228,19 +246,23 @@
       }
       push(); translate(x, y); if (rot) rotate(rot);
       RR.drawCard(c.id, 0, 0, { w: 190, flip: c.k <= 4 ? 1 : 0, lift, glow, alpha });
-      if (c.votes && c.votes.length) B.cubesOnCard(0, 0, c.votes, { size: 32, pop: pops });
+      if (c.votes && c.votes.length) {
+        voteTray(c.votes.length, alpha);
+        B.cubesOnCard(0, 0, c.votes, { size: 32, pop: pops });
+      }
       if (ev && t >= ev.t0 + VERDICT) {
+        // over the title and text, clear of the votes and the cost, so "5 votes, cost 5, tick" reads
         const k = RR.pop(t, ev.t0 + VERDICT, 0.3);
         const settle = ev.pass ? RR.seg(t, ev.t0 + 0.8, ev.t0 + 1.1, 'inOutCubic') : 0;
-        const s = 124 * k * RR.lerp(1, 0.78, settle);
-        RR.drawSprite(markSpr(ev.pass), 0, RR.lerp(-6, 58, settle), { w: s, h: s, rot: -0.12, alpha });
+        const s = 116 * k * RR.lerp(1, 0.86, settle);
+        RR.drawSprite(markSpr(ev.pass), -4, -66, { w: s, h: s, rot: -0.12, alpha });
       }
       pop();
       if (ev && ev.pass) RR.sparkle(x0, y0 - 10, t, ev.t0 + VERDICT, { r: 150, n: 10, size: 22 });
     }
   };
   const drawTokens = (t) => {
-    B.drawTokens(S0.tokens, { pop: { de: tokenPop(t, 'de', S0.tokens.de), fr: undefined, roe: tokenPop(t, 'roe', S0.tokens.roe) } });
+    B.drawTokens(S0.tokens, { pop: { de: tokenPop(t, 'de', DE0), fr: tokenPop(t, 'fr', FR0), roe: tokenPop(t, 'roe', ROE0) } });
     for (const kind in REMOVE) for (const i in REMOVE[kind]) {
       const [x, y] = tokenPos(kind, +i);
       RR.poof(x, y - 4, t, REMOVE[kind][i] + 0.12, { r: 46 });
@@ -383,18 +405,27 @@
   };
 
   // ---------------------------------------------------------------- overlays
+  // Calendar pages fall through the frame (time passes). On the first frame only the first few
+  // are peeking in at the top of s10's closing board; by SWAP the queue row (screen x 1000-1556,
+  // y 98-290) is fully covered for frames 7-9 (two big pages at x 1150 and 1440 plus their
+  // neighbours), so the jump from STATES.S10 to END never shows. Clear of the frame by ~0.9 s.
+  // [start, x, scale, rot, spin, phase]
+  const PAGE_D = 0.62;
+  const PAGES = [
+    [-0.08, 330, 1.1, 0.3, -1.6, 0.0], [-0.05, 1690, 1.15, -0.25, 1.8, 1.0], [-0.02, 880, 1.0, 0.1, 2.2, 2.0],
+    [0.03, 1250, 1.2, -0.12, -1.2, 3.0], [0.05, 90, 1.05, 0.35, 1.4, 4.0], [0.08, 1080, 1.2, 0.15, 0.8, 5.0], [0.1, 1500, 1.25, -0.2, -0.9, 0.5],
+    [0.12, 560, 1.1, -0.3, 2.0, 1.5], [0.15, 1150, 1.3, 0.06, 0.6, 2.5], [0.165, 1440, 1.3, -0.08, -0.6, 3.5], [0.18, 1860, 1.1, 0.4, 1.9, 4.5],
+    [0.2, 320, 1.15, -0.2, -2.2, 5.5], [0.22, 1290, 1.25, 0.12, 1.0, 0.2], [0.24, 780, 1.1, -0.35, 1.7, 1.2], [0.25, 1010, 1.2, 0.2, -1.0, 2.2],
+    [0.27, 1620, 1.15, -0.3, 1.3, 3.2], [0.3, 140, 1.0, 0.25, -1.5, 4.2], [0.32, 1120, 1.1, -0.15, 2.1, 5.2], [0.34, 1780, 1.2, 0.3, -1.8, 0.7], [0.36, 600, 1.05, 0.1, 1.2, 1.7],
+  ];
   const drawPages = (t) => {
-    if (t > 0.75) return;
-    for (let i = 0; i < 18; i++) {
-      const t0 = -0.32 + i * 0.03 + RR.hr(i + 40) * 0.03;
-      const u = (t - t0) / 0.48;
-      if (u <= 0 || u >= 1) continue;
-      const x0 = ((i * 0.618 + 0.1) % 1) * 2100 - 90;
-      const x = x0 + RR.hrange(i + 50, -160, 160) * u + Math.sin(u * 6 + i) * 40;
-      const y = -300 + u * 1700;
-      const s = RR.hrange(i + 55, 0.95, 1.3);
-      RR.drawSprite(pageSpr(i % 4), x, y, { w: 300 * s, h: 360 * s * (0.75 + 0.25 * Math.cos(u * 9 + i)), rot: RR.hrange(i + 45, -0.5, 0.5) + u * RR.hrange(i + 47, -2.5, 2.5) });
-    }
+    if (t > 1.0) return;
+    PAGES.forEach(([t0, x0, s, r0, spin, ph], i) => {
+      const u = (t - t0) / PAGE_D;
+      if (u <= 0 || u >= 1) return;
+      const x = x0 + Math.sin(u * 5 + ph) * 40, y = -260 + u * 1760;
+      RR.drawSprite(pageSpr(i % 4), x, y, { w: 300 * s, h: 360 * s * (0.82 + 0.18 * Math.cos(u * 8 + ph)), rot: r0 + u * spin });
+    });
   };
   const drawRewind = (t) => {
     const rw = RR.env(t, SCR, RWE + 0.08, 0.04, 0.12);
@@ -414,6 +445,36 @@
     }
   };
 
+  // Closing plum wipe, left to right (s12 uncovers with its trailing edge moving the same way).
+  // RR.wipe's painted bands, but each band travels far past the right edge so its tip is still
+  // moving fast as it crosses the frame, and the middle bands (the scoreboard) lead while the
+  // outer ones follow: no bright scrap is left floating on the dark board. A darker rim runs
+  // just ahead of each tip so the strokes read over the plum board too. Fully plum from WIPE_END.
+  const WIPE_T = 14.8, WIPE_D = 0.62, WIPE_DELAY = [0.07, 0.02, 0, 0.03, 0.08, 0.12];
+  const WIPE_END = WIPE_T + Math.max(...WIPE_DELAY) + WIPE_D;
+  const plumWipe = (t) => {
+    if (t < WIPE_T) return;
+    if (t >= WIPE_END) { RR.fadeScreen(1, C.plumDark); return; }
+    const W = RR.W, H = RR.H, bands = WIPE_DELAY.length;
+    const shapes = [];
+    for (let i = 0; i < bands; i++) {
+      const k = RR.seg(t, WIPE_T + WIPE_DELAY[i], WIPE_T + WIPE_DELAY[i] + WIPE_D, 'inOutSine');
+      if (k <= 0) continue;
+      const y0 = (i / bands) * H - 40, y1 = ((i + 1) / bands) * H + 40;
+      const xa = -260, xb = -260 + k * (W + 1200);
+      const capW = RR.hrange(i * 50, 60, 85), cap = (s) => capW * RR.hrange(i * 50 + s, 0.92, 1.05);
+      const pts = [];
+      const N = 8, M = 12;
+      for (let j = 0; j <= N; j++) pts.push([xa + (xb - xa) * (j / N), y0 + RR.hrange(i * 30 + j, -18, 18)]);
+      for (let j = 1; j < M; j++) pts.push([xb + cap(j) * Math.sin((Math.PI * j) / M), y0 + ((y1 - y0) * j) / M]);
+      for (let j = N; j >= 0; j--) pts.push([xa + (xb - xa) * (j / N), y1 + RR.hrange(i * 30 + j + 15, -18, 18)]);
+      for (let j = 1; j < M; j++) pts.push([xa - cap(j + 20) * Math.sin((Math.PI * j) / M), y1 - ((y1 - y0) * j) / M]);
+      shapes.push(pts);
+    }
+    for (const pts of shapes) RR.flat(pts.map(([x, y]) => [x + 16, y + 5]), '#271f2c', 255);
+    for (const pts of shapes) RR.flat(pts, C.plumDark, 255);
+  };
+
   // ---------------------------------------------------------------- scene
   RR.scene({
     id: 's11_endgame', order: 11, dur: 16, music: 'endgame',
@@ -424,10 +485,12 @@
       [4.3, 'tick', 0.5], [4.58, 'ding'], [4.74, 'poof'], [4.94, 'tock'], [4.96, 'poof'], [5.17, 'tock'],
       [5.1, 'tick', 0.5], [5.38, 'buzz'], [5.72, 'whoosh', 0.35],
       [6.0, 'whoosh', 0.5], [6.45, 'tock'], [6.6, 'sad'], [6.95, 'pop'], [7.1, 'pop'], [7.25, 'pop'], [7.3, 'chitter'], [7.5, 'crumple', 0.6], [8.5, 'chitter', 0.7],
-      [9.6, 'scratch'], [10.4, 'tock', 0.6], [10.75, 'tock'], [10.95, 'tock'], [11.15, 'tock'], [11.35, 'tock'], [11.42, 'ding'],
+      [9.6, 'scratch'], [10.4, 'tock', 0.6],
+      [10.54, 'poof', 0.8], [10.74, 'poof', 0.8], [10.75, 'tock'], [10.94, 'poof', 0.8], [10.95, 'tock'], [11.14, 'poof', 0.8], [11.15, 'tock'], [11.35, 'tock'], [11.42, 'ding'],
       [11.6, 'slide'], [11.95, 'drumroll'], [13.05, 'cheer'], [13.1, 'sparkle'], [14.8, 'whoosh'],
     ],
     draw(t) {
+      if (t >= WIPE_END) { plumWipe(t); return; }   // covered: s12 uncovers from here
       const tA = aTime(t);
       // camera
       let cam = RR.camKf(t, [[0, FULL], [0.7, FULL], [2.3, SF, 'inOutSine'], [2.95, EF], [5.95, EF], [6.6, TC], [10.3, TC], [11.35, TCB], [11.6, TCB], [12.4, TC]]);
@@ -443,7 +506,8 @@
         translate(-RR.W / 2, -RR.H / 2);
       }
       RR.withCam(cam, () => {
-        B.drawState(S0, { lod: 'hi', skip: { story: true, tracker: true, queue: true, deck: true, tokens: true } });
+        if (t < SWAP) { B.drawState(S10); return; }   // exactly s10's last frame, under the pages
+        B.drawState(S0, { skip: { story: true, tracker: true, queue: true, deck: true, tokens: true } });
         drawStory(t);
         drawDeck(t);
         drawTokens(t);
@@ -472,10 +536,8 @@
 
       drawRewind(t);
       drawPages(t);
-      // ink wipe to the finale: fully plum by the last frames
-      const w = RR.seg(t, 14.8, 15.85);
-      RR.wipe(w, { dir: 1 });
-      if (w >= 1) RR.fadeScreen(1, C.plumDark);
+      // ink wipe to the finale: fully plum from WIPE_END (15.54 s)
+      plumWipe(t);
     },
   });
 })();
