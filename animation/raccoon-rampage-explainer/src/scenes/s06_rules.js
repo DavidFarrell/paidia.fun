@@ -174,7 +174,8 @@ scene({
     const Z = kf(f, [[0, 1.25], [30, 0.95, E.io], [136, 0.95], [166, 0.8, E.io], [246, 0.8], [276, 0.95, E.io], [400, 0.95], [440, 0.7, E.io]]);
     const shake = f > 418 && f < 450 ? Math.sin(f * 2.1) * 10 * (1 - seg(f, 418, 450)) : 0;
     const bigX = 1480, bigY = 450, bigS = 2.1, bigW = CARD_W * bigS;
-    const up1 = ez(f, 4, 30, E.outBack) * (1 - ez(f, 244, 262, E.inQ));
+    // the passed card stays big until it flies away at f 244 (drawn separately)
+    const up1 = f < 244 ? ez(f, 4, 30, E.outBack) : 0;
     const pass = seg(f, 96, 110);
     // the two raccoons mitigated from Germany go to the German player's score
     const toks = startTokens();
@@ -270,7 +271,7 @@ scene({
         cube(px, py, 30, PAL.pink, 1430);
       }
     }
-    if (f > 244 && f < 268) {
+    if (f >= 244 && f < 268) {
       const t = seg(f, 244, 268);
       card({ ...QUEUE0[1], x: bigX + t * 800, y: bigY - Math.sin(t * Math.PI) * 120, w: bigW, h: CARD_H * bigS, rot: t * 0.6, stamp: 'pass', seed: 63 });
       cue('whoosh', 246, 0.5);

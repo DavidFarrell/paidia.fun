@@ -59,6 +59,15 @@ ffmpeg -y -i out/video_silent.mp4 -i out/audio.wav -c:v copy -c:a aac -b:a 192k 
 
 Or run everything at once with `npm run build` (`tools/make.sh`).
 
+A smaller copy for sharing (about 27 MB at 1080p) with a two-pass encode:
+
+```bash
+cd out
+ffmpeg -i raccoon-rampage-how-to-play.mp4 -c:v libx264 -preset slow -tune animation -b:v 1180k -pass 1 -an -f null /dev/null
+ffmpeg -i raccoon-rampage-how-to-play.mp4 -c:v libx264 -preset slow -tune animation -b:v 1180k -pass 2 \
+  -c:a aac -b:a 128k -movflags +faststart raccoon-rampage-how-to-play-1080p.mp4
+```
+
 Review helpers: `python3 tools/review.py sheets <video> out/review` writes contact sheets
 at one frame per second, and `python3 tools/review.py motion <video>` lists sudden jumps
 between frames. `node tools/timeline.mjs` writes `out/timeline.json` without rendering.
