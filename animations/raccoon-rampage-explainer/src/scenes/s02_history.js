@@ -1,9 +1,15 @@
-// PLACEHOLDER - scene 2: How it started. See STORYBOARD.md.
-RR.scene({
-  id: 's02_history', order: 2, dur: 12,
-  cues: [],
-  draw(t) {
-    RR.text('How it started', RR.W / 2, RR.H / 2, { font: 'title', size: 90, col: RR.C.plum });
-    RR.text('placeholder ' + t.toFixed(1) + ' s', RR.W / 2, RR.H / 2 + 90, { size: 44 });
-  },
-});
+// Scene 2 (10-22 s): how it started. DRAFT
+(() => {
+  RR.scene({
+    id: 's02_history', order: 2, dur: 12, music: 'history',
+    cues: [],
+    draw(t) {
+      const B = RR.board;
+      const ed = B.lonlat(9.05, 51.18);
+      const cam = t < 6 ? RR.cam(ed[0] + 100, ed[1] - 20, 3.5) : RR.cam(1150, 860, 1.2);
+      RR.withCam(cam, () => {
+        B.drawStatic({ only: ['map'] });
+      });
+    },
+  });
+})();
