@@ -137,7 +137,7 @@
   RR.scene({
     id: 's10_actions', order: 10, dur: 12, music: 'actions',
     cues: [
-      [0.1, 'brush'], [0.45, 'whoosh'], [1.1, 'flip', 0.5], [1.35, 'pencil'], [2.5, 'slide'],
+      [0.1, 'brush'], [0.45, 'whoosh'], [1.1, 'paper', 0.5], [1.35, 'pencil'], [2.5, 'slide'],
       [3.0, 'pop', 0.6], [3.1, 'pop', 0.6], [3.2, 'whoosh', 0.6], [3.3, 'paper'], [3.9, 'tick'], [3.95, 'tick'],
       [LIFT, 'whoosh'], [4.25, 'buzz', 0.6], [4.6, 'whoosh', 0.4], [L_CORP, 'tock'], [L_FR, 'tock'], [5.95, 'whoosh', 0.4],
       [6.3, 'whoosh'], [6.5, 'slide', 0.6], [6.95, 'flip'], [6.9, 'paper', 0.6], [7.3, 'pencil'], [7.55, 'pop'], [7.7, 'pop'],

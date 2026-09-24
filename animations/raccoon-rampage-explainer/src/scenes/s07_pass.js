@@ -104,7 +104,33 @@
   const DE_STRIP = (t) => [760, RR.lerp(-70, 96, RR.E.outBack(RR.seg(t, 8.55, 8.95))) - 180 * RR.seg(t, OUT0 + 0.1, OUT0 + 0.5, 'inBack')];
   const AR_STRIP = (t) => [RR.lerp(2150, 1700, RR.E.outBack(RR.seg(t, 12.1, 12.5))) + 500 * RR.seg(t, OUT0 + 0.1, OUT0 + 0.5, 'inBack'), 655];
 
+  // PASSED stamp, painted once and slammed down as a sprite.
+  const STAMP_SIZE = 84;
+  const stampSprite = () => {
+    const tw = RR.textWidth('PASSED', { font: 'title', size: STAMP_SIZE });
+    const w = tw + STAMP_SIZE * 0.8, h = STAMP_SIZE * 1.2, W = Math.ceil(w + 40), H = Math.ceil(h + 40);
+    return RR.sprite('s07:stamp', W, H, () => {
+      push(); translate(W / 2, H / 2);
+      RR.ink(RR.rrectPts(-w / 2, -h / 2, w, h, 12), { stroke: RR.C.greenDeep, w: 3.4, curve: 0.2, fill: RR.C.white, alpha: 150 });
+      RR.ink(RR.rrectPts(-w / 2 + 10, -h / 2 + 10, w - 20, h - 20, 8), { stroke: RR.C.greenDeep, w: 1.4, curve: 0.2 });
+      RR.text('PASSED', 0, STAMP_SIZE * 0.36, { font: 'title', size: STAMP_SIZE, col: RR.C.greenDeep });
+      pop();
+    }, { res: 1.3 });
+  };
+  const drawStamp = (t, x, y) => {
+    if (t < STAMP) return;
+    const k = RR.seg(t, STAMP, STAMP + 0.22, 'inQuad');
+    const sc = RR.lerp(2.4, 1, k) + (k >= 1 ? 0.06 * Math.exp(-(t - STAMP - 0.22) * 12) * Math.sin((t - STAMP) * 40) : 0);
+    const spr = stampSprite();
+    push(); translate(x, y); rotate(-0.2); scale(sc);
+    RR.drawSprite(spr, 0, 0, { w: spr.w, h: spr.h, alpha: RR.clamp(k * 1.4) });
+    pop();
+  };
+
   // Callout bubble next to the inset card, pointing at an icon on it.
+  const bubbleSprite = () => RR.sprite('s07:bubble', 200, 116, () => {
+    RR.ink(RR.rrectPts(8, 8, 184, 100, 40), { fill: RR.C.white, w: 1.2, curve: 0.2 });
+  }, { res: 1.5 });
   const callout = (t, t0, t1, tip, draw) => {
     const a = RR.env(t, t0, t1, 0.2, 0.3);
     if (a <= 0) return;
@@ -114,7 +140,7 @@
     const tail = [[-18, -40], [(tip[0] - c[0]) / k, (tip[1] - c[1]) / k], [18, -40]];
     RR.flat(RR.rrectPts(-92, -50, 184, 100, 40).map(([x, y]) => [x + 5, y + 7]), RR.C.ink, 40 * a);
     RR.ink(tail, { fill: RR.C.white, w: 1, curve: 0.1 });
-    RR.ink(RR.rrectPts(-92, -50, 184, 100, 40), { fill: RR.C.white, w: 1.2, curve: 0.2 });
+    RR.drawSprite(bubbleSprite(), 0, 0, { w: 200, h: 116 });
     draw(a);
     pop();
   };
@@ -222,7 +248,7 @@
         if (sc > 0.01) RR.badge(n, x * SC, (r === 'de' ? -4 : 2) * SC, { r: r === 'de' ? 38 : 28, scale: sc, bg: RR.C[r], col: RR.C.ink });
       });
       // PASSED
-      RR.stamp('PASSED', -40, -175, t, STAMP, { kind: 'pass', size: 84, rot: -0.2 });
+      drawStamp(t, -40, -175);
     });
   };
 

@@ -170,7 +170,7 @@
       const u = RR.seg(t, LEAP, IN);
       let [x, y] = RR.hop([2560, FLOOR], [BIN.x, BIN.rim + 40], u, 300);
       if (t > IN) y = RR.lerp(BIN.rim + 40, BIN.rim + 470, RR.E.inQuad(RR.seg(t, IN, 4.1)));
-      return { x, y, s: RS, back: u > 0.55, pose: { ...base, face: 1, squash: -0.2, lean: RR.lerp(0.2, 0.9, u), armF: 2.8, armB: 2.8, eyes: 'happy', mouth: 'grin', hold: 'trophy', tailUp: 1 } };
+      return { x, y, s: RS, back: u > 0.55, pose: { ...base, face: 1, squash: -0.2, lean: RR.lerp(0.2, 0.45, u) * (1 - RR.seg(t, IN, 4.0)), armF: 2.8, armB: 2.8, eyes: 'happy', mouth: 'grin', hold: 'trophy', tailUp: 1 } };
     }
     // end card: peeks out under the lid with the trophy, then ducks at 11
     if (t < 6.25 || t > 11.45) return null;
@@ -293,9 +293,11 @@
         }
       });
       drawEndCard(t);
-      // the plum wipe from s11 uncovers the stage (swipes carry on off to the right)
+      // the plum wipe from s11 uncovers the stage, its edge travelling left to right.
+      // (A mirrored cover-wipe run backwards: RR.wipe's `out` mode skips bands that have not
+      // started moving, so it would leave the first frames uncovered.)
       const u = RR.seg(t, 0, 0.8);
-      if (u < 1) RR.wipe(Math.max(0.0005, u), { out: true, dir: 1 });
+      if (u < 1) RR.wipe(1 - u, { dir: -1 });
     },
   });
 })();

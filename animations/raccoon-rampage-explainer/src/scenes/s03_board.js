@@ -37,7 +37,7 @@
   // ---- board sections flying in (0-2.4 s)
   const SECS = ['base', 'queue', 'tracker', 'map', 'right', 'story'];
   const ENTER = {
-    base: { t0: 0.45, d: 0.6, scale: 0.55 },
+    base: { t0: 0.45, d: 0.6, grow: true },
     queue: { t0: 0.95, d: 0.55, dy: -560, rot: 0.03, dust: [[[520, 432], [1780, 432]], [0, 1]] },
     tracker: { t0: 1.25, d: 0.55, dx: -640, rot: -0.06, dust: [[[512, 470], [512, 1250]], [1, 0]] },
     right: { t0: 1.55, d: 0.55, dx: 700, rot: 0.06, dust: [[[1808, 470], [1808, 1250]], [-1, 0]] },
@@ -48,7 +48,7 @@
     const lod = RR.curCam.z > 0.8 ? 'hi' : 'lo';
     for (const name of SECS) {
       const S = B.SECTIONS[name], e = ENTER[name];
-      let dx = 0, dy = 0, sc = 1, rot = 0, a = 1;
+      let dx = 0, dy = 0, sw = 1, sh = 1, rot = 0, a = 1;
       if (e) {
         const u = RR.seg(t, e.t0, e.t0 + e.d);
         if (u <= 0) continue;
@@ -56,9 +56,14 @@
         dx = (e.dx || 0) * (1 - k);
         dy = (e.dy || 0) * (1 - k);
         rot = (e.rot || 0) * (1 - RR.E.outCubic(u));
-        if (e.scale) { sc = RR.lerp(e.scale, 1, RR.E.inOutSine(u)); a = RR.seg(t, e.t0, e.t0 + 0.12); }
+        if (e.grow) {   // the board spreads out from beneath the map, evenly on every side
+          const g = RR.E.inOutSine(u), M = B.MAP;
+          sw = RR.lerp(M.w / S.w, 1, g); sh = RR.lerp(M.h / S.h, 1, g);
+          dx = (M.x + M.w / 2 - (S.x + S.w / 2)) * (1 - g); dy = (M.y + M.h / 2 - (S.y + S.h / 2)) * (1 - g);
+          a = RR.seg(t, e.t0, e.t0 + 0.12);
+        }
       }
-      RR.drawSprite(B.sectionSprite(name, lod), S.x + S.w / 2 + dx, S.y + S.h / 2 + dy, { w: S.w * sc, h: S.h * sc, alpha: a, rot });
+      RR.drawSprite(B.sectionSprite(name, lod), S.x + S.w / 2 + dx, S.y + S.h / 2 + dy, { w: S.w * sw, h: S.h * sh, alpha: a, rot });
     }
   };
   // Dust squeezed out of the seam where a section lands: puffs along the edge p..q,
@@ -392,7 +397,7 @@
   // ---- scores race (screen space)
   const SB = { x: 1440, y: 420, gap: 92 };
   const RACE = { de: [9, 11.3, 12.05, 'outCubic'], fr: [11, 11.22, 11.75, 'outQuad'], ar: [13, 11.35, 12.2, 'inCubic'], hu: [7, 11.26, 11.8, 'outCubic'] };
-  const WINNER = 'ar', WIN_ROW = 2;
+  const WIN_ROW = 2;   // Animal Rights ('ar') overtakes late and takes the crown
   // Score rows in the style of RR.scoreBoard, with the static parts (panel and role badge)
   // cached as sprites: painting them live cost more than a whole raccoon.
   const ROLES4 = ['de', 'fr', 'ar', 'hu'];

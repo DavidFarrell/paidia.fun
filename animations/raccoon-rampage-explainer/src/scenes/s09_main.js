@@ -163,6 +163,8 @@
     else if (t < 3.05) set({ turn: -0.3, look: [-0.7, -0.4], eyes: 'wide', brow: 'up', mouth: t < 2.8 ? 'o' : 'grin' });
     else if (t < 4.0) set({ turn: 0.35, look: [0.7, -0.9], mouth: 'smile' });
     else if (t < 4.7) set({ eyes: 'happy', mouth: 'grin', headTilt: 0.1 * Math.sin((t - 4.0) * 12) * (1 - RR.seg(t, 4.0, 4.7)) });
+    else if (t < 4.95) set({ look: [0, 0], mouth: 'smile' });
+    else if (t < 5.75) set({ look: [0, 0], eyes: 'happy', brow: 'sly', mouth: 'flat', headTilt: 0.12 }); // shh, it's a secret
     else if (t < 6.1) set({ turn: 0.2, look: [0.5, -0.6] });
     else if (t < 7.2) set({ turn: 0.35, look: [1, -0.2], mouth: t < 6.7 ? 'o' : 'smile', brow: 'up' });
     else if (t < 8.7) set({ turn: 0.4, look: [0.9, -0.8], brow: 'neutral' });
@@ -182,7 +184,7 @@
     // right hand: think, point, throw votes, handshake, flick, wave
     const shake = 10 * Math.sin((t - 13.75) * 24) * RR.env(t, 13.75, 14.5, 0.1, 0.15);
     p.handR = kfv(t, [
-      [2.0, REST_R], [2.25, [28, -176]], [2.55, [28, -176]], [2.72, [70, -300], 'outBack'], [2.95, [60, -230]], [3.12, [150, -270], 'outBack'], [3.6, [150, -270]], [4.0, REST_R],
+      [2.0, REST_R], [2.25, [28, -176]], [2.55, [28, -176]], [2.72, [70, -300], 'outBack'], [2.95, [60, -230]], [3.12, [150, -270], 'outBack'], [3.6, [150, -270]], [4.0, REST_R], [4.75, REST_R], [4.98, [10, -186], 'outBack'], [5.7, [10, -186]], [6.0, REST_R],
       [7.1, REST_R], [7.2, [80, -170]], [7.35, [130, -300], 'outBack'], [7.6, [130, -300]], [7.78, [80, -170]], [7.95, [130, -300], 'outBack'], [8.25, [130, -300]], [8.5, REST_R],
       [8.85, REST_R], [9.0, [110, -150], 'outBack'], [9.12, [100, -150]], [9.2, [80, -170]], [9.3, [130, -300], 'outBack'], [9.7, [130, -300]], [10.0, REST_R],
       [12.3, REST_R], [12.5, [140, -285], 'outBack'], [13.2, [140, -285]], [13.72, [185, -190]], [14.6, [185, -190]], [14.95, REST_R],

@@ -350,22 +350,35 @@
 
   // Animal Rights Activist: placard up, hugs a raccoon, paw policy scores.
   const AR_X = 350, RAC_X = 596, RAC_Y = 1140, RAC_S = 1.5;
+  // The raccoon costs about twice a person to draw live at this size, so in this two-character
+  // shot it plays from painted cels: one per expression, two tail positions each, with the
+  // pop, lean and squash applied to the cel (same maths as RR.drawRaccoon).
+  const RAC_CEL = {
+    peek: { look: [-1, -0.2], mouth: 'o', brow: 'up' },
+    notice: { look: [1, -0.3], eyes: 'wide', brow: 'up', mouth: 'smile' },
+    hug: { eyes: 'happy', mouth: 'smile', armF: 1.45, headTilt: 0.14 },
+    up: { look: [-0.6, -1], brow: 'up', mouth: 'o', headTilt: -0.12 },
+    upgrin: { look: [-0.6, -1], brow: 'up', mouth: 'grin', headTilt: -0.12 },
+    cheerA: { eyes: 'happy', mouth: 'grin', armF: 2.35, armB: 2.4, tailUp: 1 },
+    cheerB: { eyes: 'happy', mouth: 'grin', armF: 2.9, armB: 2.6, tailUp: 1 },
+  };
+  const RC_W = 390, RC_H = 350, RC_FX = 170, RC_FY = 335;
+  const racCel = (k, tp) => RR.sprite(`s04:rac:${k}:${tp}`, RC_W, RC_H, () => RR.drawRaccoon(RC_FX, RC_FY, RAC_S, { face: -1, armF: 0.35, armB: 0.25, tail: tp ? 1.7 : -0.4, ...RAC_CEL[k] }), { res: 1 });
   const racPose = (t) => {
     const io = popIO(t, 10.95, 14.45, 520);
     if (!io) return null;
-    const p = RR.raccoonIdle(t, { face: -1, armF: 0.35, armB: 0.25 });
-    p.squash += io.sq;
-    if (t < 11.35) Object.assign(p, { look: [-1, -0.2], mouth: 'o', brow: 'up', ear: Math.sin(t * 20) * 0.5 });
-    else if (t < 11.55) Object.assign(p, { look: [1, -0.3], eyes: 'wide', brow: 'up', mouth: 'smile' });
-    else if (t < 12.7) {
-      const h = RR.env(t, 11.55, 13.0, 0.2, 0.3);
-      Object.assign(p, { lean: 0.2 * h, headTilt: 0.14 * h, eyes: 'happy', mouth: 'smile', armF: 0.35 + 1.1 * h, tail: t * 6 });
-    } else if (t < 13.65) Object.assign(p, { lean: RR.tw(t, 12.7, 13.0, 0.2, 0.05), look: [-0.6, -1], brow: 'up', mouth: t > 13.3 ? 'grin' : 'o', headTilt: -0.12 });
-    else {
-      Object.assign(p, { eyes: 'happy', mouth: 'grin', armF: 2.6 + 0.3 * Math.sin(t * 14), armB: 2.4, tailUp: 1, tail: t * 8 });
-      p.squash += 0.06 * Math.sin((t - 13.65) * 14);
-    }
-    return { x: RAC_X, y: RAC_Y + io.dy, s: RAC_S, pose: p };
+    const p = { face: -1, squash: io.sq + 0.03 * Math.sin(t * 4.2), lean: 0 };
+    let key;
+    if (t < 11.35) key = 'peek';
+    else if (t < 11.6) key = 'notice';
+    else if (t < 12.7) { key = 'hug'; p.lean = 0.2 * RR.env(t, 11.5, 13.0, 0.2, 0.3); }
+    else if (t < 13.65) { key = t > 13.3 ? 'upgrin' : 'up'; p.lean = RR.tw(t, 12.7, 13.0, 0.2, 0.05); }
+    else { key = Math.floor(t * 8) % 2 ? 'cheerA' : 'cheerB'; p.squash += 0.06 * Math.sin((t - 13.65) * 14); }
+    return { x: RAC_X, y: RAC_Y + io.dy, s: RAC_S, pose: p, cel: { key, tp: Math.floor(t * 4) % 2 } };
+  };
+  const drawRac = (R) => {
+    const sq = R.pose.squash;
+    RR.drawSprite(racCel(R.cel.key, R.cel.tp), R.x, R.y, { w: RC_W, h: RC_H, ax: RC_FX / RC_W, ay: RC_FY / RC_H, rot: -R.pose.lean, sx: 1 + sq * 0.6, sy: 1 - sq * 0.6 });
   };
   const arPose = (t, rac) => {
     const io = popIO(t, 10.2, 14.4);
@@ -530,7 +543,7 @@
         drawP('ar', P);
         if (R) {
           RR.shadow(R.x, R.y + 4, 90, 14, 40);
-          RR.drawRaccoon(R.x, R.y, R.s, R.pose);
+          drawRac(R);
         }
         if (P && R && P.hug > 0.3) {
           const h = pxf(P.x, P.y, P.s, P.pose, P.pose.handR);
@@ -593,8 +606,8 @@
           const rr = t >= 17.86 ? RR.lerp(0.35, 0.1, settle) : r0;
           const da = 1 - RR.seg(t, 18.8, 19.05);
           RR.shadow(pos[0] + 4, Math.max(pos[1], L2[1]) + 38, 34, 9, 40 * da);
+          if (t > 17.9) RR.sparkle(pos[0], pos[1], t, 17.9, { r: 90, col: RR.C.lilac, n: 7 });
           RR.drawDie(pos[0], pos[1], 76, 'hunter', face, { rot: rr, sx: 1 / sq, sy: sq, alpha: da, shadow: false });
-          if (t > 17.9) RR.sparkle(pos[0], pos[1], t, 17.9, { r: 80, col: RR.C.lilac, n: 6 });
         }
         // a raccoon token poofs off the map and lands on the Hunter's strip
         const from = S(add(tokenPos('roe', 1), [0, -TOK * 0.1]));
